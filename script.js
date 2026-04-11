@@ -125,6 +125,9 @@ let selectedCategory = null;
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 
+// URL do Web App do Google Apps Script
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyc4X2oecPt9urNQG5Ml8RJCNDqIf3jtGCJfWVp3cq8h6IQZBsMOv1ZhNYdyGyEEBd_/exec';
+
 // Número do WhatsApp - SUBSTITUA pelo seu número
 const WHATSAPP_NUMBER = '5511999999999';
 
@@ -135,24 +138,6 @@ const WHATSAPP_NUMBER = '5511999999999';
 function getClientKey() {
     const phone = document.getElementById('clientPhone').value;
     return phone ? 'historico_' + phone.replace(/\D/g, '') : null;
-}
-
-function saveToHistory(service, date, time, price, category) {
-    var key = getClientKey();
-    if (!key) return;
-    
-    var historyData = JSON.parse(localStorage.getItem(key) || '[]');
-    historyData.unshift({
-        service: service,
-        date: date,
-        time: time,
-        price: price,
-        category: category,
-        createdAt: new Date().toISOString()
-    });
-    
-    if (historyData.length > 20) historyData = historyData.slice(0, 20);
-    localStorage.setItem(key, JSON.stringify(historyData));
 }
 
 function saveToHistory(service, date, time, price, category) {
@@ -213,9 +198,9 @@ function getWaitlist() {
     return JSON.parse(localStorage.getItem(key)) || '[]';
 }
 
-// Horários disponíveis
+// Horários disponíveis (agora vem do GAS)
 const AVAILABLE_TIMES = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
-const UNAVAILABLE_TIMES = []; // Adicione horários indisponíveis, ex: ['10:00', '15:00']
+const UNAVAILABLE_TIMES = []; // Não usado mais, mantido para compatibilidade
 
 // ============================================
 // INICIALIZAÇÃO
@@ -578,27 +563,63 @@ function selectDate(dateStr, element) {
 // HORÁRIOS
 // ============================================
 
+// ============================================
+// HORÁRIOS (buscar do Google Apps Script)
+// ============================================
+
 function loadTimes() {
     const timeGrid = document.getElementById('timeGrid');
     const timeSection = document.getElementById('timeSection');
+    const timeLoading = document.getElementById('timeLoading');
     
-    timeGrid.innerHTML = AVAILABLE_TIMES.map((time, index) => {
-        const isUnavailable = UNAVAILABLE_TIMES.includes(time);
-        const delayClass = `delay-${(index % 6) + 1}`;
-        return `
-            <button 
-                class="time-slot ${isUnavailable ? 'unavailable' : ''} animate-scale-in ${delayClass}" 
-                onclick="${isUnavailable ? '' : `selectTime('${time}')`}"
-                ${isUnavailable ? 'disabled' : ''}
-            >
-                ${time}
-            </button>
-        `;
-    }).join('');
-    
+    timeGrid.innerHTML = '';
     timeSection.style.display = 'block';
-    selectedTime = null;
     
+    // Busca horários do Google Apps Script
+    fetch(GAS_URL + '?action=getHorarios&data=' + selectedDate)
+        .then(response => response.text())
+        .then(text => {
+            console.log('Raw response:', text);
+            const data = JSON.parse(text);
+            const horarios = data.horarios || [];
+            
+            // Lista completa de horários para exibir os ocupados também
+            const todosHorarios = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+            
+            console.log('Horários disponíveis:', horarios);
+            
+            timeGrid.innerHTML = todosHorarios.map((time, index) => {
+                const isAvailable = horarios.includes(time);
+                const delayClass = `delay-${(index % 6) + 1}`;
+                return `
+                    <button 
+                        class="time-slot ${isAvailable ? '' : 'unavailable'} animate-scale-in ${delayClass}" 
+                        onclick="${isAvailable ? `selectTime('${time}')` : ''}"
+                        ${isAvailable ? '' : 'disabled'}
+                    >
+                        ${time}
+                    </button>
+                `;
+            }).join('');
+        })
+        .catch(error => {
+            console.error('Erro ao buscar horários:', error);
+            // Se der erro, mostra todos disponíveis
+            const todosHorarios = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+            timeGrid.innerHTML = todosHorarios.map((time, index) => {
+                const delayClass = `delay-${(index % 6) + 1}`;
+                return `
+                    <button 
+                        class="time-slot animate-scale-in ${delayClass}" 
+                        onclick="selectTime('${time}')"
+                    >
+                        ${time}
+                    </button>
+                `;
+            }).join('');
+        });
+    
+    selectedTime = null;
     document.getElementById('timeSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -642,7 +663,11 @@ function formatDate(dateString) {
 // ENVIO WHATSAPP
 // ============================================
 
-document.getElementById('confirmForm').addEventListener('submit', function(e) {
+// ============================================
+// ENVIO PARA GOOGLE APPS SCRIPT
+// ============================================
+
+document.getElementById('confirmForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const name = document.getElementById('clientName').value;
@@ -651,22 +676,48 @@ document.getElementById('confirmForm').addEventListener('submit', function(e) {
     const category = appData.categories.find(c => c.id === selectedCategory);
     const categoryText = category ? category.name : 'Manicure & Pedicure';
     
-    const message = `Olá! Gostaria de confirmar meu agendamento:\n\n` +
-        `👤 Nome: ${name}\n` +
-        `📱 WhatsApp: ${phone}\n` +
-        `💅 Área: ${categoryText}\n` +
-        `✨ Serviço: ${selectedService}\n` +
-        `📅 Data: ${formatDate(selectedDate)}\n` +
-        `🕐 Horário: ${selectedTime}\n` +
-        `💰 Valor: R$ ${selectedPrice}`;
+    const formData = new URLSearchParams();
+    formData.append('action', 'agendar');
+    formData.append('data', selectedDate);
+    formData.append('hora', selectedTime);
+    formData.append('servico', selectedService);
+    formData.append('cliente', name);
+    formData.append('telefone', phone);
     
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-    
-    // Abre WhatsApp
-    window.open(whatsappUrl, '_blank');
-    
-    // Mostra modal de sucesso
-    document.getElementById('successModal').style.display = 'flex';
+    try {
+        const response = await fetch(GAS_URL, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.sucesso) {
+            // Salva no histórico local
+            saveToHistory(selectedService, selectedDate, selectedTime, selectedPrice, selectedCategory);
+            
+            // Abre WhatsApp com mensagem
+            const message = `Olá! Gostaria de confirmar meu agendamento:\n\n` +
+                `👤 Nome: ${name}\n` +
+                `📱 WhatsApp: ${phone}\n` +
+                `💅 Área: ${categoryText}\n` +
+                `✨ Serviço: ${selectedService}\n` +
+                `📅 Data: ${formatDate(selectedDate)}\n` +
+                `🕐 Horário: ${selectedTime}\n` +
+                `💰 Valor: R$ ${selectedPrice}`;
+            
+            const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+            
+            // Mostra modal de sucesso
+            document.getElementById('successModal').style.display = 'flex';
+        } else {
+            alert(result.erro || 'Erro ao agendar. Tente novamente.');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao agendar. Tente novamente.');
+    }
 });
 
 function closeModal() {

@@ -85,7 +85,7 @@ const appData = {
             description: "Hidratação profunda e massagem relaxante",
             price: 120,
             duration: 90,
-            badge: "Recomendado",
+            badge: null,
             icon: "spa"
         },
         {
@@ -147,11 +147,12 @@ document.addEventListener('DOMContentLoaded', function() {
 function renderCategories() {
     const container = document.querySelector('#step1 .category-grid');
     
-    container.innerHTML = appData.categories.map(cat => {
+    container.innerHTML = appData.categories.map((cat, index) => {
         const iconSvg = getCategoryIcon(cat.icon);
+        const delayClass = `delay-${index + 1}`;
         
         return `
-            <button class="category-card ${cat.id === 'podologia' ? 'podologia' : ''}" onclick="selectCategory('${cat.id}')">
+            <button class="category-card ${cat.id === 'podologia' ? 'podologia' : ''} animate-fade-in-up ${delayClass}" onclick="selectCategory('${cat.id}')">
                 <div class="category-icon ${cat.id === 'podologia' ? 'podologia' : ''}">
                     ${iconSvg}
                 </div>
@@ -257,14 +258,15 @@ function selectCategory(categoryId) {
     section.querySelector('.section-subtitle').textContent = category ? category.description : '';
     
     const serviceList = section.querySelector('.service-list');
-    serviceList.innerHTML = services.map(service => {
+    serviceList.innerHTML = services.map((service, index) => {
         const badgeHtml = service.badge 
             ? `<div class="service-badge">${service.badge}</div>` 
             : '';
         const iconClass = categoryId === 'podologia' ? 'podologia' : '';
+        const delayClass = `delay-${index + 1}`;
         
         return `
-            <button class="service-card" onclick="selectService('${service.id}')">
+            <button class="service-card animate-fade-in-up ${delayClass}" onclick="selectService('${service.id}')">
                 ${badgeHtml}
                 <div class="service-icon ${iconClass}">
                     ${getServiceIcon(service.icon)}
@@ -364,18 +366,22 @@ function renderCalendar() {
     today.setHours(0, 0, 0, 0);
     
     let html = '';
+    let dayIndex = 0;
     
     // Dias do mês anterior
     for (let i = firstDay - 1; i >= 0; i--) {
-        html += `<button class="calendar-day other-month" disabled>${daysInPrevMonth - i}</button>`;
+        const delayClass = `delay-${(dayIndex % 6) + 1}`;
+        html += `<button class="calendar-day other-month animate-scale-in ${delayClass}" disabled>${daysInPrevMonth - i}</button>`;
+        dayIndex++;
     }
     
     // Dias do mês atual
     for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(currentYear, currentMonth, day);
         const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const delayClass = `delay-${(dayIndex % 6) + 1}`;
         
-        let classes = 'calendar-day';
+        let classes = 'calendar-day animate-scale-in ' + delayClass;
         
         if (date < today) {
             classes += ' disabled';
@@ -392,13 +398,16 @@ function renderCalendar() {
             }
             html += `<button class="${classes}" onclick="selectDate('${dateStr}', this)">${day}</button>`;
         }
+        dayIndex++;
     }
     
     // Preencher restante da grade
     const totalCells = firstDay + daysInMonth;
     const remainingCells = 42 - totalCells;
     for (let i = 1; i <= remainingCells; i++) {
-        html += `<button class="calendar-day other-month" disabled>${i}</button>`;
+        const delayClass = `delay-${(dayIndex % 6) + 1}`;
+        html += `<button class="calendar-day other-month animate-scale-in ${delayClass}" disabled>${i}</button>`;
+        dayIndex++;
     }
     
     document.getElementById('calendarDays').innerHTML = html;
@@ -439,11 +448,12 @@ function loadTimes() {
     const timeGrid = document.getElementById('timeGrid');
     const timeSection = document.getElementById('timeSection');
     
-    timeGrid.innerHTML = AVAILABLE_TIMES.map(time => {
+    timeGrid.innerHTML = AVAILABLE_TIMES.map((time, index) => {
         const isUnavailable = UNAVAILABLE_TIMES.includes(time);
+        const delayClass = `delay-${(index % 6) + 1}`;
         return `
             <button 
-                class="time-slot ${isUnavailable ? 'unavailable' : ''}" 
+                class="time-slot ${isUnavailable ? 'unavailable' : ''} animate-scale-in ${delayClass}" 
                 onclick="${isUnavailable ? '' : `selectTime('${time}')`}"
                 ${isUnavailable ? 'disabled' : ''}
             >

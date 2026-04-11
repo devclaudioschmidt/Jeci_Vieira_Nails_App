@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Administrativo | Jeci Vieira Nails</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--bg-gradient);
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(232, 180, 184, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            animation: fadeInUp 0.6s ease;
+        }
+        .login-logo {
+            margin-bottom: 30px;
+            color: var(--primary-dark);
+        }
+        .login-logo svg {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+        .login-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--secondary);
+            margin-bottom: 8px;
+        }
+        .login-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            text-align: left;
+        }
+        .form-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-input-group label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .login-input {
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(232, 180, 184, 0.4);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        .login-input:focus {
+            outline: none;
+            border-color: var(--primary-dark);
+            box-shadow: 0 0 0 4px rgba(232, 180, 184, 0.2);
+        }
+        .login-btn {
+            background: var(--primary-dark);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .login-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-message {
+            background: #fff5f5;
+            color: #e53e3e;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid #feb2b2;
+            animation: fadeIn 0.3s ease;
+        }
+        .back-to-site {
+            margin-top: 24px;
+            display: inline-block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .back-to-site:hover {
+            color: var(--primary-dark);
+        }
+        .spinner-inner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+    </style>
+</head>
+<body class="login-page">
+    <div class="login-card">
+        <div class="login-logo">
+            <svg viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="25" cy="25" r="23" stroke="currentColor" stroke-width="2"/>
+                <path d="M25 12C25 12 18 18 18 26C18 31 21 35 25 35C29 35 32 31 32 26C32 18 25 12 25 12Z" fill="currentColor" opacity="0.3"/>
+                <path d="M25 18V30M22 24H28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <h1 class="login-title">Acesso Restrito</h1>
+            <p class="login-subtitle">Jeci Vieira Nails & Podologia</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <form id="loginForm" class="login-form">
+            <div class="form-input-group">
+                <label for="username">Usuário</label>
+                <input type="text" id="username" class="login-input" placeholder="Seu usuário" required autocomplete="username">
+            </div>
+            <div class="form-input-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" class="login-input" placeholder="Sua senha" required autocomplete="current-password">
+            </div>
+            <button type="submit" id="loginBtn" class="login-btn">
+                <span>Entrar no Painel</span>
+                <div class="spinner-inner" id="loginSpinner"></div>
+            </button>
+        </form>
+
+        <a href="index.html" class="back-to-site">← Voltar para o agendamento</a>
+    </div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyc4X2oecPt9urNQG5Ml8RJCNDqIf3jtGCJfWVp3cq8h6IQZBsMOv1ZhNYdyGyEEBd_/exec';
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            const spinner = document.getElementById('loginSpinner');
+            const errorMsg = document.getElementById('errorMessage');
+
+            // Reset state
+            errorMsg.style.display = 'none';
+            btn.disabled = true;
+            spinner.style.display = 'block';
+
+            try {
+                const response = await fetch(`${GAS_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`, {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+                const result = await response.json();
+
+                if (result.sucesso) {
+                    // Armazena token de sessão
+                    localStorage.setItem('admin_auth_token', result.token);
+                    localStorage.setItem('admin_user', user);
+                    
+                    // Redireciona para o admin
+                    window.location.href = 'admin.html';
+                } else {
+                    errorMsg.textContent = result.erro || 'Erro ao realizar login.';
+                    errorMsg.style.display = 'block';
+                    btn.disabled = false;
+                    spinner.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                errorMsg.textContent = 'Erro de conexão. Tente novamente.';
+                errorMsg.style.display = 'block';
+                btn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        });
+
+        // Limpa erros ao digitar
+        document.querySelectorAll('.login-input').forEach(input => {
+            input.addEventListener('input', () => {
+                document.getElementById('errorMessage').style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

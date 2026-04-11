@@ -21,9 +21,33 @@ function handleRequest(e) {
   if (action === 'getHorarios') return getHorarios(params.data);
   if (action === 'agendar') return agendar(params);
   if (action === 'getAgendamentos') return listar();
+  if (action === 'login') return verificarLogin(params.user, params.pass);
+  
+  if (action === 'getServicos') return getServicos();
+  if (action === 'salvarServico') return salvarServico(params);
+  if (action === 'excluirServico') return excluirServico(params.id);
   
   return ContentService.createTextOutput(
     JSON.stringify({ erro: 'ação inválida' })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================
+// verificarLogin - Valida acesso administrativo
+// ============================================
+function verificarLogin(user, pass) {
+  // CONFIGURAÇÃO DE ACESSO - ALTERE AQUI!
+  const USER_ADMIN = 'admin';
+  const PASS_ADMIN = '1234';
+  
+  if (user === USER_ADMIN && pass === PASS_ADMIN) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ sucesso: true, token: Utilities.base64Encode(user + ':' + pass) })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  return ContentService.createTextOutput(
+    JSON.stringify({ sucesso: false, erro: 'Usuário ou senha incorretos' })
   ).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -93,7 +117,23 @@ function getHorarios(data) {
   var sheet = ss.getSheetByName('agendamentos');
   var dados = sheet.getDataRange().getValues();
   
-  var todosHorarios = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+  var dateObj = new Date(data + 'T12:00:00'); // Meio-dia para evitar problemas de fuso
+  var diaSemana = dateObj.getDay(); // 0 = Domingo, 1-5 = Seg-Sex, 6 = Sábado
+  var todosHorarios = [];
+  
+  if (diaSemana >= 1 && diaSemana <= 5) {
+    // Segunda a Sexta: 08:00 às 11:00 e 13:30 às 21:00
+    todosHorarios = [
+      '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+      '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'
+    ];
+  } else if (diaSemana === 6) {
+    // Sábado: 07:00 às 12:00
+    todosHorarios = [
+      '07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'
+    ];
+  }
+  
   var ocupados = [];
   
   var dataNormalized = normalizeDate(data, tz);
@@ -185,5 +225,125 @@ function listar() {
   
   return ContentService.createTextOutput(
     JSON.stringify(lista)
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================
+// getServicos - Lista serviços configurados
+// ============================================
+function getServicos() {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheet = ss.getSheetByName('servicos');
+  
+  if (!sheet) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ erro: 'Aba servicos nao encontrada' })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  var dados = sheet.getDataRange().getValues();
+  var lista = [];
+  
+  for (var i = 1; i < dados.length; i++) {
+    if(!dados[i][0]) continue;
+    lista.push({
+      id: String(dados[i][0]).trim(),
+      category: String(dados[i][1]).trim(),
+      name: String(dados[i][2]).trim(),
+      description: String(dados[i][3] || '').trim(),
+      price: parseFloat(dados[i][4]) || 0,
+      duration: parseInt(dados[i][5], 10) || 0,
+      icon: String(dados[i][6] || 'circle').trim()
+    });
+  }
+  
+  return ContentService.createTextOutput(
+    JSON.stringify(lista)
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================
+// salvarServico - Adiciona ou atualiza serviço
+// ============================================
+function salvarServico(params) {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheet = ss.getSheetByName('servicos');
+  
+  if (!sheet) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ sucesso: false, erro: 'Aba servicos nao encontrada' })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  var dados = sheet.getDataRange().getValues();
+  var rowIndexToUpdate = -1;
+  
+  // Procura se já existe
+  for (var i = 1; i < dados.length; i++) {
+    if (String(dados[i][0]).trim() === params.id) {
+      rowIndexToUpdate = i + 1; // +1 porque sheet começa em 1, e array dados em 0
+      break;
+    }
+  }
+  
+  var newRowData = [
+    params.id,
+    params.category,
+    params.name,
+    params.description || '',
+    params.price || 0,
+    params.duration || 0,
+    params.icon || 'circle'
+  ];
+  
+  if (rowIndexToUpdate > -1) {
+    // Atualiza
+    sheet.getRange(rowIndexToUpdate, 1, 1, newRowData.length).setValues([newRowData]);
+  } else {
+    // Insere
+    if (dados.length === 1 && String(dados[0][0]) === "") {
+        // Inicializa cabeçalho caso esteja completamente vazia
+        sheet.getRange(1, 1, 1, 7).setValues([['id', 'category', 'name', 'description', 'price', 'duration', 'icon']]);
+    }
+    sheet.appendRow(newRowData);
+  }
+  
+  return ContentService.createTextOutput(
+    JSON.stringify({ sucesso: true })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================
+// excluirServico - Remove um serviço
+// ============================================
+function excluirServico(id) {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheet = ss.getSheetByName('servicos');
+  
+  if (!sheet) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ sucesso: false, erro: 'Aba servicos nao encontrada' })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  var dados = sheet.getDataRange().getValues();
+  var rowIndexToDelete = -1;
+  
+  for (var i = 1; i < dados.length; i++) {
+    if (String(dados[i][0]).trim() === id) {
+      rowIndexToDelete = i + 1;
+      break;
+    }
+  }
+  
+  if (rowIndexToDelete > -1) {
+    sheet.deleteRow(rowIndexToDelete);
+    return ContentService.createTextOutput(
+      JSON.stringify({ sucesso: true })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  return ContentService.createTextOutput(
+    JSON.stringify({ sucesso: false, erro: 'Serviço não encontrado' })
   ).setMimeType(ContentService.MimeType.JSON);
 }

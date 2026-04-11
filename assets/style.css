@@ -1824,3 +1824,85 @@ body {
     width: 20px;
     height: 20px;
 }
+
+/* ============================================
+   ADMIN DASHBOARD
+   ============================================ */
+.admin-header { justify-content: space-between; }
+.admin-header .nav-btn { color: var(--primary-dark); display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: var(--bg-card); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); }
+.admin-calendar-section { padding: 8px 20px; position: relative; }
+.admin-calendar-section .section-header { margin-bottom: 12px; }
+.admin-calendar-section .section-title { font-size: 1.2rem; margin-bottom: 0; }
+.admin-calendar-section .section-subtitle { display: none; }
+.admin-calendar .calendar { padding: 12px 14px; }
+.admin-calendar .calendar-header { margin-bottom: 8px; }
+.admin-calendar .calendar-month { font-size: 1rem; }
+.admin-calendar .calendar-nav { width: 32px; height: 32px; }
+.admin-calendar .calendar-nav svg { width: 18px; height: 18px; }
+.admin-calendar .calendar-weekdays { margin-bottom: 2px; }
+.admin-calendar .calendar-weekdays span { padding: 4px 0; font-size: 0.7rem; }
+.admin-calendar .calendar-days { gap: 3px; }
+.admin-calendar .calendar-day { font-size: 0.85rem; height: 38px; aspect-ratio: unset; border-radius: 8px; }
+.admin-calendar .calendar-indicator { top: 4px; right: 4px; width: 14px; height: 14px; font-size: 9px; }
+.admin-agenda-section { padding: 0 20px 20px; }
+.agenda-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid rgba(232, 180, 184, 0.2); padding-bottom: 12px; }
+.agenda-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--secondary); font-weight: 600; }
+.agenda-badge { background: var(--primary-light); color: var(--primary-dark); font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: var(--radius-full); }
+.agenda-card { display: flex; align-items: center; background: var(--bg-card); padding: 16px; border-radius: var(--radius-md); margin-bottom: 12px; box-shadow: var(--shadow-sm); cursor: pointer; transition: var(--transition); border-left: 4px solid var(--primary-dark); }
+.agenda-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.agenda-time { font-weight: 700; color: var(--primary-dark); font-size: 1.1rem; width: 65px; border-right: 1px solid #eee; padding-right: 12px; margin-right: 12px; }
+.agenda-info { flex: 1; }
+.agenda-info h4 { font-size: 1rem; color: var(--secondary); margin-bottom: 2px; }
+.agenda-info p { font-size: 0.8rem; color: var(--text-muted); }
+.agenda-status { margin-left: auto; color: var(--primary-dark); }
+.empty-agenda { text-align: center; color: var(--text-muted); padding: 40px 20px; background: var(--bg-card); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+.empty-agenda svg { margin-bottom: 12px; }
+.loading-indicator { display: none; position: absolute; inset: 0; background: rgba(253, 248, 248, 0.8); backdrop-filter: blur(4px); z-index: 10; align-items: center; justify-content: center; flex-direction: column; gap: 12px; border-radius: var(--radius-lg); }
+.spinner { width: 40px; height: 40px; border: 3px solid rgba(232, 180, 184, 0.3); border-top-color: var(--primary-dark); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.calendar-day.has-appointments { position: relative; font-weight: bold; color: var(--primary-dark); }
+.calendar-indicator { position: absolute; top: 4px; right: 4px; width: 14px; height: 14px; background: var(--primary-dark); color: white; border-radius: 50%; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.admin-modal-content { text-align: left; padding: 24px; }
+
+/* Tabs Admin */
+.admin-tabs { display: flex; border-bottom: 2px solid rgba(232, 180, 184, 0.2); margin-bottom: 15px; padding: 0 20px;}
+.tab-btn { flex: 1; padding: 12px; background: transparent; border: none; border-bottom: 2px solid transparent; font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: var(--transition); }
+.tab-btn.active { color: var(--primary-dark); border-bottom-color: var(--primary-dark); font-weight: 600; }
+.admin-tab-content { display: none; }
+.admin-tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+/* Serviços Admin */
+.admin-services-section { padding: 0 20px 20px; }
+.services-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid rgba(232, 180, 184, 0.2); padding-bottom: 12px; }
+.primary-btn { background: var(--primary-dark); color: white; border: none; padding: 8px 16px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+.primary-btn:hover { background: var(--secondary); transform: translateY(-2px); }
+
+.service-admin-card { background: var(--bg-card); padding: 16px; border-radius: var(--radius-md); margin-bottom: 12px; box-shadow: var(--shadow-sm); display: flex; align-items: center; border-left: 4px solid var(--primary-light); }
+.service-admin-info { flex: 1; }
+.service-admin-info h4 { font-size: 1rem; color: var(--secondary); margin-bottom: 2px; }
+.service-admin-info p { font-size: 0.8rem; color: var(--text-muted); }
+.service-admin-price { font-weight: 600; color: var(--primary-dark); margin-top: 4px; font-size: 0.9rem; }
+.service-admin-actions { display: flex; gap: 8px; }
+.action-btn { background: var(--bg-secondary); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary-dark); transition: var(--transition); }
+.action-btn:hover { background: var(--primary-light); color: white; }
+.action-btn.delete { color: #e53e3e; }
+.action-btn.delete:hover { background: #e53e3e; color: white; }
+
+/* Formulário de Serviços (Admin) */
+.service-form { display: flex; flex-direction: column; gap: 15px; margin-top: 15px;}
+.form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+.form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
+.form-group input, .form-group select, .form-group textarea { padding: 10px 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: 'Poppins', sans-serif; font-size: 0.9rem; background: rgba(255,255,255,0.8); }
+.form-row { display: flex; gap: 15px; }
+.admin-modal-content h3 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--secondary); margin-bottom: 4px; text-align: left; }
+.admin-modal-content .modal-service { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 12px; }
+.modal-details { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.detail-row { display: flex; align-items: center; gap: 12px; color: var(--secondary); font-size: 0.95rem; }
+.detail-row svg { width: 18px; height: 18px; color: var(--primary-dark); }
+.status-badge { background: var(--primary-light); color: var(--primary-dark); padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+.modal-actions { display: flex; flex-direction: column; gap: 12px; }
+.whats-btn { background: #25D366; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; }
+.whats-btn:hover { background: #128C7E; color: white; }
+.whats-btn svg { width: 20px; height: 20px; }
+.modal-btn.secondary { background: #f0f0f0; color: var(--text-secondary); box-shadow: none; border: none; }
+

@@ -17,98 +17,7 @@ const appData = {
             icon: "foot"
         }
     ],
-    services: [
-        {
-            id: "manicure-basica",
-            category: "manicure",
-            name: "Manicure",
-            description: "Corte, shape e pintura perfeita",
-            price: 50,
-            duration: 45,
-            badge: null,
-            icon: "hand"
-        },
-        {
-            id: "manicure-gel",
-            category: "manicure",
-            name: "Esmaltação em Gel",
-            description: "Esmaltação em Gel com duraçao de até 15 dias.",
-            price: 85,
-            duration: 90,
-            badge: null,
-            icon: "hand"
-        },
-        {
-            id: "pe-mao",
-            category: "manicure",
-            name: "Pé e Mão",
-            description: "Combo completo com hidratação",
-            price: 85,
-            duration: 90,
-            badge: null,
-            icon: "hands"
-        },
-        {
-            id: "esmaltacao-gel",
-            category: "manicure",
-            name: "Esmaltação em Gel",
-            description: "Durabilidade e brilho por semanas",
-            price: 70,
-            duration: 60,
-            badge: null,
-            icon: "bottle"
-        },
-        {
-            id: "alongamento",
-            category: "manicure",
-            name: "Alongamento",
-            description: "Unhaspostiças com técnica moderna",
-            price: 150,
-            duration: 120,
-            badge: null,
-            icon: "longnail"
-        },
-        {
-            id: "podologia-basica",
-            category: "podologia",
-            name: "Podologia Básica",
-            description: "Limpeza, corte e tratamento de unhas",
-            price: 80,
-            duration: 60,
-            badge: null,
-            icon: "foot"
-        },
-        {
-            id: "spa-podologico",
-            category: "podologia",
-            name: "Spa Podológico",
-            description: "Hidratação profunda e massagem relaxante",
-            price: 120,
-            duration: 90,
-            badge: null,
-            icon: "spa"
-        },
-        {
-            id: "tratamento-calos",
-            category: "podologia",
-            name: "Tratamento de Calos",
-            description: "Remoção e tratamento especializado",
-            price: 90,
-            duration: 60,
-            badge: null,
-            icon: "circle"
-        },
-        {
-            id: "ortese-unha",
-            category: "podologia",
-            name: "Órtese de Unha",
-            description: "Correção de unhas encravadas",
-            price: 100,
-            duration: 45,
-            badge: null,
-            icon: "brace"
-        }
-    ]
+    services: []
 };
 
 // ============================================
@@ -199,7 +108,7 @@ function getWaitlist() {
 }
 
 // Horários disponíveis (agora vem do GAS)
-const AVAILABLE_TIMES = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+const AVAILABLE_TIMES = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
 const UNAVAILABLE_TIMES = []; // Não usado mais, mantido para compatibilidade
 
 // ============================================
@@ -207,9 +116,27 @@ const UNAVAILABLE_TIMES = []; // Não usado mais, mantido para compatibilidade
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    renderCategories();
-    checkReminders();
-    setupWaitlistDateInput();
+    fetch(GAS_URL + '?action=getServicos')
+        .then(res => res.json())
+        .then(data => {
+            if (Array.isArray(data) && data.length > 0) {
+                appData.services = data;
+            }
+        })
+        .catch(err => {
+            console.error('Falha ao carregar os servicos via Google. Exibindo padrao.', err);
+            // Poderíamos colocar um serviço mínimo de fallback aqui, ou deixar vázio.
+        })
+        .finally(() => {
+            const loader = document.getElementById('globalLoader');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }
+            renderCategories();
+            checkReminders();
+            setupWaitlistDateInput();
+        });
 });
 
 function checkReminders() {
@@ -583,19 +510,19 @@ function loadTimes() {
             const data = JSON.parse(text);
             const horarios = data.horarios || [];
             
-            // Lista completa de horários para exibir os ocupados também
-            const todosHorarios = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+            console.log('Horários recebidos do servidor:', horarios);
             
-            console.log('Horários disponíveis:', horarios);
-            
-            timeGrid.innerHTML = todosHorarios.map((time, index) => {
-                const isAvailable = horarios.includes(time);
+            if (horarios.length === 0) {
+                timeGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px;">Nenhum horário disponível para esta data.</p>';
+                return;
+            }
+
+            timeGrid.innerHTML = horarios.map((time, index) => {
                 const delayClass = `delay-${(index % 6) + 1}`;
                 return `
                     <button 
-                        class="time-slot ${isAvailable ? '' : 'unavailable'} animate-scale-in ${delayClass}" 
-                        onclick="${isAvailable ? `selectTime('${time}')` : ''}"
-                        ${isAvailable ? '' : 'disabled'}
+                        class="time-slot animate-scale-in ${delayClass}" 
+                        onclick="selectTime('${time}')"
                     >
                         ${time}
                     </button>
@@ -605,7 +532,7 @@ function loadTimes() {
         .catch(error => {
             console.error('Erro ao buscar horários:', error);
             // Se der erro, mostra todos disponíveis
-            const todosHorarios = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+            const todosHorarios = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
             timeGrid.innerHTML = todosHorarios.map((time, index) => {
                 const delayClass = `delay-${(index % 6) + 1}`;
                 return `

@@ -576,3 +576,235 @@ document.getElementById('clientPhone').addEventListener('input', function(e) {
     
     e.target.value = value;
 });
+
+// ============================================
+// MENU DRAWER
+// ============================================
+
+function toggleMenu() {
+    const overlay = document.getElementById('menuOverlay');
+    const drawer = document.getElementById('menuDrawer');
+    
+    overlay.classList.toggle('active');
+    drawer.classList.toggle('active');
+    document.body.style.overflow = overlay.classList.contains('active') ? 'hidden' : '';
+}
+
+function openWhatsApp() {
+    toggleMenu();
+    const message = 'Olá! Gostaria de mais informações sobre os serviços.';
+    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+function openLocation() {
+    toggleMenu();
+    // Substitua pela sua localização real no Google Maps
+    const locationUrl = 'https://maps.google.com/?q=Rua+Exemplo+123+Joinville+SC';
+    window.open(locationUrl, '_blank');
+}
+
+function showMenuSection(section) {
+    const modal = document.getElementById('menuSectionModal');
+    const body = document.getElementById('menuSectionBody');
+    
+    const sectionsContent = {
+        horarios: getHorariosContent(),
+        galeria: getGaleriaContent(),
+        depoimentos: getDepoimentosContent(),
+        promocoes: getPromocoesContent(),
+        sobre: getSobreContent(),
+        politica: getPoliticaContent()
+    };
+    
+    body.innerHTML = sectionsContent[section] || '<p>Conteúdo em desenvolvimento.</p>';
+    modal.classList.add('active');
+    toggleMenu();
+}
+
+function closeMenuSection() {
+    const modal = document.getElementById('menuSectionModal');
+    modal.classList.remove('active');
+}
+
+function getHorariosContent() {
+    return `
+        <div class="menu-section-header">
+            <h2>Horário de Funcionamento</h2>
+            <p>Estamos disponíveis nos siguientes horários:</p>
+        </div>
+        <div class="info-card">
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 6V12L16 14"/>
+                </svg>
+                Atención
+            </h3>
+            <div class="hours-grid">
+                <div class="hours-row">
+                    <span>Segunda a Sexta</span>
+                    <span>9h às 18h</span>
+                </div>
+                <div class="hours-row">
+                    <span>Sábado</span>
+                    <span>9h às 14h</span>
+                </div>
+                <div class="hours-row closed">
+                    <span>Domingo</span>
+                    <span>Fechado</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getGaleriaContent() {
+    return `
+        <div class="menu-section-header">
+            <h2>Galeria</h2>
+            <p>Alguns dos nossos trabalhos</p>
+        </div>
+        <div class="gallery-grid">
+            <div class="gallery-item">💅</div>
+            <div class="gallery-item">✨</div>
+            <div class="gallery-item">🎨</div>
+            <div class="gallery-item">💖</div>
+            <div class="gallery-item">🌸</div>
+            <div class="gallery-item">⭐</div>
+        </div>
+    `;
+}
+
+function getDepoimentosContent() {
+    return `
+        <div class="menu-section-header">
+            <h2>Depoimentos</h2>
+            <p>O que nossas clientes dizem</p>
+        </div>
+        <div class="testimonial-card">
+            <p class="testimonial-text">"Excelente trabalho! Sempre saio satisfeita do salão. Jeci é sehr detalhe."</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">M</div>
+                <div>
+                    <div class="testimonial-name">Maria Silva</div>
+                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                </div>
+            </div>
+        </div>
+        <div class="testimonial-card">
+            <p class="testimonial-text">"Ambiente agradável e profissionais sehr capacitados. Recomendo!"</p>
+            <div class="testimonial-author">
+                <div class="testimonial-avatar">J</div>
+                <div>
+                    <div class="testimonial-name">Julia Santos</div>
+                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getPromocoesContent() {
+    return `
+        <div class="menu-section-header">
+            <h2>Promoções</h2>
+            <p>Descontos especiais para você</p>
+        </div>
+        <div class="promo-card">
+            <h3>Combo Master</h3>
+            <p>Pé + Mão + Hidratação</p>
+            <div class="promo-code">COMBO20</div>
+            <p style="margin-top: 12px; font-size: 0.85rem;">20% de desconto</p>
+        </div>
+        <div class="promo-card">
+            <h3>Dia das Amigas</h3>
+            <p>2+ mãos = 15% off</p>
+            <div class="promo-code">DIAS</div>
+        </div>
+        <p style="text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+            Válido apenas para novos agendamentos.
+        </p>
+    `;
+}
+
+function getSobreContent() {
+    return `
+        <div class="menu-section-header">
+            <h2>Sobre Nós</h2>
+            <p>Conheça nossa história</p>
+        </div>
+        <div class="about-image">
+            <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="32" cy="20" r="12"/>
+                <path d="M16 56C16 40 24 32 32 32C40 32 48 40 48 56"/>
+            </svg>
+        </div>
+        <div class="about-text">
+            <p>Jeci Vieira Nails & Podologia ist ein salão especializado em cuidados das unhas e dos pés, com anos de experiência no mercado.</p>
+            <p>Nosso objetivo é proporcionar belleza e bem-estar através de servicios de qualidade, usando produtos de excelência e técnicas modernas.</p>
+            <p>Agende seu horário e venha nos conhecer!</p>
+        </div>
+    `;
+}
+
+function getPoliticaContent() {
+    return `
+        <div class="menu-section-header">
+            <h2>Política de Agendamento</h2>
+            <p>Regras e condições</p>
+        </div>
+        <div class="info-card">
+            <ul class="policy-list">
+                <li>
+                    <div class="policy-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 8V12L16 14"/>
+                        </svg>
+                    </div>
+                    <div class="policy-text">
+                        <strong>Horário</strong>
+                        <span>Chegue no horário agendado. Atrasos de mais de 15min podem resultar em cancelamento.</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="policy-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818"/>
+                            <path d="M22 4L12 14.01L9 11.01"/>
+                        </svg>
+                    </div>
+                    <div class="policy-text">
+                        <strong>Cancelamento</strong>
+                        <span>Cancele com antecedência mínima de 24h.</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="policy-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/>
+                            <path d="M12 6V12L16 14"/>
+                        </svg>
+                    </div>
+                    <div class="policy-text">
+                        <strong>第一次 Agendamento</strong>
+                        <span>Clientes novas devem agendar com antecedência.</span>
+                    </div>
+                </li>
+                <li>
+                    <div class="policy-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <path d="M16 2V6M8 2V6M3 10H21"/>
+                        </svg>
+                    </div>
+                    <div class="policy-text">
+                        <strong>Confirmação</strong>
+                        <span>Seu agendamento será confirmado via WhatsApp.</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    `;
+}

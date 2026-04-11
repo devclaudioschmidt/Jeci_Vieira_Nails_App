@@ -128,6 +128,73 @@ let currentYear = new Date().getFullYear();
 // Número do WhatsApp - SUBSTITUA pelo seu número
 const WHATSAPP_NUMBER = '5511999999999';
 
+// ============================================
+// HISTÓRICO E LOCALSTORAGE
+// ============================================
+
+function getClientKey() {
+    const phone = document.getElementById('clientPhone').value;
+    return phone ? `historico_${phone.replace(/\D/g, '')}` : null;
+}
+
+function saveToHistory(service, date, time, price, category) {
+    const key = getClientKey();
+    if (!key) return;
+    
+    let history = JSON.parse(localStorage.getItem(key) || [];
+    history.unshift({
+        service,
+        date,
+        time,
+        price,
+        category,
+        createdAt: new Date().toISOString()
+    });
+    
+    if (history.length > 20) history = history.slice(0, 20);
+    localStorage.setItem(key, JSON.stringify(history));
+}
+
+function getHistory() {
+    const key = getClientKey();
+    if (!key) return [];
+    return JSON.parse(localStorage.getItem(key)) || [];
+}
+
+function clearHistory() {
+    const key = getClientKey();
+    if (key) localStorage.removeItem(key);
+}
+
+// ============================================
+// LISTA DE ESPERA
+// ============================================
+
+function getWaitlistKey() {
+    return 'waitlist';
+}
+
+function joinWaitlist(service, date, phone, name) {
+    const key = getWaitlistKey();
+    let waitlist = JSON.parse(localStorage.getItem(key)) || [];
+    
+    waitlist.push({
+        service,
+        date,
+        phone,
+        name,
+        createdAt: new Date().toISOString()
+    });
+    
+    localStorage.setItem(key, JSON.stringify(waitlist));
+    return true;
+}
+
+function getWaitlist() {
+    const key = getWaitlistKey();
+    return JSON.parse(localStorage.getItem(key)) || [];
+}
+
 // Horários disponíveis
 const AVAILABLE_TIMES = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
 const UNAVAILABLE_TIMES = []; // Adicione horários indisponíveis, ex: ['10:00', '15:00']
@@ -138,7 +205,56 @@ const UNAVAILABLE_TIMES = []; // Adicione horários indisponíveis, ex: ['10:00'
 
 document.addEventListener('DOMContentLoaded', function() {
     renderCategories();
+    checkReminders();
+    setupWaitlistDateInput();
 });
+
+function checkReminders() {
+    const history = getHistory();
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const upcoming = history.find(item => {
+        const date = new Date(item.date + 'T' + item.time);
+        return date > now && date < tomorrow;
+    });
+    
+    if (upcoming) {
+        const reminderBanner = document.createElement('div');
+        reminderBanner.className = 'reminder-banner';
+        reminderBanner.id = 'reminderBanner';
+        reminderBanner.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <div class="reminder-text">
+                <strong>Lembrete: ${upcoming.service}</strong>
+                <span>Amanhã às ${upcoming.time}</span>
+            </div>
+            <button class="reminder-close" onclick="dismissReminder()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6L18 18"/>
+                </svg>
+            </button>
+        `;
+        document.body.appendChild(reminderBanner);
+    }
+}
+
+function dismissReminder() {
+    const banner = document.getElementById('reminderBanner');
+    if (banner) banner.remove();
+}
+
+function setupWaitlistDateInput() {
+    const dateInput = document.getElementById('waitlistDate');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('min', today);
+    }
+}
 
 // ============================================
 // RENDERIZAÇÃO
@@ -538,6 +654,14 @@ document.getElementById('confirmForm').addEventListener('submit', function(e) {
 function closeModal() {
     document.getElementById('successModal').style.display = 'none';
     
+    const name = document.getElementById('clientName').value;
+    const phone = document.getElementById('clientPhone').value;
+    
+    // Salva no histórico se houver dados
+    if (selectedService && selectedDate && selectedTime) {
+        saveToHistory(selectedService, selectedDate, selectedTime, selectedPrice, selectedCategory);
+    }
+    
     // Reseta tudo
     selectedService = null;
     selectedDate = null;
@@ -552,8 +676,8 @@ function closeModal() {
     document.getElementById('step3').style.display = 'none';
     
     document.getElementById('timeSection').style.display = 'none';
-    document.getElementById('clientName').value = '';
-    document.getElementById('clientPhone').value = '';
+    document.getElementById('clientName').value = name;
+    document.getElementById('clientPhone').value = phone;
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -614,7 +738,9 @@ function showMenuSection(section) {
         depoimentos: getDepoimentosContent(),
         promocoes: getPromocoesContent(),
         sobre: getSobreContent(),
-        politica: getPoliticaContent()
+        politica: getPoliticaContent(),
+        historico: getHistoricoContent(),
+        listaespera: getListaEsperaContent()
     };
     
     body.innerHTML = sectionsContent[section] || '<p>Conteúdo em desenvolvimento.</p>';
@@ -807,4 +933,125 @@ function getPoliticaContent() {
             </ul>
         </div>
     `;
+}
+
+function getHistoricoContent() {
+    const history = getHistory();
+    const phone = document.getElementById('clientPhone').value;
+    
+    if (!phone) {
+        return `
+            <div class="menu-section-header">
+                <h2>Meu Histórico</h2>
+                <p>Seus agendamentos</p>
+            </div>
+            <div class="info-card">
+                <p style="text-align: center; color: var(--text-muted);">
+                    Digite seu WhatsApp no formulário de agendamento para salvar seu histórico.
+                </p>
+            </div>
+        `;
+    }
+    
+    if (history.length === 0) {
+        return `
+            <div class="menu-section-header">
+                <h2>Meu Histórico</h2>
+                <p>Seus agendamentos</p>
+            </div>
+            <div class="info-card">
+                <p style="text-align: center; color: var(--text-muted);">
+                    Você ainda não tem agendamentos. <br>Faça seu primeiro agendamento!
+                </p>
+            </div>
+            <button class="menu-action-btn" onclick="closeMenuSection(); document.getElementById('step1').scrollIntoView({behavior: 'smooth'})">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5V19M5 12H19"/>
+                </svg>
+                Novo Agendamento
+            </button>
+        `;
+    }
+    
+    const historyHtml = history.map((item, index) => {
+        const date = new Date(item.date + 'T00:00:00');
+        const dateStr = date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' });
+        const status = new Date(item.date) > new Date() ? 'Próximo' : 'Concluído';
+        const statusClass = status === 'Próximo' ? 'upcoming' : 'completed';
+        
+        return `
+            <div class="history-card ${statusClass}">
+                <div class="history-date">${dateStr}</div>
+                <div class="history-service">${item.service}</div>
+                <div class="history-time">${item.time}</div>
+                <div class="history-price">R$ ${item.price}</div>
+                <div class="history-status ${statusClass}">${status}</div>
+            </div>
+        `;
+    }).join('');
+    
+    return `
+        <div class="menu-section-header">
+            <h2>Meu Histórico</h2>
+            <p>${history.length} agendamento(s) encontrado(s)</p>
+        </div>
+        <div class="history-list">
+            ${historyHtml}
+        </div>
+    `;
+}
+
+function getListaEsperaContent() {
+    return `
+        <div class="menu-section-header">
+            <h2>Lista de Espera</h2>
+            <p>Seja notificado quando houver vaga</p>
+        </div>
+        <div class="info-card">
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">
+                Não achou um horário disponível? <br>Entre na lista de espera que avisaremos quando houver vaga.
+            </p>
+            <div class="form-group">
+                <label for="waitlistService">Serviço desejado</label>
+                <select id="waitlistService" class="waitlist-select">
+                    <option value="">Selecione...</option>
+                    ${appData.services.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="waitlistDate">Data preferida</label>
+                <input type="date" id="waitlistDate" class="waitlist-input">
+            </div>
+            <div class="form-group">
+                <label for="waitlistPhone">Seu WhatsApp</label>
+                <input type="tel" id="waitlistPhone" placeholder="(11) 99999-9999" class="waitlist-input">
+            </div>
+            <button class="menu-action-btn" onclick="submitWaitlist()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                Entrar na Lista de Espera
+            </button>
+        </div>
+    `;
+}
+
+function submitWaitlist() {
+    const service = document.getElementById('waitlistService').value;
+    const date = document.getElementById('waitlistDate').value;
+    const phone = document.getElementById('waitlistPhone').value;
+    
+    if (!service || !date || !phone) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+    }
+    
+    const serviceObj = appData.services.find(s => s.id === service);
+    const name = serviceObj ? serviceObj.name : service;
+    
+    joinWaitlist(name, date, phone, '');
+    
+    alert('Você foi adicionado à lista de espera! Entraremos em contato quando houver disponibilidade.');
+    closeMenuSection();
 }

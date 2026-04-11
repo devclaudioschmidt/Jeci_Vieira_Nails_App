@@ -134,35 +134,53 @@ const WHATSAPP_NUMBER = '5511999999999';
 
 function getClientKey() {
     const phone = document.getElementById('clientPhone').value;
-    return phone ? `historico_${phone.replace(/\D/g, '')}` : null;
+    return phone ? 'historico_' + phone.replace(/\D/g, '') : null;
 }
 
 function saveToHistory(service, date, time, price, category) {
-    const key = getClientKey();
+    var key = getClientKey();
     if (!key) return;
     
-    let history = JSON.parse(localStorage.getItem(key) || [];
-    history.unshift({
-        service,
-        date,
-        time,
-        price,
-        category,
+    var historyData = JSON.parse(localStorage.getItem(key) || '[]');
+    historyData.unshift({
+        service: service,
+        date: date,
+        time: time,
+        price: price,
+        category: category,
         createdAt: new Date().toISOString()
     });
     
-    if (history.length > 20) history = history.slice(0, 20);
-    localStorage.setItem(key, JSON.stringify(history));
+    if (historyData.length > 20) historyData = historyData.slice(0, 20);
+    localStorage.setItem(key, JSON.stringify(historyData));
+}
+
+function saveToHistory(service, date, time, price, category) {
+    var key = getClientKey();
+    if (!key) return;
+    
+    var historyData = JSON.parse(localStorage.getItem(key) || '[]');
+    historyData.unshift({
+        service: service,
+        date: date,
+        time: time,
+        price: price,
+        category: category,
+        createdAt: new Date().toISOString()
+    });
+    
+    if (historyData.length > 20) historyData = historyData.slice(0, 20);
+    localStorage.setItem(key, JSON.stringify(historyData));
 }
 
 function getHistory() {
-    const key = getClientKey();
+    var key = getClientKey();
     if (!key) return [];
-    return JSON.parse(localStorage.getItem(key)) || [];
+    return JSON.parse(localStorage.getItem(key)) || '[]';
 }
 
 function clearHistory() {
-    const key = getClientKey();
+    var key = getClientKey();
     if (key) localStorage.removeItem(key);
 }
 
@@ -175,14 +193,14 @@ function getWaitlistKey() {
 }
 
 function joinWaitlist(service, date, phone, name) {
-    const key = getWaitlistKey();
-    let waitlist = JSON.parse(localStorage.getItem(key)) || [];
+    var key = getWaitlistKey();
+    var waitlist = JSON.parse(localStorage.getItem(key) || '[]');
     
     waitlist.push({
-        service,
-        date,
-        phone,
-        name,
+        service: service,
+        date: date,
+        phone: phone,
+        name: name,
         createdAt: new Date().toISOString()
     });
     
@@ -191,8 +209,8 @@ function joinWaitlist(service, date, phone, name) {
 }
 
 function getWaitlist() {
-    const key = getWaitlistKey();
-    return JSON.parse(localStorage.getItem(key)) || [];
+    var key = getWaitlistKey();
+    return JSON.parse(localStorage.getItem(key)) || '[]';
 }
 
 // Horários disponíveis

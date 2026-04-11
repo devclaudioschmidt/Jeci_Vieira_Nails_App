@@ -1,0 +1,98 @@
+{
+    "categories": [
+        {
+            "id": "manicure",
+            "name": "Manicure & Pedicure",
+            "description": "Nails, gel, alongamento e spa dos pés",
+            "icon": "nails"
+        },
+        {
+            "id": "podologia",
+            "name": "Podologia",
+            "description": "Tratamento especializado para os pés",
+            "icon": "foot"
+        }
+    ],
+    "services": [
+        {
+            "id": "manicure-basica",
+            "category": "manicure",
+            "name": "Manicure",
+            "description": "Corte, shape e pintura perfeita",
+            "price": 50,
+            "duration": 45,
+            "badge": null,
+            "icon": "hand"
+        },
+        {
+            "id": "pe-mao",
+            "category": "manicure",
+            "name": "Pé e Mão",
+            "description": "Combo completo com hidratação",
+            "price": 85,
+            "duration": 90,
+            "badge": "Popular",
+            "icon": "hands"
+        },
+        {
+            "id": "esmaltacao-gel",
+            "category": "manicure",
+            "name": "Esmaltação em Gel",
+            "description": "Durabilidade e brilho por semanas",
+            "price": 70,
+            "duration": 60,
+            "badge": null,
+            "icon": "bottle"
+        },
+        {
+            "id": "alongamento",
+            "category": "manicure",
+            "name": "Alongamento",
+            "description": "Unhaspostiças com técnica moderna",
+            "price": 150,
+            "duration": 120,
+            "badge": null,
+            "icon": "longnail"
+        },
+        {
+            "id": "podologia-basica",
+            "category": "podologia",
+            "name": "Podologia Básica",
+            "description": "Limpeza, corte e tratamento de unhas",
+            "price": 80,
+            "duration": 60,
+            "badge": null,
+            "icon": "foot"
+        },
+        {
+            "id": "spa-podologico",
+            "category": "podologia",
+            "name": "Spa Podológico",
+            "description": "Hidratação profunda e massagem relaxante",
+            "price": 120,
+            "duration": 90,
+            "badge": "Recomendado",
+            "icon": "spa"
+        },
+        {
+            "id": "tratamento-calos",
+            "category": "podologia",
+            "name": "Tratamento de Calos",
+            "description": "Remoção e tratamento especializado",
+            "price": 90,
+            "duration": 60,
+            "badge": null,
+            "icon": "circle"
+        },
+        {
+            "id": "ortese-unha",
+            "category": "podologia",
+            "name": "Órtese de Unha",
+            "description": "Correção de unhas encravadas",
+            "price": 100,
+            "duration": 45,
+            "badge": null,
+            "icon": "brace"
+        }
+    ]
+}

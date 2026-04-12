@@ -35,7 +35,7 @@ let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 
 // URL do Web App do Google Apps Script
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby3OZaGJW7f3dmazfD52dP8okQ5PV6G3N1W-S0Q0zEAcZNagLnHG3KhZTFH7FuU52jH/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbx2dWVzD2Xup1fFQ0a7FKI9Y9kW0ySxkvbjOwyneubU-_sAR_tmbGRtKYtZzXcW5pK7/exec';
 
 // ============================================
 // HISTÓRICO E LOCALSTORAGE
@@ -60,7 +60,7 @@ function saveToHistory(service, date, time, price, category) {
         createdAt: new Date().toISOString()
     });
     
-    if (historyData.length > 20) historyData = historyData.slice(0, 20);
+    if (historyData.length > 5) historyData = historyData.slice(0, 5);
     localStorage.setItem(key, JSON.stringify(historyData));
 }
 
@@ -548,8 +548,8 @@ function loadTimes() {
     timeLoading.style.display = 'flex';
     timeSection.style.display = 'block';
     
-    // Busca horários do Google Apps Script
-    fetch(GAS_URL + '?action=getHorarios&data=' + selectedDate)
+    // Busca horários do Google Apps Script com duração do serviço
+    fetch(GAS_URL + '?action=getHorarios&data=' + selectedDate + '&duracao=' + (selectedDuration || 30))
         .then(response => response.text())
         .then(text => {
             console.log('Raw response:', text);
@@ -1065,7 +1065,7 @@ function getHistoricoContent() {
     return `
         <div class="menu-section-header">
             <h2>Meu Histórico</h2>
-            <p>${history.length} agendamento(s) encontrado(s)</p>
+            <p>Últimos ${history.length} agendamento(s) encontrado(s)</p>
         </div>
         <div class="history-list">
             ${historyHtml}

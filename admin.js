@@ -1,4 +1,4 @@
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby3OZaGJW7f3dmazfD52dP8okQ5PV6G3N1W-S0Q0zEAcZNagLnHG3KhZTFH7FuU52jH/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbx2dWVzD2Xup1fFQ0a7FKI9Y9kW0ySxkvbjOwyneubU-_sAR_tmbGRtKYtZzXcW5pK7/exec';
 
 // VERIFICAÇÃO DE AUTENTICAÇÃO
 (function checkAuth() {

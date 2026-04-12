@@ -18,7 +18,7 @@ function handleRequest(e) {
   var params = e.parameter || {};
   var action = params.action;
   
-  if (action === 'getHorarios') return getHorarios(params.data);
+  if (action === 'getHorarios') return getHorarios(params.data, params.duracao);
   if (action === 'agendar') return agendar(params);
   if (action === 'getAgendamentos') return listar();
   if (action === 'login') return verificarLogin(params.user, params.pass);
@@ -114,7 +114,7 @@ function normalizeTime(hora, sheetTimeZone) {
 // ============================================
 // getHorarios - Lista horários disponíveis
 // ============================================
-function getHorarios(data) {
+function getHorarios(data, duracao) {
   var ss = SpreadsheetApp.openById(SS_ID);
   var tz = ss.getSpreadsheetTimeZone();
   var sheet = ss.getSheetByName('agendamentos');
@@ -123,17 +123,27 @@ function getHorarios(data) {
   var dateObj = new Date(data + 'T12:00:00');
   var diaSemana = dateObj.getDay();
   var todosHorarios = [];
+  var horarioFechamento = 21 * 60;
+  var intervaloInicio = 11 * 60; // 11:00
+  var intervaloFim = 13.5 * 60; // 13:30
   
   if (diaSemana >= 1 && diaSemana <= 5) {
     todosHorarios = [
       '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
       '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'
     ];
+    horarioFechamento = 21 * 60;
   } else if (diaSemana === 6) {
     todosHorarios = [
       '07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'
     ];
+    horarioFechamento = 12 * 60;
+    intervaloInicio = 0;
+    intervaloFim = 0;
   }
+  
+  var duracaoServico = parseInt(duracao) || 30;
+  var ultimoHorarioMin = horarioFechamento - duracaoServico;
   
   var ocupados = [];
   var dataNormalized = normalizeDate(data, tz);
@@ -145,10 +155,10 @@ function getHorarios(data) {
     if (dataNaPlanilha === dataNormalized && status === 'confirmado') {
       var horaRaw = dados[i][1];
       var horaNormalized = normalizeTime(horaRaw, tz);
-      var duracao = parseInt(dados[i][7]) || 30;
+      var duracaoExistente = parseInt(dados[i][7]) || 30;
       
       if (horaNormalized) {
-        var horariosBloqueados = calcularHorariosBloqueados(horaNormalized, duracao, todosHorarios);
+        var horariosBloqueados = calcularHorariosBloqueados(horaNormalized, duracaoExistente, todosHorarios);
         horariosBloqueados.forEach(function(h) {
           if (ocupados.indexOf(h) === -1) {
             ocupados.push(h);
@@ -159,7 +169,19 @@ function getHorarios(data) {
   }
   
   var disponiveis = todosHorarios.filter(function(h) {
-    return ocupados.indexOf(h) === -1;
+    if (ocupados.indexOf(h) !== -1) return false;
+    
+    var parts = h.split(':');
+    var hMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    
+    if (hMin <= ultimoHorarioMin) {
+      var horaFimServico = hMin + duracaoServico;
+      if (horaFimServico > intervaloInicio && hMin < intervaloFim) {
+        return false;
+      }
+      return true;
+    }
+    return false;
   });
   
   return ContentService.createTextOutput(

@@ -124,8 +124,8 @@ function getHorarios(data, duracao) {
   var diaSemana = dateObj.getDay();
   var todosHorarios = [];
   var horarioFechamento = 21 * 60;
-  var intervaloInicio = 11 * 60; // 11:00
-  var intervaloFim = 13.5 * 60; // 13:30
+  var intervaloInicio = 11 * 60;
+  var intervaloFim = 13.5 * 60;
   
   if (diaSemana >= 1 && diaSemana <= 5) {
     todosHorarios = [
@@ -145,7 +145,7 @@ function getHorarios(data, duracao) {
   var duracaoServico = parseInt(duracao) || 30;
   var ultimoHorarioMin = horarioFechamento - duracaoServico;
   
-  var ocupados = [];
+  var agendamentos = [];
   var dataNormalized = normalizeDate(data, tz);
   
   for (var i = 1; i < dados.length; i++) {
@@ -158,30 +158,36 @@ function getHorarios(data, duracao) {
       var duracaoExistente = parseInt(dados[i][7]) || 30;
       
       if (horaNormalized) {
-        var horariosBloqueados = calcularHorariosBloqueados(horaNormalized, duracaoExistente, todosHorarios);
-        horariosBloqueados.forEach(function(h) {
-          if (ocupados.indexOf(h) === -1) {
-            ocupados.push(h);
-          }
+        var parts = horaNormalized.split(':');
+        var startMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        var endMin = startMin + duracaoExistente;
+        
+        agendamentos.push({
+          start: startMin,
+          end: endMin,
+          duracao: duracaoExistente
         });
       }
     }
   }
   
   var disponiveis = todosHorarios.filter(function(h) {
-    if (ocupados.indexOf(h) !== -1) return false;
-    
     var parts = h.split(':');
     var hMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    var hEnd = hMin + duracaoServico;
     
-    if (hMin <= ultimoHorarioMin) {
-      var horaFimServico = hMin + duracaoServico;
-      if (horaFimServico > intervaloInicio && hMin < intervaloFim) {
+    if (hMin > ultimoHorarioMin) return false;
+    
+    if (hEnd > intervaloInicio && hMin < intervaloFim) return false;
+    
+    for (var j = 0; j < agendamentos.length; j++) {
+      var exist = agendamentos[j];
+      if (!(hEnd <= exist.start || hMin >= exist.end)) {
         return false;
       }
-      return true;
     }
-    return false;
+    
+    return true;
   });
   
   return ContentService.createTextOutput(

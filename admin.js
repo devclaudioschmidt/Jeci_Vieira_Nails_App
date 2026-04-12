@@ -503,12 +503,29 @@ function confirmCancel() {
         cliente: pendingCancelData.cliente
     });
     
+    const cancelData = pendingCancelData;
+    
     fetch(GAS_URL + '?' + params.toString())
         .then(res => res.json())
         .then(data => {
             if (data.sucesso) {
                 closeCancelModal();
                 fetchAppointments();
+                
+                if (cancelData.telefone) {
+                    const cleanPhone = cancelData.telefone.replace(/\D/g, '');
+                    const formattedDate = formatDateBr(cancelData.data);
+                    
+                    const message = `Olá! Seu agendamento foi CANCELADO.\n\n` +
+                        `👤 Cliente: ${cancelData.cliente}\n` +
+                        `📅 Data: ${formattedDate}\n` +
+                        `🕐 Horário: ${cancelData.hora}\n` +
+                        `✨ Serviço: ${cancelData.servico}\n\n` +
+                        `Caso queira remarcar, é só fazer um novo agendamento pelo nosso sistema.`;
+                    
+                    const whatsappUrl = `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, '_blank');
+                }
             } else {
                 alert(data.erro || 'Erro ao cancelar');
             }

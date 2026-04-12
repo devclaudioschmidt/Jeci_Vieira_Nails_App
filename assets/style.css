@@ -1855,6 +1855,18 @@ body {
 .agenda-info h4 { font-size: 1rem; color: var(--secondary); margin-bottom: 2px; }
 .agenda-info p { font-size: 0.8rem; color: var(--text-muted); }
 .agenda-status { margin-left: auto; color: var(--primary-dark); }
+.agenda-actions { display: flex; gap: 6px; margin-left: auto; }
+.action-btn-small { width: 32px; height: 32px; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); background: rgba(232, 180, 184, 0.2); color: var(--primary-dark); }
+.action-btn-small:hover { transform: scale(1.1); }
+.action-btn-small.edit { background: rgba(232, 180, 184, 0.2); color: var(--primary-dark); }
+.action-btn-small.edit:hover { background: var(--primary-dark); color: white; }
+.action-btn-small.delete { background: rgba(229, 62, 62, 0.1); color: #e53e3e; }
+.action-btn-small.delete:hover { background: #e53e3e; color: white; }
+.agenda-card.cancelled { opacity: 0.6; background: #f5f5f5; }
+.agenda-card.cancelled .agenda-info h4 { text-decoration: line-through; }
+.cancelled-badge { font-size: 0.65rem; background: #e53e3e; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 8px; text-decoration: none; vertical-align: middle; }
+.form-row { display: flex; gap: 12px; }
+.form-row .form-group { flex: 1; }
 .empty-agenda { text-align: center; color: var(--text-muted); padding: 40px 20px; background: var(--bg-card); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
 .empty-agenda svg { margin-bottom: 12px; }
 .loading-indicator { display: none; position: absolute; inset: 0; background: rgba(253, 248, 248, 0.8); backdrop-filter: blur(4px); z-index: 10; align-items: center; justify-content: center; flex-direction: column; gap: 12px; border-radius: var(--radius-lg); }

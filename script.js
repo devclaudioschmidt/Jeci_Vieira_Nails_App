@@ -35,7 +35,7 @@ let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 
 // URL do Web App do Google Apps Script
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyc4X2oecPt9urNQG5Ml8RJCNDqIf3jtGCJfWVp3cq8h6IQZBsMOv1ZhNYdyGyEEBd_/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyR1mg9VLVu2A74kBzX7h1YnbUSffykxHG_Epp3TNhMvmk64HO7yiuqzlRFDqUN0yFK/exec';
 
 // Número do WhatsApp - SUBSTITUA pelo seu número
 const WHATSAPP_NUMBER = '5511999999999';

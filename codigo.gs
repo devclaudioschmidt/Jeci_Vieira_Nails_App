@@ -27,6 +27,9 @@ function handleRequest(e) {
   if (action === 'salvarServico') return salvarServico(params);
   if (action === 'excluirServico') return excluirServico(params.id);
   
+  if (action === 'editarAgendamento') return editarAgendamento(params);
+  if (action === 'cancelarAgendamento') return cancelarAgendamento(params);
+  
   return ContentService.createTextOutput(
     JSON.stringify({ erro: 'ação inválida' })
   ).setMimeType(ContentService.MimeType.JSON);
@@ -345,5 +348,71 @@ function excluirServico(id) {
   
   return ContentService.createTextOutput(
     JSON.stringify({ sucesso: false, erro: 'Serviço não encontrado' })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================
+// editarAgendamento - Atualiza um agendamento
+// ============================================
+function editarAgendamento(params) {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var tz = ss.getSpreadsheetTimeZone();
+  var sheet = ss.getSheetByName('agendamentos');
+  var dados = sheet.getDataRange().getValues();
+  
+  var originalData = normalizeDate(params.originalData, tz);
+  var originalTime = normalizeTime(params.originalTime, tz);
+  var novaData = normalizeDate(params.data, tz);
+  var novaHora = normalizeTime(params.hora, tz);
+  
+  for (var i = 1; i < dados.length; i++) {
+    var dataNaPlanilha = normalizeDate(dados[i][0], tz);
+    var horaNaPlanilha = normalizeTime(dados[i][1], tz);
+    
+    if (dataNaPlanilha === originalData && horaNaPlanilha === originalTime) {
+      sheet.getRange(i + 1, 1).setValue(params.data);
+      sheet.getRange(i + 1, 2).setValue(params.hora);
+      sheet.getRange(i + 1, 4).setValue(params.cliente);
+      sheet.getRange(i + 1, 5).setValue(params.telefone);
+      sheet.getRange(i + 1, 3).setValue(params.servico);
+      
+      return ContentService.createTextOutput(
+        JSON.stringify({ sucesso: true })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  
+  return ContentService.createTextOutput(
+    JSON.stringify({ sucesso: false, erro: 'Agendamento não encontrado' })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================
+// cancelarAgendamento - Remove o agendamento
+// ============================================
+function cancelarAgendamento(params) {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var tz = ss.getSpreadsheetTimeZone();
+  var sheet = ss.getSheetByName('agendamentos');
+  var dados = sheet.getDataRange().getValues();
+  
+  var dataNormalized = normalizeDate(params.data, tz);
+  var horaNormalized = normalizeTime(params.hora, tz);
+  
+  for (var i = 1; i < dados.length; i++) {
+    var dataNaPlanilha = normalizeDate(dados[i][0], tz);
+    var horaNaPlanilha = normalizeTime(dados[i][1], tz);
+    
+    if (dataNaPlanilha === dataNormalized && horaNaPlanilha === horaNormalized) {
+      sheet.deleteRow(i + 1);
+      
+      return ContentService.createTextOutput(
+        JSON.stringify({ sucesso: true })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  
+  return ContentService.createTextOutput(
+    JSON.stringify({ sucesso: false, erro: 'Agendamento não encontrado' })
   ).setMimeType(ContentService.MimeType.JSON);
 }

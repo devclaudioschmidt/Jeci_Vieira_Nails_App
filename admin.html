@@ -118,6 +118,55 @@
         </main>
     </div>
 
+    <!-- Modal para Editar Agendamento -->
+    <div class="success-modal admin-modal" id="editModal" style="display: none;">
+        <div class="modal-content admin-modal-content">
+            <h3 class="modal-name">Editar Agendamento</h3>
+            <form id="editForm">
+                <input type="hidden" id="editOriginalData">
+                <input type="hidden" id="editOriginalTime">
+                <div class="form-group">
+                    <label>Nome do Cliente</label>
+                    <input type="text" id="editClientName" required>
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp</label>
+                    <input type="tel" id="editClientPhone" required>
+                </div>
+                <div class="form-group">
+                    <label>Serviço</label>
+                    <input type="text" id="editService" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="date" id="editDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Horário</label>
+                        <input type="time" id="editTime" required>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="modal-btn" id="saveEditBtn">Salvar Alterações</button>
+                    <button type="button" onclick="closeEditModal()" class="modal-btn secondary">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Cancelamento -->
+    <div class="success-modal admin-modal" id="cancelModal" style="display: none;">
+        <div class="modal-content admin-modal-content">
+            <h3 class="modal-name">Cancelar Agendamento</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Tem certeza que deseja cancelar o agendamento de <strong id="cancelClientName"></strong> no dia <strong id="cancelDate"></strong> às <strong id="cancelTime"></strong>?</p>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn" style="background: #e53e3e;" onclick="confirmCancel()">Sim, Cancelar</button>
+                <button type="button" onclick="closeCancelModal()" class="modal-btn secondary">Não, Manter</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal com Detalhes do Cliente (para contato) -->
     <div class="success-modal admin-modal" id="detailsModal" style="display: none;">
         <div class="modal-content admin-modal-content">

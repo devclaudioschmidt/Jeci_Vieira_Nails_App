@@ -1,4 +1,4 @@
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyc4X2oecPt9urNQG5Ml8RJCNDqIf3jtGCJfWVp3cq8h6IQZBsMOv1ZhNYdyGyEEBd_/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyR1mg9VLVu2A74kBzX7h1YnbUSffykxHG_Epp3TNhMvmk64HO7yiuqzlRFDqUN0yFK/exec';
 
 // VERIFICAÇÃO DE AUTENTICAÇÃO
 (function checkAuth() {
@@ -17,6 +17,7 @@ let adminCurrentMonth = new Date().getMonth();
 let adminCurrentYear = new Date().getFullYear();
 let adminSelectedDate = null;
 let allAppointments = [];
+let pendingCancelData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Definir data inicial
@@ -40,10 +41,9 @@ function fetchAppointments() {
     fetch(GAS_URL + '?action=getAgendamentos')
         .then(res => res.json())
         .then(data => {
-            // Se houver erro formatual no array, previne quebra
             allAppointments = Array.isArray(data) ? data : []; 
             loading.style.display = 'none';
-            renderAdminCalendar(); // re-render to display dots
+            renderAdminCalendar();
             showAgendaForDate(adminSelectedDate);
         })
         .catch(err => {
@@ -167,7 +167,6 @@ function showAgendaForDate(dateStr) {
     
     const dayApps = allAppointments.filter(app => String(app.data) === dateStr);
     
-    // Ordenar por hora
     dayApps.sort((a, b) => {
         return (a.hora || '').localeCompare(b.hora || '');
     });
@@ -200,11 +199,20 @@ function showAgendaForDate(dateStr) {
                     <h4>${app.cliente || 'Sem nome'}</h4>
                     <p>${app.servico || 'Sem serviço especificado'}</p>
                 </div>
-                <div class="agenda-status">
-                    <span class="status-indicator"></span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 18L15 12L9 6"/>
-                    </svg>
+                <div class="agenda-actions">
+                    <button class="action-btn-small edit" onclick="event.stopPropagation(); openEditModal('${encodedApp}')" title="Editar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+                    <button class="action-btn-small delete" onclick="event.stopPropagation(); openCancelModal('${encodedApp}')" title="Cancelar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                    </button>
                 </div>
             </div>
         `;
@@ -388,5 +396,114 @@ function deleteService(id) {
         })
         .catch(err => {
             alert('Erro ao excluir');
+        });
+}
+
+// ============================================
+// EDITAR / CANCELAR AGENDAMENTOS
+// ============================================
+
+function openEditModal(encodedAppStr) {
+    try {
+        const app = JSON.parse(decodeURIComponent(encodedAppStr));
+        
+        document.getElementById('editOriginalData').value = app.data;
+        document.getElementById('editOriginalTime').value = app.hora;
+        document.getElementById('editClientName').value = app.cliente || '';
+        document.getElementById('editClientPhone').value = app.telefone || '';
+        document.getElementById('editService').value = app.servico || '';
+        document.getElementById('editDate').value = app.data;
+        document.getElementById('editTime').value = app.hora || '09:00';
+        
+        document.getElementById('editModal').style.display = 'flex';
+    } catch (e) {
+        console.error('Erro ao abrir edição', e);
+    }
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+document.getElementById('editForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('saveEditBtn');
+    btn.textContent = 'Salvando...';
+    btn.disabled = true;
+    
+    const params = new URLSearchParams({
+        action: 'editarAgendamento',
+        originalData: document.getElementById('editOriginalData').value,
+        originalTime: document.getElementById('editOriginalTime').value,
+        cliente: document.getElementById('editClientName').value,
+        telefone: document.getElementById('editClientPhone').value,
+        servico: document.getElementById('editService').value,
+        data: document.getElementById('editDate').value,
+        hora: document.getElementById('editTime').value
+    });
+    
+    fetch(GAS_URL + '?' + params.toString())
+        .then(res => res.json())
+        .then(data => {
+            if (data.sucesso) {
+                closeEditModal();
+                fetchAppointments();
+            } else {
+                alert(data.erro || 'Erro ao salvar');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Erro ao salvar');
+        })
+        .finally(() => {
+            btn.textContent = 'Salvar Alterações';
+            btn.disabled = false;
+        });
+});
+
+function openCancelModal(encodedAppStr) {
+    try {
+        const app = JSON.parse(decodeURIComponent(encodedAppStr));
+        pendingCancelData = app;
+        
+        document.getElementById('cancelClientName').textContent = app.cliente || 'Cliente';
+        document.getElementById('cancelDate').textContent = app.data;
+        document.getElementById('cancelTime').textContent = app.hora || '--:--';
+        
+        document.getElementById('cancelModal').style.display = 'flex';
+    } catch (e) {
+        console.error('Erro ao abrir cancelamento', e);
+    }
+}
+
+function closeCancelModal() {
+    document.getElementById('cancelModal').style.display = 'none';
+    pendingCancelData = null;
+}
+
+function confirmCancel() {
+    if (!pendingCancelData) return;
+    
+    const params = new URLSearchParams({
+        action: 'cancelarAgendamento',
+        data: pendingCancelData.data,
+        hora: pendingCancelData.hora,
+        cliente: pendingCancelData.cliente
+    });
+    
+    fetch(GAS_URL + '?' + params.toString())
+        .then(res => res.json())
+        .then(data => {
+            if (data.sucesso) {
+                closeCancelModal();
+                fetchAppointments();
+            } else {
+                alert(data.erro || 'Erro ao cancelar');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Erro ao cancelar');
         });
 }

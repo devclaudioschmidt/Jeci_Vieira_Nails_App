@@ -1,4 +1,4 @@
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyR1mg9VLVu2A74kBzX7h1YnbUSffykxHG_Epp3TNhMvmk64HO7yiuqzlRFDqUN0yFK/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby3OZaGJW7f3dmazfD52dP8okQ5PV6G3N1W-S0Q0zEAcZNagLnHG3KhZTFH7FuU52jH/exec';
 
 // VERIFICAÇÃO DE AUTENTICAÇÃO
 (function checkAuth() {
@@ -414,6 +414,7 @@ function openEditModal(encodedAppStr) {
         document.getElementById('editService').value = app.servico || '';
         document.getElementById('editDate').value = app.data;
         document.getElementById('editTime').value = app.hora || '09:00';
+        document.getElementById('editDuration').value = app.duracao || 30;
         
         document.getElementById('editModal').style.display = 'flex';
     } catch (e) {
@@ -439,7 +440,8 @@ document.getElementById('editForm')?.addEventListener('submit', function(e) {
         telefone: document.getElementById('editClientPhone').value,
         servico: document.getElementById('editService').value,
         data: document.getElementById('editDate').value,
-        hora: document.getElementById('editTime').value
+        hora: document.getElementById('editTime').value,
+        duracao: document.getElementById('editDuration').value || 30
     });
     
     fetch(GAS_URL + '?' + params.toString())

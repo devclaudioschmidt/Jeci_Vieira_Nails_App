@@ -116,41 +116,44 @@ function normalizeTime(hora, sheetTimeZone) {
 // ============================================
 function getHorarios(data) {
   var ss = SpreadsheetApp.openById(SS_ID);
-  var tz = ss.getSpreadsheetTimeZone(); // Garante o fuso correto
+  var tz = ss.getSpreadsheetTimeZone();
   var sheet = ss.getSheetByName('agendamentos');
   var dados = sheet.getDataRange().getValues();
   
-  var dateObj = new Date(data + 'T12:00:00'); // Meio-dia para evitar problemas de fuso
-  var diaSemana = dateObj.getDay(); // 0 = Domingo, 1-5 = Seg-Sex, 6 = Sábado
+  var dateObj = new Date(data + 'T12:00:00');
+  var diaSemana = dateObj.getDay();
   var todosHorarios = [];
   
   if (diaSemana >= 1 && diaSemana <= 5) {
-    // Segunda a Sexta: 08:00 às 11:00 e 13:30 às 21:00
     todosHorarios = [
       '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
       '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'
     ];
   } else if (diaSemana === 6) {
-    // Sábado: 07:00 às 12:00
     todosHorarios = [
       '07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'
     ];
   }
   
   var ocupados = [];
-  
   var dataNormalized = normalizeDate(data, tz);
   
   for (var i = 1; i < dados.length; i++) {
     var dataNaPlanilha = normalizeDate(dados[i][0], tz);
     var status = String(dados[i][5] || '').toLowerCase().trim();
     
-    // Testa se a data bate E se está confirmado
     if (dataNaPlanilha === dataNormalized && status === 'confirmado') {
       var horaRaw = dados[i][1];
       var horaNormalized = normalizeTime(horaRaw, tz);
+      var duracao = parseInt(dados[i][7]) || 30;
+      
       if (horaNormalized) {
-        ocupados.push(horaNormalized);
+        var horariosBloqueados = calcularHorariosBloqueados(horaNormalized, duracao, todosHorarios);
+        horariosBloqueados.forEach(function(h) {
+          if (ocupados.indexOf(h) === -1) {
+            ocupados.push(h);
+          }
+        });
       }
     }
   }
@@ -165,6 +168,29 @@ function getHorarios(data) {
 }
 
 // ============================================
+// calcularHorariosBloqueados - Calcula horários ocupados baseado na duração
+// ============================================
+function calcularHorariosBloqueados(horaInicio, duracao, todosHorarios) {
+  var bloqueados = [];
+  var horaParts = horaInicio.split(':');
+  var hora = parseInt(horaParts[0]);
+  var min = parseInt(horaParts[1]);
+  var minutosTotais = hora * 60 + min;
+  var minutosFim = minutosTotais + duracao;
+  
+  for (var i = 0; i < todosHorarios.length; i++) {
+    var hParts = todosHorarios[i].split(':');
+    var hMinutos = parseInt(hParts[0]) * 60 + parseInt(hParts[1]);
+    
+    if (hMinutos >= minutosTotais && hMinutos < minutosFim) {
+      bloqueados.push(todosHorarios[i]);
+    }
+  }
+  
+  return bloqueados;
+}
+
+// ============================================
 // agendar - Salva um novo agendamento
 // ============================================
 function agendar(params) {
@@ -175,21 +201,32 @@ function agendar(params) {
   
   var horaNormalized = normalizeTime(params.hora, tz);
   var dataNormalized = normalizeDate(params.data, tz);
+  var duracao = parseInt(params.duracao) || 30;
   
-  // Impede de agendar se já existir confirmado no mesmo horário
   for (var i = 1; i < dados.length; i++) {
     var dataNaPlanilha = normalizeDate(dados[i][0], tz);
-    var horaExistente = normalizeTime(dados[i][1], tz);
     var status = String(dados[i][5] || '').toLowerCase().trim();
     
-    if (dataNaPlanilha === dataNormalized && horaExistente === horaNormalized && status === 'confirmado') {
-      return ContentService.createTextOutput(
-        JSON.stringify({ sucesso: false, erro: 'Horário já ocupado nesta data!' })
-      ).setMimeType(ContentService.MimeType.JSON);
+    if (dataNaPlanilha === dataNormalized && status === 'confirmado') {
+      var horaExistente = normalizeTime(dados[i][1], tz);
+      var durExistente = parseInt(dados[i][7]) || 30;
+      
+      var existParts = horaExistente.split(':');
+      var existStartMin = parseInt(existParts[0]) * 60 + parseInt(existParts[1]);
+      var existEndMin = existStartMin + durExistente;
+      
+      var novoParts = horaNormalized.split(':');
+      var novoStartMin = parseInt(novoParts[0]) * 60 + parseInt(novoParts[1]);
+      var novoEndMin = novoStartMin + duracao;
+      
+      if (!(novoEndMin <= existStartMin || novoStartMin >= existEndMin)) {
+        return ContentService.createTextOutput(
+          JSON.stringify({ sucesso: false, erro: 'Horário conflita com agendamento existente!' })
+        ).setMimeType(ContentService.MimeType.JSON);
+      }
     }
   }
   
-  // Salva no banco
   sheet.appendRow([
     params.data,
     params.hora,
@@ -197,7 +234,8 @@ function agendar(params) {
     params.cliente,
     params.telefone,
     'confirmado',
-    new Date().toISOString()
+    new Date().toISOString(),
+    duracao
   ]);
   
   return ContentService.createTextOutput(
@@ -222,7 +260,8 @@ function listar() {
       servico: dados[i][2],
       cliente: dados[i][3],
       telefone: dados[i][4],
-      status: dados[i][5]
+      status: dados[i][5],
+      duracao: parseInt(dados[i][7]) || 30
     });
   }
   
@@ -362,8 +401,7 @@ function editarAgendamento(params) {
   
   var originalData = normalizeDate(params.originalData, tz);
   var originalTime = normalizeTime(params.originalTime, tz);
-  var novaData = normalizeDate(params.data, tz);
-  var novaHora = normalizeTime(params.hora, tz);
+  var duracao = parseInt(params.duracao) || 30;
   
   for (var i = 1; i < dados.length; i++) {
     var dataNaPlanilha = normalizeDate(dados[i][0], tz);
@@ -375,6 +413,7 @@ function editarAgendamento(params) {
       sheet.getRange(i + 1, 4).setValue(params.cliente);
       sheet.getRange(i + 1, 5).setValue(params.telefone);
       sheet.getRange(i + 1, 3).setValue(params.servico);
+      sheet.getRange(i + 1, 8).setValue(duracao);
       
       return ContentService.createTextOutput(
         JSON.stringify({ sucesso: true })

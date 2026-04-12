@@ -35,7 +35,7 @@ let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 
 // URL do Web App do Google Apps Script
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyR1mg9VLVu2A74kBzX7h1YnbUSffykxHG_Epp3TNhMvmk64HO7yiuqzlRFDqUN0yFK/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycby3OZaGJW7f3dmazfD52dP8okQ5PV6G3N1W-S0Q0zEAcZNagLnHG3KhZTFH7FuU52jH/exec';
 
 // Número do WhatsApp - SUBSTITUA pelo seu número
 const WHATSAPP_NUMBER = '5511999999999';
@@ -610,6 +610,7 @@ document.getElementById('confirmForm').addEventListener('submit', async function
     formData.append('servico', selectedService);
     formData.append('cliente', name);
     formData.append('telefone', phone);
+    formData.append('duracao', selectedDuration || 30);
     
     try {
         const response = await fetch(GAS_URL, {

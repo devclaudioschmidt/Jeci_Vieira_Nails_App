@@ -112,8 +112,10 @@
                 </div>
 
                 <div class="selected-service-card">
-                    <span class="selected-label">Serviço selecionado</span>
-                    <span class="selected-name" id="selectedServiceName">-</span>
+                    <div class="selected-service-info">
+                        <span class="selected-label">Serviço selecionado</span>
+                        <span class="selected-name" id="selectedServiceName">-</span>
+                    </div>
                     <span class="selected-price" id="selectedServicePrice">-</span>
                 </div>
 
@@ -147,6 +149,10 @@
 
                 <div class="time-section" id="timeSection" style="display: none;">
                     <h3 class="time-title">Horários disponíveis</h3>
+                    <div id="timeLoading" class="time-loading" style="display: none;">
+                        <div class="spinner-small"></div>
+                        <span>Carregando horários disponíveis...</span>
+                    </div>
                     <div id="timeGrid" class="time-grid"></div>
                 </div>
             </section>

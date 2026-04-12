@@ -464,13 +464,22 @@ document.getElementById('editForm')?.addEventListener('submit', function(e) {
         });
 });
 
+function formatDateBr(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        return parts[2] + '/' + parts[1] + '/' + parts[0];
+    }
+    return dateStr;
+}
+
 function openCancelModal(encodedAppStr) {
     try {
         const app = JSON.parse(decodeURIComponent(encodedAppStr));
         pendingCancelData = app;
         
         document.getElementById('cancelClientName').textContent = app.cliente || 'Cliente';
-        document.getElementById('cancelDate').textContent = app.data;
+        document.getElementById('cancelDate').textContent = formatDateBr(app.data);
         document.getElementById('cancelTime').textContent = app.hora || '--:--';
         
         document.getElementById('cancelModal').style.display = 'flex';

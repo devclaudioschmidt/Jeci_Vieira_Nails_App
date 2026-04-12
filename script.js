@@ -78,6 +78,36 @@ function clearHistory() {
     if (key) localStorage.removeItem(key);
 }
 
+function cancelFromHistory(index, service, date, time) {
+    const formattedDate = formatDate(date);
+    
+    if (!confirm(`Deseja realmente cancelar o agendamento de ${service} no dia ${formattedDate} às ${time}?`)) {
+        return;
+    }
+    
+    const clientName = document.getElementById('clientName').value || 'Cliente';
+    const clientPhone = document.getElementById('clientPhone').value || '';
+    
+    const message = `Olá! Gostaria de CANCELAR meu agendamento:\n\n` +
+        `👤 Nome: ${clientName}\n` +
+        `📱 WhatsApp: ${clientPhone}\n` +
+        `✨ Serviço: ${service}\n` +
+        `📅 Data: ${formattedDate}\n` +
+        `🕐 Horário: ${time}\n\n` +
+        `Por favor, cancele meu agendamento. Obrigado(a)!`;
+    
+    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+    
+    setTimeout(() => {
+        const key = getClientKey();
+        let history = JSON.parse(localStorage.getItem(key) || '[]');
+        history.splice(index, 1);
+        localStorage.setItem(key, JSON.stringify(history));
+        closeMenuSection();
+    }, 1000);
+}
+
 // ============================================
 // LISTA DE ESPERA
 // ============================================
@@ -500,6 +530,7 @@ function loadTimes() {
     const timeLoading = document.getElementById('timeLoading');
     
     timeGrid.innerHTML = '';
+    timeLoading.style.display = 'flex';
     timeSection.style.display = 'block';
     
     // Busca horários do Google Apps Script
@@ -511,6 +542,8 @@ function loadTimes() {
             const horarios = data.horarios || [];
             
             console.log('Horários recebidos do servidor:', horarios);
+            
+            timeLoading.style.display = 'none';
             
             if (horarios.length === 0) {
                 timeGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px;">Nenhum horário disponível para esta data.</p>';
@@ -531,6 +564,7 @@ function loadTimes() {
         })
         .catch(error => {
             console.error('Erro ao buscar horários:', error);
+            timeLoading.style.display = 'none';
             // Se der erro, mostra todos disponíveis
             const todosHorarios = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
             timeGrid.innerHTML = todosHorarios.map((time, index) => {
@@ -574,10 +608,27 @@ function showConfirmStep() {
     
     document.getElementById('summaryService').textContent = selectedService;
     document.getElementById('summaryDate').textContent = formatDate(selectedDate);
-    document.getElementById('summaryTime').textContent = selectedTime;
-    document.getElementById('summaryPrice').textContent = `R$ ${selectedPrice}`;
+    document.getElementById('summaryTime').textContent = formatTimeRange(selectedTime, selectedDuration);
+    document.getElementById('summaryPrice').textContent = `R$ ${parseFloat(selectedPrice).toFixed(2).replace('.', ',')}`;
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function formatTimeRange(startTime, duration) {
+    if (!startTime) return '-';
+    
+    const parts = startTime.split(':');
+    let hours = parseInt(parts[0]);
+    let minutes = parseInt(parts[1]) || 0;
+    
+    const totalMinutes = hours * 60 + minutes + (duration || 30);
+    const endHours = Math.floor(totalMinutes / 60);
+    const endMinutes = totalMinutes % 60;
+    
+    const startFormatted = `${String(hours).padStart(2, '0')}h${String(minutes).padStart(2, '0')}`;
+    const endFormatted = `${String(endHours).padStart(2, '0')}h${String(endMinutes).padStart(2, '0')}`;
+    
+    return `Das ${startFormatted} às ${endFormatted}`;
 }
 
 function formatDate(dateString) {
@@ -653,11 +704,6 @@ function closeModal() {
     
     const name = document.getElementById('clientName').value;
     const phone = document.getElementById('clientPhone').value;
-    
-    // Salva no histórico se houver dados
-    if (selectedService && selectedDate && selectedTime) {
-        saveToHistory(selectedService, selectedDate, selectedTime, selectedPrice, selectedCategory);
-    }
     
     // Reseta tudo
     selectedService = null;
@@ -975,14 +1021,21 @@ function getHistoricoContent() {
         const dateStr = date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' });
         const status = new Date(item.date) > new Date() ? 'Próximo' : 'Concluído';
         const statusClass = status === 'Próximo' ? 'upcoming' : 'completed';
+        const canCancel = status === 'Próximo';
         
         return `
             <div class="history-card ${statusClass}">
                 <div class="history-date">${dateStr}</div>
                 <div class="history-service">${item.service}</div>
                 <div class="history-time">${item.time}</div>
-                <div class="history-price">R$ ${item.price}</div>
+                <div class="history-price">R$ ${parseFloat(item.price).toFixed(2).replace('.', ',')}</div>
                 <div class="history-status ${statusClass}">${status}</div>
+                ${canCancel ? `<button class="history-cancel-btn" onclick="cancelFromHistory(${index}, '${item.service}', '${item.date}', '${item.time}')" title="Cancelar agendamento">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>` : ''}
             </div>
         `;
     }).join('');

@@ -1783,19 +1783,17 @@ body {
 }
 
 .history-cancel-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 24px;
-    height: 24px;
     background: rgba(229, 62, 62, 0.1);
     border: none;
-    border-radius: 50%;
+    border-radius: 12px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 4px;
+    padding: 6px 12px;
     cursor: pointer;
     color: #e53e3e;
+    font-size: 0.75rem;
+    font-weight: 600;
     transition: var(--transition);
 }
 
@@ -1804,8 +1802,30 @@ body {
     color: white;
 }
 
+.history-contact-btn {
+    background: #25D366;
+    border: none;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.history-contact-btn:hover {
+    background: #128C7E;
+}
+
 .history-card {
-    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
 }
 
 /* Lista de Espera */

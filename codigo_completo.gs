@@ -33,8 +33,8 @@ function handleRequest(e) {
   if (action === 'desbloquearHorario') return desbloquearHorario(params);
   if (action === 'getBloqueios') return getBloqueios();
   
-return ContentService.createTextOutput(
-    JSON.stringify({ sucesso: false, erro: 'Agendamento não encontrado' })
+  return ContentService.createTextOutput(
+      JSON.stringify({ sucesso: false, erro: 'Ação não encontrada' })
   ).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -43,6 +43,7 @@ return ContentService.createTextOutput(
 // ============================================
 function getBloqueios() {
   var ss = SpreadsheetApp.openById(SS_ID);
+  var tz = ss.getSpreadsheetTimeZone();
   var sheet = ss.getSheetByName('bloqueios');
   
   if (!sheet) {
@@ -55,12 +56,46 @@ function getBloqueios() {
   var lista = [];
   
   for (var i = 1; i < dados.length; i++) {
-    if (dados[i][1]) { // data is now column 2 (index 1)
+    if (dados[i][1]) {
+      var dataVal = dados[i][1];
+      var horaIniVal = dados[i][2];
+      var horaFimVal = dados[i][3];
+      
+      // Normaliza data
+      var dataStr = dataVal;
+      if (Object.prototype.toString.call(dataVal) === '[object Date]') {
+        dataStr = Utilities.formatDate(dataVal, tz, "yyyy-MM-dd");
+      } else if (typeof dataVal === 'string') {
+        dataStr = dataVal.split('T')[0].split(' ')[0];
+      }
+      
+      // Normaliza hora inicio
+      var horaIniStr = horaIniVal;
+      if (Object.prototype.toString.call(horaIniVal) === '[object Date]') {
+        horaIniStr = Utilities.formatDate(horaIniVal, tz, "HH:mm");
+      } else if (typeof horaIniVal === 'string') {
+        var parts = horaIniVal.split(':');
+        if (parts.length >= 2) {
+          horaIniStr = String(parseInt(parts[0]) + ':' + parts[1]);
+        }
+      }
+      
+      // Normaliza hora fim
+      var horaFimStr = horaFimVal;
+      if (Object.prototype.toString.call(horaFimVal) === '[object Date]') {
+        horaFimStr = Utilities.formatDate(horaFimVal, tz, "HH:mm");
+      } else if (typeof horaFimVal === 'string') {
+        var parts = horaFimVal.split(':');
+        if (parts.length >= 2) {
+          horaFimStr = String(parseInt(parts[0]) + ':' + parts[1]);
+        }
+      }
+      
       lista.push({
-        id: i + 1, // Use row number as ID
-        data: dados[i][1],
-        hora_inicio: dados[i][2],
-        hora_fim: dados[i][3],
+        id: i + 1,
+        data: dataStr,
+        hora_inicio: horaIniStr,
+        hora_fim: horaFimStr,
         motivo: dados[i][4] || '',
         criado_em: dados[i][5]
       });
@@ -80,9 +115,6 @@ function bloquearHorario(params) {
   var hora_inicio = params.hora_inicio || params.horaInicio || params.hora_inicio_;
   var hora_fim = params.hora_fim || params.horaFim || params.hora_fim_;
   var motivo = params.motivo || '';
-  
-  Logger.log('bloquearHorario params: ' + JSON.stringify(params));
-  Logger.log('data: ' + data + ', hora_inicio: ' + hora_inicio + ', hora_fim: ' + hora_fim);
   
   if (!data || !hora_inicio || !hora_fim) {
     return ContentService.createTextOutput(
@@ -146,7 +178,6 @@ function desbloquearHorario(params) {
 // verificarLogin - Valida acesso administrativo
 // ============================================
 function verificarLogin(user, pass) {
-  // CONFIGURAÇÃO DE ACESSO - ALTERE AQUI!
   const USER_ADMIN = 'admin';
   const PASS_ADMIN = '1234';
   
@@ -167,14 +198,12 @@ function verificarLogin(user, pass) {
 function normalizeDate(data, sheetTimeZone) {
   if (!data) return null;
   
-  // Se for objeto Data, formata considerando o fuso da planilha para evitar erro de dia anterior
   if (Object.prototype.toString.call(data) === '[object Date]') {
     return Utilities.formatDate(data, sheetTimeZone || Session.getScriptTimeZone(), "yyyy-MM-dd");
   }
   
   if (typeof data === 'string') {
     data = data.trim();
-    // Se estiver no formato DD/MM/YYYY vindo de texto livre
     if (data.indexOf('/') > -1) {
       var parts = data.split(' ')[0].split('/');
       if (parts.length === 3) {
@@ -184,7 +213,6 @@ function normalizeDate(data, sheetTimeZone) {
         return parts[0] + '-' + parts[1] + '-' + parts[2]; 
       }
     }
-    // Remove horas e mantém só a data
     if (data.indexOf(' ') > -1) return data.split(' ')[0];
     if (data.indexOf('T') > -1) return data.split('T')[0];
     
@@ -231,8 +259,8 @@ function getHorarios(data, duracao) {
   var diaSemana = dateObj.getDay();
   var todosHorarios = [];
   var horarioFechamento = 21 * 60;
-  var intervaloInicio = 11 * 60; // 11:00
-  var intervaloFim = 13.5 * 60; // 13:30
+  var intervaloInicio = 11 * 60;
+  var intervaloFim = 13.5 * 60;
   
   if (diaSemana >= 1 && diaSemana <= 5) {
     todosHorarios = [
@@ -255,7 +283,6 @@ function getHorarios(data, duracao) {
   var ocupados = [];
   var dataNormalized = normalizeDate(data, tz);
   
-  // Verifica agendamentos existentes
   for (var i = 1; i < dados.length; i++) {
     var dataNaPlanilha = normalizeDate(dados[i][0], tz);
     var status = String(dados[i][5] || '').toLowerCase().trim();
@@ -276,22 +303,41 @@ function getHorarios(data, duracao) {
     }
   }
   
-  // Verifica bloqueios de horários
   var bloqueiosSheet = ss.getSheetByName('bloqueios');
-  Logger.log('Verificando bloqueios para data: ' + dataNormalized);
   if (bloqueiosSheet) {
     var bloqueios = bloqueiosSheet.getDataRange().getValues();
-    Logger.log('Total linhas bloqueios: ' + bloqueios.length);
     for (var j = 1; j < bloqueios.length; j++) {
-      var dataBloqueio = String(bloqueios[j][1] || '');
-      var horaInicio = String(bloqueios[j][2] || '');
-      var horaFim = String(bloqueios[j][3] || '');
+      var bloqueioData = bloqueios[j][1];
+      var bloqueioHoraIni = bloqueios[j][2];
+      var bloqueioHoraFim = bloqueios[j][3];
       
-      Logger.log('Linha ' + j + ': data=' + dataBloqueio + ' inicio=' + horaInicio + ' fim=' + horaFim);
+      // Normaliza data do bloqueio
+      var dataBloqueio = bloqueioData;
+      if (Object.prototype.toString.call(bloqueioData) === '[object Date]') {
+        dataBloqueio = Utilities.formatDate(bloqueioData, tz, "yyyy-MM-dd");
+      } else if (typeof bloqueioData === 'string') {
+        dataBloqueio = bloqueioData.split('T')[0].split(' ')[0];
+      }
+      
+      // Normaliza hora inicio
+      var horaInicio = bloqueioHoraIni;
+      if (Object.prototype.toString.call(bloqueioHoraIni) === '[object Date]') {
+        horaInicio = Utilities.formatDate(bloqueioHoraIni, tz, "HH:mm");
+      } else if (typeof bloqueioHoraIni === 'string') {
+        var parts = bloqueioHoraIni.split(':');
+        if (parts.length >= 2) horaInicio = String(parseInt(parts[0]) + ':' + parts[1]);
+      }
+      
+      // Normaliza hora fim
+      var horaFim = bloqueioHoraFim;
+      if (Object.prototype.toString.call(bloqueioHoraFim) === '[object Date]') {
+        horaFim = Utilities.formatDate(bloqueioHoraFim, tz, "HH:mm");
+      } else if (typeof bloqueioHoraFim === 'string') {
+        var parts = bloqueioHoraFim.split(':');
+        if (parts.length >= 2) horaFim = String(parseInt(parts[0]) + ':' + parts[1]);
+      }
       
       if (dataBloqueio === dataNormalized && horaInicio && horaFim) {
-        Logger.log('>>> BLOQUEIO MATCH: ' + dataBloqueio + ' ' + horaInicio + '-' + horaFim);
-        
         todosHorarios.forEach(function(h) {
           if (h >= horaInicio && h < horaFim) {
             if (ocupados.indexOf(h) === -1) {
@@ -325,7 +371,7 @@ function getHorarios(data, duracao) {
 }
 
 // ============================================
-// calcularHorariosBloqueados - Calcula horários ocupados baseado na duração
+// calcularHorariosBloqueados
 // ============================================
 function calcularHorariosBloqueados(horaInicio, duracao, todosHorarios) {
   var bloqueados = [];
@@ -348,7 +394,7 @@ function calcularHorariosBloqueados(horaInicio, duracao, todosHorarios) {
 }
 
 // ============================================
-// agendar - Salva um novo agendamento
+// agendar
 // ============================================
 function agendar(params) {
   var ss = SpreadsheetApp.openById(SS_ID);
@@ -401,7 +447,7 @@ function agendar(params) {
 }
 
 // ============================================
-// listar - Lista todos os agendamentos
+// listar
 // ============================================
 function listar() {
   var ss = SpreadsheetApp.openById(SS_ID);
@@ -428,7 +474,7 @@ function listar() {
 }
 
 // ============================================
-// getServicos - Lista serviços configurados
+// getServicos
 // ============================================
 function getServicos() {
   var ss = SpreadsheetApp.openById(SS_ID);
@@ -462,7 +508,7 @@ function getServicos() {
 }
 
 // ============================================
-// salvarServico - Adiciona ou atualiza serviço
+// salvarServico
 // ============================================
 function salvarServico(params) {
   var ss = SpreadsheetApp.openById(SS_ID);
@@ -477,10 +523,9 @@ function salvarServico(params) {
   var dados = sheet.getDataRange().getValues();
   var rowIndexToUpdate = -1;
   
-  // Procura se já existe
   for (var i = 1; i < dados.length; i++) {
     if (String(dados[i][0]).trim() === params.id) {
-      rowIndexToUpdate = i + 1; // +1 porque sheet começa em 1, e array dados em 0
+      rowIndexToUpdate = i + 1;
       break;
     }
   }
@@ -496,12 +541,9 @@ function salvarServico(params) {
   ];
   
   if (rowIndexToUpdate > -1) {
-    // Atualiza
     sheet.getRange(rowIndexToUpdate, 1, 1, newRowData.length).setValues([newRowData]);
   } else {
-    // Insere
     if (dados.length === 1 && String(dados[0][0]) === "") {
-        // Inicializa cabeçalho caso esteja completamente vazia
         sheet.getRange(1, 1, 1, 7).setValues([['id', 'category', 'name', 'description', 'price', 'duration', 'icon']]);
     }
     sheet.appendRow(newRowData);
@@ -513,7 +555,7 @@ function salvarServico(params) {
 }
 
 // ============================================
-// excluirServico - Remove um serviço
+// excluirServico
 // ============================================
 function excluirServico(id) {
   var ss = SpreadsheetApp.openById(SS_ID);
@@ -548,7 +590,7 @@ function excluirServico(id) {
 }
 
 // ============================================
-// editarAgendamento - Atualiza um agendamento
+// editarAgendamento
 // ============================================
 function editarAgendamento(params) {
   var ss = SpreadsheetApp.openById(SS_ID);
@@ -584,7 +626,7 @@ function editarAgendamento(params) {
 }
 
 // ============================================
-// cancelarAgendamento - Remove o agendamento
+// cancelarAgendamento
 // ============================================
 function cancelarAgendamento(params) {
   var ss = SpreadsheetApp.openById(SS_ID);

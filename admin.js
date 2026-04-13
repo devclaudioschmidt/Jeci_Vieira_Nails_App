@@ -1,5 +1,4 @@
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby3ZYXenXGA83I5ny7oVesIM8RCWB2_w2QxKTTuBqHZuYR05Aw_Z-cCoZHz7XMA3Sca/exec';
-
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxq8e9cX2Rup-sFIniCFEFwZzHkHjqzmh_LL-vLniYQ6gG2gXNg4XUUPcGdkYyryJVH/exec';
 // VERIFICAÇÃO DE AUTENTICAÇÃO
 (function checkAuth() {
     const token = localStorage.getItem('admin_auth_token');
@@ -18,6 +17,7 @@ let adminCurrentYear = new Date().getFullYear();
 let adminSelectedDate = null;
 let allAppointments = [];
 let pendingCancelData = null;
+let blockedSchedules = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     // Definir data inicial
@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Carrega dados
     fetchAppointments();
+    fetchBlockedSchedules();
 });
 
 function fetchAppointments() {
@@ -51,6 +52,113 @@ function fetchAppointments() {
             loading.style.display = 'none';
         });
 }
+
+function fetchBlockedSchedules(shouldRender = false) {
+    console.log('Buscando bloqueios...');
+    fetch(GAS_URL + '?action=getBloqueios')
+        .then(res => res.json())
+        .then(data => {
+            console.log('Bloqueios recebidos:', data);
+            blockedSchedules = Array.isArray(data) ? data : [];
+            if (shouldRender && adminSelectedDate) {
+                showAgendaForDate(adminSelectedDate);
+            }
+        })
+        .catch(err => {
+            console.error('Erro ao buscar bloqueios', err);
+        });
+}
+
+function unlockSchedule(id) {
+    if (!confirm('Tem certeza que deseja desbloquear este horário?')) return;
+    
+    const params = new URLSearchParams({
+        action: 'desbloquearHorario',
+        id: id
+    });
+    
+    fetch(GAS_URL + '?' + params.toString())
+        .then(res => res.json())
+        .then(data => {
+            if (data.sucesso) {
+                fetchBlockedSchedules(true);
+            } else {
+                alert(data.erro || 'Erro ao desbloquear');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Erro ao trancar');
+        });
+}
+
+function openBlockModal() {
+    document.getElementById('blockDate').value = adminSelectedDate || '';
+    document.getElementById('blockStartTime').value = '';
+    document.getElementById('blockEndTime').value = '';
+    document.getElementById('blockReason').value = '';
+    document.getElementById('blockModal').style.display = 'flex';
+}
+
+function closeBlockModal() {
+    document.getElementById('blockModal').style.display = 'none';
+}
+
+document.getElementById('blockForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('saveBlockBtn');
+    btn.textContent = 'Trancando...';
+    btn.disabled = true;
+    
+    const data = document.getElementById('blockDate').value;
+    const horaInicio = document.getElementById('blockStartTime').value;
+    const horaFim = document.getElementById('blockEndTime').value;
+    const motivo = document.getElementById('blockReason').value;
+    
+    console.log('Bloqueando:', data, horaInicio, horaFim, motivo);
+    
+    const params = new URLSearchParams({
+        action: 'bloquearHorario',
+        data: data,
+        hora_inicio: horaInicio,
+        hora_fim: horaFim,
+        motivo: motivo
+    });
+    
+    console.log('URL:', GAS_URL + '?' + params.toString());
+    
+    fetch(GAS_URL + '?' + params.toString())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`Erro HTTP: ${res.status}`);
+            }
+            return res.text(); // Get raw text first to debug non-JSON responses
+        })
+        .then(text => {
+            console.log('Resposta bruta:', text);
+            try {
+                const data = JSON.parse(text);
+                if (data.sucesso) {
+                    closeBlockModal();
+                    alert('Horário trancado com sucesso!');
+                    fetchBlockedSchedules(true);
+                } else {
+                    alert(data.erro || 'Erro ao bloquear');
+                }
+            } catch (e) {
+                console.error('Erro ao processar JSON:', e, text);
+                alert('Erro na resposta do servidor. Verifique o console.');
+            }
+        })
+        .catch(err => {
+            console.error('Erro na requisição:', err);
+            alert('Falha na conexão ou erro no script: ' + err.message);
+        })
+        .finally(() => {
+            btn.textContent = 'Trancar';
+            btn.disabled = false;
+        });
+});
 
 function renderAdminCalendar() {
     const monthNames = [
@@ -166,6 +274,7 @@ function showAgendaForDate(dateStr) {
     const badgeEl = document.getElementById('agendaCount');
     
     const dayApps = allAppointments.filter(app => String(app.data) === dateStr);
+    const dayBlocks = blockedSchedules.filter(b => String(b.data) === dateStr);
     
     dayApps.sort((a, b) => {
         return (a.hora || '').localeCompare(b.hora || '');
@@ -173,7 +282,7 @@ function showAgendaForDate(dateStr) {
 
     badgeEl.textContent = `${dayApps.length} agendamentos`;
 
-    if (dayApps.length === 0) {
+    if (dayApps.length === 0 && dayBlocks.length === 0) {
         listEl.innerHTML = `
             <div class="empty-agenda animate-fade-in-up">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5">
@@ -188,7 +297,32 @@ function showAgendaForDate(dateStr) {
         return;
     }
 
-    listEl.innerHTML = dayApps.map((app, index) => {
+    let html = '';
+    
+    // Render blocked schedules
+    html += dayBlocks.map((block, index) => {
+        const timeRange = `${block.hora_inicio} - ${block.hora_fim}`;
+        return `
+            <div class="agenda-card blocked animate-fade-in-up" style="background: #fee2e2; border-left: 3px solid #ef4444;">
+                <div class="agenda-time" style="color: #dc2626;">${timeRange}</div>
+                <div class="agenda-info">
+                    <h4 style="color: #dc2626;">HORÁRIO TRANCADO</h4>
+                    <p>${block.motivo || 'Sem motivo'}</p>
+                </div>
+                <div class="agenda-actions">
+                    <button class="action-btn-small delete" onclick="event.stopPropagation(); unlockSchedule('${block.id}')" title="Desbloquear">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Render appointments
+    html += dayApps.map((app, index) => {
         const delayClass = `delay-${(index % 5) + 1}`;
         const encodedApp = encodeURIComponent(JSON.stringify(app));
 
@@ -217,6 +351,8 @@ function showAgendaForDate(dateStr) {
             </div>
         `;
     }).join('');
+
+    listEl.innerHTML = html;
 }
 
 function openDetailsModal(encodedAppStr) {
@@ -260,7 +396,9 @@ function switchAdminTab(tabName) {
     event.currentTarget.classList.add('active');
     document.getElementById(`tab-${tabName}`).classList.add('active');
     
-    if (tabName === 'servicos' && adminServices.length === 0) {
+    if (tabName === 'agenda') {
+        fetchBlockedSchedules();
+    } else if (tabName === 'servicos' && adminServices.length === 0) {
         fetchAdminServices();
     }
 }

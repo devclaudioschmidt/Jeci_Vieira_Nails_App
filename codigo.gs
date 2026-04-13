@@ -29,9 +29,121 @@ function handleRequest(e) {
   
   if (action === 'editarAgendamento') return editarAgendamento(params);
   if (action === 'cancelarAgendamento') return cancelarAgendamento(params);
+  if (action === 'bloquearHorario') return bloquearHorario(params);
+  if (action === 'desbloquearHorario') return desbloquearHorario(params);
+  if (action === 'getBloqueios') return getBloqueios();
+  
+return ContentService.createTextOutput(
+    JSON.stringify({ sucesso: false, erro: 'Agendamento não encontrado' })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================
+// getBloqueios - Lista todos os horários bloqueados
+// ============================================
+function getBloqueios() {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheet = ss.getSheetByName('bloqueios');
+  
+  if (!sheet) {
+    ss.insertSheet('bloqueios');
+    sheet = ss.getSheetByName('bloqueios');
+    sheet.appendRow(['id', 'data', 'hora_inicio', 'hora_fim', 'motivo', 'criado_em']);
+  }
+  
+  var dados = sheet.getDataRange().getValues();
+  var lista = [];
+  
+  for (var i = 1; i < dados.length; i++) {
+    var dataNaPlanilha = normalizeDate(dados[i][1]); // Use helper to ensure YYYY-MM-DD
+    if (dataNaPlanilha) {
+      lista.push({
+        id: i + 1, // Use row number as ID
+        data: dataNaPlanilha,
+        hora_inicio: normalizeTime(dados[i][2]),
+        hora_fim: normalizeTime(dados[i][3]),
+        motivo: dados[i][4] || '',
+        criado_em: dados[i][5]
+      });
+    }
+  }
   
   return ContentService.createTextOutput(
-    JSON.stringify({ erro: 'ação inválida' })
+    JSON.stringify(lista)
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================
+// bloquearHorario - Bloqueia um horário
+// ============================================
+function bloquearHorario(params) {
+  var data = normalizeDate(params.data || params.data_);
+  var hora_inicio = normalizeTime(params.hora_inicio || params.horaInicio || params.hora_inicio_);
+  var hora_fim = normalizeTime(params.hora_fim || params.horaFim || params.hora_fim_);
+  var motivo = params.motivo || '';
+  
+  Logger.log('bloquearHorario - Data: ' + data + ', Inicio: ' + hora_inicio + ', Fim: ' + hora_fim);
+  
+  if (!data || !hora_inicio || !hora_fim) {
+    var desc = [];
+    if (!data) desc.push('data');
+    if (!hora_inicio) desc.push('hora_inicio');
+    if (!hora_fim) desc.push('hora_fim');
+    
+    return ContentService.createTextOutput(
+      JSON.stringify({ sucesso: false, erro: 'Parâmetros incompletos ou inválidos: ' + desc.join(', ') })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheet = ss.getSheetByName('bloqueios');
+  
+  if (!sheet) {
+    ss.insertSheet('bloqueios');
+    sheet = ss.getSheetByName('bloqueios');
+    sheet.appendRow(['id', 'data', 'hora_inicio', 'hora_fim', 'motivo', 'criado_em']);
+  }
+  
+  var lastRow = sheet.getLastRow();
+  var nextId = lastRow + 1;
+  
+  sheet.appendRow([
+    nextId,
+    data,
+    hora_inicio,
+    hora_fim,
+    motivo,
+    new Date().toISOString()
+  ]);
+  
+  return ContentService.createTextOutput(
+    JSON.stringify({ sucesso: true })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================
+// desbloquearHorario - Remove um bloqueio
+// ============================================
+function desbloquearHorario(params) {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheet = ss.getSheetByName('bloqueios');
+  
+  if (!sheet) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ sucesso: false, erro: 'Nenhum bloqueio encontrado' })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  var rowId = parseInt(params.id);
+  if (rowId > 0) {
+    sheet.deleteRow(rowId);
+    return ContentService.createTextOutput(
+      JSON.stringify({ sucesso: true })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  return ContentService.createTextOutput(
+    JSON.stringify({ sucesso: false, erro: 'ID de bloqueio inválido' })
   ).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -148,6 +260,7 @@ function getHorarios(data, duracao) {
   var agendamentos = [];
   var dataNormalized = normalizeDate(data, tz);
   
+  // Verifica agendamentos existentes
   for (var i = 1; i < dados.length; i++) {
     var dataNaPlanilha = normalizeDate(dados[i][0], tz);
     var status = String(dados[i][5] || '').toLowerCase().trim();
@@ -171,6 +284,33 @@ function getHorarios(data, duracao) {
     }
   }
   
+  // Verifica bloqueios de horários
+  var bloqueiosSheet = ss.getSheetByName('bloqueios');
+  Logger.log('Verificando bloqueios para data: ' + dataNormalized);
+  if (bloqueiosSheet) {
+    var bloqueios = bloqueiosSheet.getDataRange().getValues();
+    Logger.log('Total linhas bloqueios: ' + bloqueios.length);
+    for (var j = 1; j < bloqueios.length; j++) {
+      var dataBloqueio = normalizeDate(bloqueios[j][1], tz);
+      var horaInicio = normalizeTime(bloqueios[j][2], tz);
+      var horaFim = normalizeTime(bloqueios[j][3], tz);
+      
+      Logger.log('Linha ' + j + ': data=' + dataBloqueio + ' inicio=' + horaInicio + ' fim=' + horaFim);
+      
+      if (dataBloqueio === dataNormalized && horaInicio && horaFim) {
+        Logger.log('>>> BLOQUEIO MATCH: ' + dataBloqueio + ' ' + horaInicio + '-' + horaFim);
+        
+        todosHorarios.forEach(function(h) {
+          if (h >= horaInicio && h < horaFim) {
+            if (ocupados.indexOf(h) === -1) {
+              ocupados.push(h);
+            }
+          }
+        });
+      }
+    }
+  }
+  
   var disponiveis = todosHorarios.filter(function(h) {
     var parts = h.split(':');
     var hMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
@@ -189,7 +329,7 @@ function getHorarios(data, duracao) {
     
     return true;
   });
-  
+
   return ContentService.createTextOutput(
     JSON.stringify({ data: data, horarios: disponiveis })
   ).setMimeType(ContentService.MimeType.JSON);

@@ -35,8 +35,7 @@ let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 
 // URL do Web App do Google Apps Script
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby3ZYXenXGA83I5ny7oVesIM8RCWB2_w2QxKTTuBqHZuYR05Aw_Z-cCoZHz7XMA3Sca/exec';
-
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxq8e9cX2Rup-sFIniCFEFwZzHkHjqzmh_LL-vLniYQ6gG2gXNg4XUUPcGdkYyryJVH/exec';
 // ============================================
 // HISTÓRICO E LOCALSTORAGE
 // ============================================

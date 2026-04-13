@@ -1,4 +1,4 @@
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbz_BOZtoRK8-JpUsJTuQ-iMlHwqGa12ln4-g2bga1jLYP5rw4WlHNiE09p2G8JdipC0/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxq8e9cX2Rup-sFIniCFEFwZzHkHjqzmh_LL-vLniYQ6gG2gXNg4XUUPcGdkYyryJVH/exec';
 
 // VERIFICAÇÃO DE AUTENTICAÇÃO
 (function checkAuth() {
@@ -54,17 +54,16 @@ function fetchAppointments() {
         });
 }
 
-function fetchBlockedSchedules() {
+function fetchBlockedSchedules(shouldRender = false) {
     console.log('Buscando bloqueios...');
-    console.log('URL:', GAS_URL + '?action=getBloqueios');
     fetch(GAS_URL + '?action=getBloqueios')
-        .then(res => {
-            console.log('Status:', res.status, res.statusText);
-            return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
             console.log('Bloqueios recebidos:', data);
             blockedSchedules = Array.isArray(data) ? data : [];
+            if (shouldRender && adminSelectedDate) {
+                showAgendaForDate(adminSelectedDate);
+            }
         })
         .catch(err => {
             console.error('Erro ao buscar bloqueios', err);
@@ -83,15 +82,14 @@ function unlockSchedule(id) {
         .then(res => res.json())
         .then(data => {
             if (data.sucesso) {
-                fetchBlockedSchedules();
-                showAgendaForDate(adminSelectedDate);
+                fetchBlockedSchedules(true);
             } else {
                 alert(data.erro || 'Erro ao desbloquear');
             }
         })
         .catch(err => {
             console.error(err);
-            alert('Erro ao desbloquear');
+            alert('Erro ao trancar');
         });
 }
 
@@ -110,7 +108,7 @@ function closeBlockModal() {
 document.getElementById('blockForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('saveBlockBtn');
-    btn.textContent = 'Bloqueando...';
+    btn.textContent = 'Trancando...';
     btn.disabled = true;
     
     const data = document.getElementById('blockDate').value;
@@ -131,23 +129,34 @@ document.getElementById('blockForm')?.addEventListener('submit', function(e) {
     console.log('URL:', GAS_URL + '?' + params.toString());
     
     fetch(GAS_URL + '?' + params.toString())
-        .then(res => res.json())
-        .then(data => {
-            console.log('Resposta:', data);
-            if (data.sucesso) {
-                closeBlockModal();
-                alert('Horário bloqueado com sucesso!');
-                fetchBlockedSchedules();
-            } else {
-                alert(data.erro || 'Erro ao bloquear');
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`Erro HTTP: ${res.status}`);
+            }
+            return res.text(); // Get raw text first to debug non-JSON responses
+        })
+        .then(text => {
+            console.log('Resposta bruta:', text);
+            try {
+                const data = JSON.parse(text);
+                if (data.sucesso) {
+                    closeBlockModal();
+                    alert('Horário trancado com sucesso!');
+                    fetchBlockedSchedules(true);
+                } else {
+                    alert(data.erro || 'Erro ao bloquear');
+                }
+            } catch (e) {
+                console.error('Erro ao processar JSON:', e, text);
+                alert('Erro na resposta do servidor. Verifique o console.');
             }
         })
         .catch(err => {
-            console.error(err);
-            alert('Erro ao bloquear');
+            console.error('Erro na requisição:', err);
+            alert('Falha na conexão ou erro no script: ' + err.message);
         })
         .finally(() => {
-            btn.textContent = 'Bloquear';
+            btn.textContent = 'Trancar';
             btn.disabled = false;
         });
 });
@@ -298,7 +307,7 @@ function showAgendaForDate(dateStr) {
             <div class="agenda-card blocked animate-fade-in-up" style="background: #fee2e2; border-left: 3px solid #ef4444;">
                 <div class="agenda-time" style="color: #dc2626;">${timeRange}</div>
                 <div class="agenda-info">
-                    <h4 style="color: #dc2626;">HORÁRIO BLOQUEADO</h4>
+                    <h4 style="color: #dc2626;">HORÁRIO TRANCADO</h4>
                     <p>${block.motivo || 'Sem motivo'}</p>
                 </div>
                 <div class="agenda-actions">

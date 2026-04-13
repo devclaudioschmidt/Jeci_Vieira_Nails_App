@@ -55,12 +55,13 @@ function getBloqueios() {
   var lista = [];
   
   for (var i = 1; i < dados.length; i++) {
-    if (dados[i][1]) { // data is now column 2 (index 1)
+    var dataNaPlanilha = normalizeDate(dados[i][1]); // Use helper to ensure YYYY-MM-DD
+    if (dataNaPlanilha) {
       lista.push({
         id: i + 1, // Use row number as ID
-        data: dados[i][1],
-        hora_inicio: dados[i][2],
-        hora_fim: dados[i][3],
+        data: dataNaPlanilha,
+        hora_inicio: normalizeTime(dados[i][2]),
+        hora_fim: normalizeTime(dados[i][3]),
         motivo: dados[i][4] || '',
         criado_em: dados[i][5]
       });
@@ -76,17 +77,21 @@ function getBloqueios() {
 // bloquearHorario - Bloqueia um horário
 // ============================================
 function bloquearHorario(params) {
-  var data = params.data || params.data_;
-  var hora_inicio = params.hora_inicio || params.horaInicio || params.hora_inicio_;
-  var hora_fim = params.hora_fim || params.horaFim || params.hora_fim_;
+  var data = normalizeDate(params.data || params.data_);
+  var hora_inicio = normalizeTime(params.hora_inicio || params.horaInicio || params.hora_inicio_);
+  var hora_fim = normalizeTime(params.hora_fim || params.horaFim || params.hora_fim_);
   var motivo = params.motivo || '';
   
-  Logger.log('bloquearHorario params: ' + JSON.stringify(params));
-  Logger.log('data: ' + data + ', hora_inicio: ' + hora_inicio + ', hora_fim: ' + hora_fim);
+  Logger.log('bloquearHorario - Data: ' + data + ', Inicio: ' + hora_inicio + ', Fim: ' + hora_fim);
   
   if (!data || !hora_inicio || !hora_fim) {
+    var desc = [];
+    if (!data) desc.push('data');
+    if (!hora_inicio) desc.push('hora_inicio');
+    if (!hora_fim) desc.push('hora_fim');
+    
     return ContentService.createTextOutput(
-      JSON.stringify({ sucesso: false, erro: 'Parâmetros incompletos' })
+      JSON.stringify({ sucesso: false, erro: 'Parâmetros incompletos ou inválidos: ' + desc.join(', ') })
     ).setMimeType(ContentService.MimeType.JSON);
   }
   
@@ -99,8 +104,8 @@ function bloquearHorario(params) {
     sheet.appendRow(['id', 'data', 'hora_inicio', 'hora_fim', 'motivo', 'criado_em']);
   }
   
-  var dados = sheet.getDataRange().getValues();
-  var nextId = dados.length;
+  var lastRow = sheet.getLastRow();
+  var nextId = lastRow + 1;
   
   sheet.appendRow([
     nextId,
@@ -283,9 +288,9 @@ function getHorarios(data, duracao) {
     var bloqueios = bloqueiosSheet.getDataRange().getValues();
     Logger.log('Total linhas bloqueios: ' + bloqueios.length);
     for (var j = 1; j < bloqueios.length; j++) {
-      var dataBloqueio = String(bloqueios[j][1] || '');
-      var horaInicio = String(bloqueios[j][2] || '');
-      var horaFim = String(bloqueios[j][3] || '');
+      var dataBloqueio = normalizeDate(bloqueios[j][1], tz);
+      var horaInicio = normalizeTime(bloqueios[j][2], tz);
+      var horaFim = normalizeTime(bloqueios[j][3], tz);
       
       Logger.log('Linha ' + j + ': data=' + dataBloqueio + ' inicio=' + horaInicio + ' fim=' + horaFim);
       

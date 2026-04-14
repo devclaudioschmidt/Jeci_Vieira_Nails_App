@@ -176,7 +176,7 @@
 
     <script src="config.js"></script>
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycby3ZYXenXGA83I5ny7oVesIM8RCWB2_w2QxKTTuBqHZuYR05Aw_Z-cCoZHz7XMA3Sca/exec';
+        const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -187,13 +187,12 @@
             const spinner = document.getElementById('loginSpinner');
             const errorMsg = document.getElementById('errorMessage');
 
-            // Reset state
             errorMsg.style.display = 'none';
             btn.disabled = true;
             spinner.style.display = 'block';
 
             try {
-                const response = await fetch(`${GAS_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`, {
+                const response = await fetch(`${API_URL}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`, {
                     method: 'GET',
                     redirect: 'follow'
                 });

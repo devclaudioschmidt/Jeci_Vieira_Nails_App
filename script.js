@@ -34,8 +34,8 @@ let selectedCategory = null;
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 
-// URL do Web App do Google Apps Script
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxq8e9cX2Rup-sFIniCFEFwZzHkHjqzmh_LL-vLniYQ6gG2gXNg4XUUPcGdkYyryJVH/exec';
+// Firebase Functions API URL (substitui Google Apps Script)
+const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
 // ============================================
 // HISTÓRICO E LOCALSTORAGE
 // ============================================
@@ -160,7 +160,7 @@ const UNAVAILABLE_TIMES = []; // Não usado mais, mantido para compatibilidade
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    fetch(GAS_URL + '?action=getServicos')
+    fetch(API_URL + '?action=getServicos')
         .then(res => res.json())
         .then(data => {
             if (Array.isArray(data) && data.length > 0) {
@@ -547,8 +547,8 @@ function loadTimes() {
     timeLoading.style.display = 'flex';
     timeSection.style.display = 'block';
     
-    // Busca horários do Google Apps Script com duração do serviço
-    fetch(GAS_URL + '?action=getHorarios&data=' + selectedDate + '&duracao=' + (selectedDuration || 30))
+    // Busca horários do Firebase Functions com duração do serviço
+    fetch(API_URL + '?action=getHorarios&data=' + selectedDate + '&duracao=' + (selectedDuration || 30))
         .then(response => response.text())
         .then(text => {
             console.log('Raw response:', text);
@@ -678,7 +678,7 @@ document.getElementById('confirmForm').addEventListener('submit', async function
     formData.append('duracao', selectedDuration || 30);
     
     try {
-        const response = await fetch(GAS_URL, {
+        const response = await fetch(API_URL, {
             method: 'POST',
             body: formData
         });

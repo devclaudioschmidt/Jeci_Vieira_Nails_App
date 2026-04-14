@@ -1,0 +1,442 @@
+// Firebase Cloud Functions API - Jeci Vieira Nails App
+const functions = require('firebase-functions');
+const https = require('https');
+
+const DATABASE_URL = 'app-jeci-vieira-nails-default-rtdb.firebaseio.com';
+
+function normalizeDate(data) {
+  if (!data) return null;
+  if (typeof data === 'string') {
+    data = data.trim();
+    if (data.indexOf('/') > -1) {
+      const parts = data.split(' ')[0].split('/');
+      if (parts.length === 3) {
+        if (parts[0].length === 2 && parts[2].length === 4) {
+          return parts[2] + '-' + parts[1] + '-' + parts[0];
+        }
+        return parts[0] + '-' + parts[1] + '-' + parts[2];
+      }
+    }
+    if (data.indexOf(' ') > -1) return data.split(' ')[0];
+    if (data.indexOf('T') > -1) return data.split('T')[0];
+    return data;
+  }
+  return String(data).split(' ')[0];
+}
+
+function normalizeTime(hora) {
+  if (!hora) return null;
+  hora = String(hora).trim();
+  if (hora.indexOf(':') === -1) {
+    const h = parseInt(hora, 10);
+    return (h < 10 ? '0' + h : h) + ':00';
+  }
+  const parts = hora.split(':');
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) || 0;
+  return (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m);
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function sendResponse(res, statusCode, data) {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  res.set('Content-Type', 'application/json');
+  res.status(statusCode).send(JSON.stringify(data));
+}
+
+function readFirebase(path) {
+  return new Promise((resolve, reject) => {
+    const url = `https://${DATABASE_URL}/${path}.json`;
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          resolve(data);
+        }
+      });
+    }).on('error', reject);
+  });
+}
+
+function writeFirebase(path, data, method = 'PUT') {
+  return new Promise((resolve, reject) => {
+    const url = `https://${DATABASE_URL}/${path}.json`;
+    const postData = JSON.stringify(data);
+    
+    const options = {
+      hostname: DATABASE_URL,
+      path: `/${path}.json`,
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+      }
+    };
+    
+    const req = https.request(options, (res) => {
+      let responseData = '';
+      res.on('data', chunk => responseData += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(responseData));
+        } catch (e) {
+          resolve(responseData);
+        }
+      });
+    });
+    
+    req.on('error', reject);
+    req.write(postData);
+    req.end();
+  });
+}
+
+function deleteFirebase(path) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: DATABASE_URL,
+      path: `/${path}.json`,
+      method: 'DELETE'
+    };
+    
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve(data));
+    });
+    
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+exports.api = functions.https.onRequest(async (req, res) => {
+  if (req.method === 'OPTIONS') {
+    return sendResponse(res, 204, '');
+  }
+
+  const action = req.query.action || req.body.action;
+
+  try {
+    switch (action) {
+      case 'getServicos': {
+        const data = await readFirebase('servicos');
+        const lista = [];
+        if (data) {
+          Object.keys(data).forEach(key => {
+            lista.push({ id: key, ...data[key] });
+          });
+        }
+        return sendResponse(res, 200, lista);
+      }
+      
+      case 'salvarServico': {
+        const { id, category, name, description, price, duration, icon } = req.body;
+        if (!id || !name) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'ID e nome são obrigatórios' });
+        }
+        await writeFirebase(`servicos/${id}`, {
+          category: category || '',
+          name: name,
+          description: description || '',
+          price: parseFloat(price) || 0,
+          duration: parseInt(duration) || 30,
+          icon: icon || 'circle'
+        });
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'excluirServico': {
+        const id = req.query.id || req.body.id;
+        if (!id) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'ID é obrigatório' });
+        }
+        await deleteFirebase(`servicos/${id}`);
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'getHorarios': {
+        const data = req.query.data || req.body.data;
+        const duracao = parseInt(req.query.duracao || req.body.duracao) || 30;
+        
+        if (!data) {
+          return sendResponse(res, 200, { data: null, horarios: [] });
+        }
+        
+        const dataNormalized = normalizeDate(data);
+        const dateObj = new Date(data + 'T12:00:00');
+        const diaSemana = dateObj.getDay();
+        let todosHorarios = [];
+        let horarioFechamento = 21 * 60;
+        
+        if (diaSemana >= 1 && diaSemana <= 5) {
+          todosHorarios = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
+          horarioFechamento = 21 * 60;
+        } else if (diaSemana === 6) {
+          todosHorarios = ['07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
+          horarioFechamento = 12 * 60;
+        }
+        
+        const agendamentosData = await readFirebase('agendamentos') || {};
+        const agendamentos = [];
+        
+        Object.keys(agendamentosData).forEach(key => {
+          const app = agendamentosData[key];
+          const dataNaPlanilha = normalizeDate(app.data);
+          const status = String(app.status || '').toLowerCase().trim();
+          
+          if (dataNaPlanilha === dataNormalized && status === 'confirmado') {
+            const horaNormalized = normalizeTime(app.hora);
+            const duracaoExistente = parseInt(app.duracao) || 30;
+            
+            if (horaNormalized) {
+              const parts = horaNormalized.split(':');
+              const startMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+              const endMin = startMin + duracaoExistente;
+              agendamentos.push({ start: startMin, end: endMin, duracao: duracaoExistente });
+            }
+          }
+        });
+        
+        const bloqueiosData = await readFirebase('bloqueios') || {};
+        
+        Object.keys(bloqueiosData).forEach(key => {
+          const block = bloqueiosData[key];
+          const dataBloqueio = normalizeDate(block.data);
+          const horaInicio = normalizeTime(block.hora_inicio);
+          const horaFim = normalizeTime(block.hora_fim);
+          
+          if (dataBloqueio === dataNormalized && horaInicio && horaFim) {
+            const partsInicio = horaInicio.split(':');
+            const partsFim = horaFim.split(':');
+            const startMin = parseInt(partsInicio[0]) * 60 + parseInt(partsInicio[1]);
+            const endMin = parseInt(partsFim[0]) * 60 + parseInt(partsFim[1]);
+            agendamentos.push({ start: startMin, end: endMin });
+          }
+        });
+        
+        const ultimoHorarioMin = horarioFechamento - duracao;
+        
+        const disponiveis = todosHorarios.filter(h => {
+          const parts = h.split(':');
+          const hMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+          const hEnd = hMin + duracao;
+          
+          if (hMin > ultimoHorarioMin) return false;
+          
+          for (const exist of agendamentos) {
+            if (!(hEnd <= exist.start || hMin >= exist.end)) {
+              return false;
+            }
+          }
+          
+          return true;
+        });
+        
+        return sendResponse(res, 200, { data: data, horarios: disponiveis });
+      }
+      
+      case 'agendar': {
+        const { data, hora, servico, cliente, telefone, duracao } = req.body;
+        
+        if (!data || !hora || !servico || !cliente) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'Parâmetros incompletos' });
+        }
+        
+        const dataNormalized = normalizeDate(data);
+        const horaNormalized = normalizeTime(hora);
+        const duracaoInt = parseInt(duracao) || 30;
+        
+        const agendamentos = await readFirebase('agendamentos') || {};
+        
+        Object.keys(agendamentos).forEach(key => {
+          const app = agendamentos[key];
+          const dataNaPlanilha = normalizeDate(app.data);
+          const status = String(app.status || '').toLowerCase().trim();
+          
+          if (dataNaPlanilha === dataNormalized && status === 'confirmado') {
+            const horaExistente = normalizeTime(app.hora);
+            const durExistente = parseInt(app.duracao) || 30;
+            
+            const existParts = horaExistente.split(':');
+            const existStartMin = parseInt(existParts[0]) * 60 + parseInt(existParts[1]);
+            const existEndMin = existStartMin + durExistente;
+            
+            const novoParts = horaNormalized.split(':');
+            const novoStartMin = parseInt(novoParts[0]) * 60 + parseInt(novoParts[1]);
+            const novoEndMin = novoStartMin + duracaoInt;
+            
+            if (!(novoEndMin <= existStartMin || novoStartMin >= existEndMin)) {
+              return sendResponse(res, 400, { sucesso: false, erro: 'Horário conflita com agendamento existente!' });
+            }
+          }
+        });
+        
+        const newId = generateId();
+        await writeFirebase(`agendamentos/${newId}`, {
+          data: data,
+          hora: hora,
+          servico: servico,
+          cliente: cliente,
+          telefone: telefone || '',
+          status: 'confirmado',
+          duracao: duracaoInt,
+          criado_em: new Date().toISOString()
+        });
+        
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'getAgendamentos': {
+        const data = await readFirebase('agendamentos') || {};
+        const lista = [];
+        
+        Object.keys(data).forEach(key => {
+          lista.push({ id: key, ...data[key] });
+        });
+        
+        lista.sort((a, b) => {
+          const dateA = new Date(a.data + 'T' + (a.hora || '00:00'));
+          const dateB = new Date(b.data + 'T' + (b.hora || '00:00'));
+          return dateA - dateB;
+        });
+        
+        return sendResponse(res, 200, lista);
+      }
+      
+      case 'editarAgendamento': {
+        const { originalData, originalTime, data, hora, servico, cliente, telefone, duracao } = req.body;
+        
+        const agendamentos = await readFirebase('agendamentos') || {};
+        const originalDataNorm = normalizeDate(originalData);
+        const originalTimeNorm = normalizeTime(originalTime);
+        
+        let foundKey = null;
+        Object.keys(agendamentos).forEach(key => {
+          const app = agendamentos[key];
+          const dataNaPlanilha = normalizeDate(app.data);
+          const horaNaPlanilha = normalizeTime(app.hora);
+          
+          if (dataNaPlanilha === originalDataNorm && horaNaPlanilha === originalTimeNorm) {
+            foundKey = key;
+          }
+        });
+        
+        if (!foundKey) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'Agendamento não encontrado' });
+        }
+        
+        await writeFirebase(`agendamentos/${foundKey}`, {
+          data: data,
+          hora: hora,
+          servico: servico,
+          cliente: cliente,
+          telefone: telefone || '',
+          duracao: parseInt(duracao) || 30
+        });
+        
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'cancelarAgendamento': {
+        const { data, hora } = req.body;
+        
+        const dataNormalized = normalizeDate(data);
+        const horaNormalized = normalizeTime(hora);
+        
+        const agendamentos = await readFirebase('agendamentos') || {};
+        
+        let foundKey = null;
+        Object.keys(agendamentos).forEach(key => {
+          const app = agendamentos[key];
+          const dataNaPlanilha = normalizeDate(app.data);
+          const horaNaPlanilha = normalizeTime(app.hora);
+          
+          if (dataNaPlanilha === dataNormalized && horaNaPlanilha === horaNormalized) {
+            foundKey = key;
+          }
+        });
+        
+        if (!foundKey) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'Agendamento não encontrado' });
+        }
+        
+        await deleteFirebase(`agendamentos/${foundKey}`);
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'bloquearHorario': {
+        const data = req.body.data || req.query.data;
+        const hora_inicio = normalizeTime(req.body.hora_inicio || req.body.horaInicio || req.query.hora_inicio);
+        const hora_fim = normalizeTime(req.body.hora_fim || req.body.horaFim || req.query.hora_fim);
+        const motivo = req.body.motivo || '';
+        
+        if (!data || !hora_inicio || !hora_fim) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'Parâmetros incompletos' });
+        }
+        
+        const newId = generateId();
+        await writeFirebase(`bloqueios/${newId}`, {
+          data: data,
+          hora_inicio: hora_inicio,
+          hora_fim: hora_fim,
+          motivo: motivo,
+          criado_em: new Date().toISOString()
+        });
+        
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'desbloquearHorario': {
+        const id = req.query.id || req.body.id;
+        
+        if (!id) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'ID é obrigatório' });
+        }
+        
+        await deleteFirebase(`bloqueios/${id}`);
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'getBloqueios': {
+        const data = await readFirebase('bloqueios') || {};
+        const lista = [];
+        
+        Object.keys(data).forEach(key => {
+          lista.push({ id: key, ...data[key] });
+        });
+        
+        return sendResponse(res, 200, lista);
+      }
+      
+      case 'login': {
+        const user = req.body.user || req.query.user;
+        const pass = req.body.pass || req.query.pass;
+        
+        const USER_ADMIN = 'admin';
+        const PASS_ADMIN = '1234';
+        
+        if (user === USER_ADMIN && pass === PASS_ADMIN) {
+          const token = Buffer.from(user + ':' + pass).toString('base64');
+          return sendResponse(res, 200, { sucesso: true, token: token });
+        }
+        
+        return sendResponse(res, 401, { sucesso: false, erro: 'Usuário ou senha incorretos' });
+      }
+      
+      default:
+        return sendResponse(res, 400, { sucesso: false, erro: 'Ação não encontrada' });
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    return sendResponse(res, 500, { sucesso: false, erro: error.message });
+  }
+});

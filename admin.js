@@ -1,11 +1,14 @@
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxq8e9cX2Rup-sFIniCFEFwZzHkHjqzmh_LL-vLniYQ6gG2gXNg4XUUPcGdkYyryJVH/exec';
-// VERIFICAÇÃO DE AUTENTICAÇÃO
-(function checkAuth() {
-    const token = localStorage.getItem('admin_auth_token');
-    if (!token) {
-        window.location.href = 'login.html';
-    }
-})();
+const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
+
+// TEMPORÁRIO: Autenticação desabilitada para testes
+// (function checkAuth() {
+//     const token = localStorage.getItem('admin_auth_token');
+//     if (!token) {
+//         window.location.href = 'login.html';
+//     }
+// })();
+
+console.log('Admin JS carregado. API URL:', API_URL);
 
 function logout() {
     localStorage.removeItem('admin_auth_token');
@@ -39,7 +42,7 @@ function fetchAppointments() {
     const loading = document.getElementById('loadingIndicator');
     loading.style.display = 'flex';
     
-    fetch(GAS_URL + '?action=getAgendamentos')
+    fetch(API_URL + '?action=getAgendamentos')
         .then(res => res.json())
         .then(data => {
             allAppointments = Array.isArray(data) ? data : []; 
@@ -55,7 +58,7 @@ function fetchAppointments() {
 
 function fetchBlockedSchedules(shouldRender = false) {
     console.log('Buscando bloqueios...');
-    fetch(GAS_URL + '?action=getBloqueios')
+    fetch(API_URL + '?action=getBloqueios')
         .then(res => res.json())
         .then(data => {
             console.log('Bloqueios recebidos:', data);
@@ -77,7 +80,7 @@ function unlockSchedule(id) {
         id: id
     });
     
-    fetch(GAS_URL + '?' + params.toString())
+    fetch(API_URL + '?' + params.toString())
         .then(res => res.json())
         .then(data => {
             if (data.sucesso) {
@@ -125,9 +128,9 @@ document.getElementById('blockForm')?.addEventListener('submit', function(e) {
         motivo: motivo
     });
     
-    console.log('URL:', GAS_URL + '?' + params.toString());
+    console.log('URL:', API_URL + '?' + params.toString());
     
-    fetch(GAS_URL + '?' + params.toString())
+    fetch(API_URL + '?' + params.toString())
         .then(res => {
             if (!res.ok) {
                 throw new Error(`Erro HTTP: ${res.status}`);
@@ -389,30 +392,48 @@ function closeDetailsModal() {
 
 let adminServices = [];
 
-function switchAdminTab(tabName) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+function switchAdminTab(tabName, btn) {
+    console.log('Trocando para tab:', tabName);
+    
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
     
-    event.currentTarget.classList.add('active');
-    document.getElementById(`tab-${tabName}`).classList.add('active');
+    if (btn) {
+        btn.classList.add('active');
+    }
+    
+    const tabContent = document.getElementById(`tab-${tabName}`);
+    if (tabContent) {
+        tabContent.classList.add('active');
+        console.log('Tab content encontrado e ativado');
+    } else {
+        console.error('Tab content não encontrado:', `tab-${tabName}`);
+    }
     
     if (tabName === 'agenda') {
         fetchBlockedSchedules();
-    } else if (tabName === 'servicos' && adminServices.length === 0) {
-        fetchAdminServices();
+    } else if (tabName === 'servicos') {
+        if (adminServices.length === 0) {
+            fetchAdminServices();
+        }
     }
 }
 
 function fetchAdminServices() {
+    console.log('Buscando serviços...');
     const loading = document.getElementById('servicesLoadingIndicator');
     loading.style.display = 'flex';
     
-    fetch(GAS_URL + '?action=getServicos')
-        .then(res => res.json())
+    fetch(API_URL + '?action=getServicos')
+        .then(res => {
+            console.log('Resposta recebida:', res.status);
+            return res.json();
+        })
         .then(data => {
+            console.log('Dados recebidos:', data);
             adminServices = Array.isArray(data) ? data : [];
-            if(data.erro) {
-                 console.log(data.erro);
+            if(data && data.erro) {
+                 console.log('Erro do servidor:', data.erro);
                  adminServices = [];
             }
             loading.style.display = 'none';
@@ -503,14 +524,13 @@ document.getElementById('serviceForm')?.addEventListener('submit', function(e) {
         icon: 'circle' // default for now
     });
     
-    fetch(GAS_URL + '?' + params.toString())
+    fetch(API_URL + '?' + params.toString())
         .then(res => res.json())
         .then(data => {
             btn.textContent = 'Salvar';
             btn.disabled = false;
             closeServiceModal();
-            fetchAdminServices(); // reload
-        })
+            fetchAdminServices();
         .catch(err => {
             console.error(err);
             btn.textContent = 'Salvar';
@@ -527,11 +547,11 @@ function deleteService(id) {
         id: id
     });
     
-    fetch(GAS_URL + '?' + params.toString())
+    fetch(API_URL + '?' + params.toString())
         .then(res => res.json())
         .then(data => {
             fetchAdminServices();
-        })
+        });
         .catch(err => {
             alert('Erro ao excluir');
         });
@@ -582,7 +602,7 @@ document.getElementById('editForm')?.addEventListener('submit', function(e) {
         duracao: document.getElementById('editDuration').value || 30
     });
     
-    fetch(GAS_URL + '?' + params.toString())
+    fetch(API_URL + '?' + params.toString())
         .then(res => res.json())
         .then(data => {
             if (data.sucesso) {
@@ -591,7 +611,7 @@ document.getElementById('editForm')?.addEventListener('submit', function(e) {
             } else {
                 alert(data.erro || 'Erro ao salvar');
             }
-        })
+        });
         .catch(err => {
             console.error(err);
             alert('Erro ao salvar');
@@ -643,7 +663,7 @@ function confirmCancel() {
     
     const cancelData = pendingCancelData;
     
-    fetch(GAS_URL + '?' + params.toString())
+    fetch(API_URL + '?' + params.toString())
         .then(res => res.json())
         .then(data => {
             if (data.sucesso) {

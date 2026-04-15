@@ -1,0 +1,19 @@
+{
+    "name": "Jeci Vieira Nails & Podologia",
+    "short_name": "Jeci Nails",
+    "description": "Sistema de agendamento online para salão de manicure e podologia",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#fdf8f8",
+    "theme_color": "#d4919a",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "assets/icon-192.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        }
+    ],
+    "categories": ["beauty", "lifestyle"],
+    "lang": "pt-BR"
+}

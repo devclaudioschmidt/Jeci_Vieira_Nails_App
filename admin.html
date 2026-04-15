@@ -8,217 +8,97 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/style.css">
     <style>
-        /* Estilos de fallback garantidos */
+        :root {
+            --primary: #e8b4b8;
+            --primary-dark: #d4919a;
+            --primary-light: #f5d5d8;
+            --secondary: #2d2d2d;
+            --accent: #c9a87c;
+            --accent-light: #e8d4b8;
+            --bg-main: #fdf8f8;
+            --bg-card: #ffffff;
+            --bg-gradient: linear-gradient(135deg, #fdf8f8 0%, #f5e6e8 100%);
+            --text-primary: #2d2d2d;
+            --text-secondary: #6b6b6b;
+            --text-muted: #9a9a9a;
+            --shadow-sm: 0 2px 8px rgba(212, 145, 154, 0.15);
+            --shadow-md: 0 4px 20px rgba(212, 145, 154, 0.2);
+            --shadow-lg: 0 8px 40px rgba(212, 145, 154, 0.25);
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+    <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            background: #fdf8f8; 
-            min-height: 100vh; 
-        }
-        .admin-container { 
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 20px; 
-        }
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            background: white;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(212, 145, 154, 0.15);
-        }
+        body { font-family: 'Poppins', sans-serif; background: #fdf8f8; min-height: 100vh; }
+        .admin-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: white; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(212, 145, 154, 0.15); }
         .logo { display: flex; align-items: center; gap: 12px; }
         .logo-icon { width: 44px; height: 44px; color: #d4919a; }
         .logo-text { display: flex; flex-direction: column; }
         .brand { font-weight: 600; color: #2d2d2d; }
         .tagline { font-size: 0.75rem; color: #9a9a9a; }
-        .nav-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            background: #f5d5d8;
-            border-radius: 12px;
-            color: #d4919a;
-            text-decoration: none;
-        }
-        .admin-tabs {
-            display: flex;
-            border-bottom: 2px solid rgba(232, 180, 184, 0.2);
-            margin-bottom: 20px;
-        }
-        .tab-btn {
-            padding: 12px 24px;
-            border: none;
-            background: none;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #6b6b6b;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -2px;
-        }
-        .tab-btn.active {
-            color: #d4919a;
-            border-bottom-color: #d4919a;
-        }
-        .admin-tab-content {
-            display: none;
-            background: white;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(212, 145, 154, 0.15);
-        }
+        .nav-btn { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: #f5d5d8; border-radius: 12px; color: #d4919a; text-decoration: none; border: none; cursor: pointer; }
+        .admin-tabs { display: flex; border-bottom: 2px solid rgba(232, 180, 184, 0.2); margin-bottom: 20px; }
+        .tab-btn { padding: 12px 24px; border: none; background: none; font-size: 1rem; font-weight: 500; color: #6b6b6b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+        .tab-btn.active { color: #d4919a; border-bottom-color: #d4919a; }
+        .admin-tab-content { display: none; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 2px 8px rgba(212, 145, 154, 0.15); }
         .admin-tab-content.active { display: block; }
         .section-title { font-size: 1.3rem; color: #2d2d2d; margin-bottom: 15px; }
-        .calendar {
-            background: #fdf8f8;
-            padding: 16px;
-            border-radius: 12px;
-        }
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
+        .calendar { background: #fdf8f8; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .calendar-nav { background: white; border: 1px solid #e8b4b8; border-radius: 8px; padding: 8px 16px; cursor: pointer; color: #d4919a; }
         .calendar-month { font-weight: 600; color: #2d2d2d; }
-        .calendar-nav {
-            width: 36px;
-            height: 36px;
-            border: none;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .calendar-weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            margin-bottom: 8px;
-        }
-        .calendar-weekdays span { font-size: 0.75rem; color: #9a9a9a; padding: 4px; }
-        .calendar-days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-        }
-        .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            border: none;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .calendar-day:hover { background: #f5d5d8; }
-        .calendar-day.today { background: #d4919a; color: white; }
-        .calendar-day.selected { background: #2d2d2d; color: white; }
-        .calendar-day.disabled { color: #ddd; cursor: not-allowed; }
-        .calendar-day.other-month { color: #ddd; }
-        .agenda-title { font-size: 1.2rem; color: #2d2d2d; margin-bottom: 16px; }
-        .agenda-badge {
-            background: #f5d5d8;
-            color: #d4919a;
-            font-size: 0.75rem;
-            padding: 4px 12px;
-            border-radius: 999px;
-        }
-        .agenda-list { margin-top: 20px; }
-        .agenda-card {
-            display: flex;
-            align-items: center;
-            padding: 16px;
-            background: #fdf8f8;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            border-left: 4px solid #d4919a;
-        }
-        .agenda-time { font-weight: 600; color: #d4919a; margin-right: 16px; min-width: 50px; }
-        .agenda-info { flex: 1; }
-        .agenda-info h4 { color: #2d2d2d; margin-bottom: 4px; }
-        .agenda-info p { font-size: 0.85rem; color: #6b6b6b; }
-        .agenda-actions { display: flex; gap: 8px; }
-        .action-btn {
-            width: 36px;
-            height: 36px;
-            border: none;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .action-btn:hover { background: #f5d5d8; }
-        .action-btn.delete:hover { background: #fee2e2; }
-        .empty-agenda {
-            text-align: center;
-            padding: 40px;
-            color: #9a9a9a;
-        }
-        .primary-btn {
-            background: #d4919a;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        .primary-btn:hover { background: #c4818a; }
-        .services-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .services-admin-list { margin-top: 20px; }
-        .service-admin-card {
-            display: flex;
-            align-items: center;
-            padding: 16px;
-            background: #fdf8f8;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            border-left: 4px solid #f5d5d8;
-        }
-        .service-admin-info { flex: 1; }
-        .service-admin-info h4 { color: #2d2d2d; margin-bottom: 4px; }
-        .service-admin-info p { font-size: 0.85rem; color: #6b6b6b; }
-        .service-admin-price { font-weight: 600; color: #d4919a; margin-top: 8px; }
-        .loading-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: #9a9a9a;
-        }
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f5d5d8;
-            border-top-color: #d4919a;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 10px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; margin-bottom: 8px; font-size: 0.75rem; color: #9a9a9a; font-weight: 500; }
+        .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .calendar-day { padding: 10px; background: white; border: 1px solid #eee; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: center; font-size: 0.9rem; }
+        .calendar-day:hover { background: #fcecee; border-color: #d4919a; }
+        .calendar-day.today { background: #d4919a; color: white; border-color: #d4919a; }
+        .calendar-day.selected { background: var(--primary); color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(232, 180, 184, 0.4); }
+        .calendar-day.other-month { color: #ccc; background: transparent; border-color: transparent; }
+        .calendar-day.disabled { color: #ccc; cursor: not-allowed; }
+        .agenda-title { font-size: 1.1rem; color: #2d2d2d; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        .agenda-badge { background: #d4919a; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+        .agenda-list { display: flex; flex-direction: column; gap: 12px; }
+        .appointment-card { display: flex; align-items: center; padding: 16px; background: #fdf8f8; border-radius: 12px; gap: 16px; }
+        .appointment-time { font-weight: 600; color: #d4919a; min-width: 60px; }
+        .appointment-info { flex: 1; }
+        .appointment-client { font-weight: 500; color: #2d2d2d; }
+        .appointment-service { font-size: 0.85rem; color: #6b6b6b; }
+        .cancel-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #feb2b2; background: white; color: #e53e3e; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .services-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .primary-btn { background: #d4919a; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 500; }
+        .primary-btn:hover { background: #c07c85; }
+        
+.blocked-items { display: flex; flex-direction: column; gap: 10px; }
+        .blocked-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--bg-main); border-radius: var(--radius-sm); border: 1px solid rgba(232, 180, 184, 0.3); gap: 12px; }
+        .blocked-item-info { display: flex; flex-direction: column; gap: 4px; }
+        .blocked-item-row { display: flex; align-items: center; gap: 6px; }
+        .blocked-item-date { color: var(--text-primary); font-weight: 600; font-size: 0.85rem; }
+        .blocked-item-time { color: var(--primary-dark); font-size: 0.8rem; font-weight: 500; }
+        .blocked-item-reason { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+        .blocked-item-remove { background: rgba(229, 62, 62, 0.1); color: #e53e3e; border: 1px solid rgba(229, 62, 62, 0.2); border-radius: var(--radius-sm); transition: var(--transition); padding: 6px 12px; font-size: 0.8rem; }
+        .blocked-item-remove:hover { background: #fee; }
+        
+        .block-selection { background: var(--primary-light); color: var(--secondary); padding: 8px 16px; border-radius: var(--radius-sm); font-size: 0.9rem; }
+        
+        .block-btn { background: var(--primary-dark); color: white; border: none; padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: var(--transition); display: flex; align-items: center; gap: 6px; }
+        .block-btn:hover { background: var(--primary); transform: translateY(-1px); }
+        #blockDate { color-scheme: light; }
+        #blockDate::-webkit-calendar-picker-indicator { filter: invert(0.4) sepia(1) saturate(2) hue-rotate(310deg); cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="admin-container">
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Carregando...</div>
+    </div>
+    <div class="admin-container" id="adminContent" style="display: none;">
         <header class="admin-header">
             <div class="logo">
                 <svg class="logo-icon" viewBox="0 0 50 50" fill="none">
@@ -227,334 +107,539 @@
                     <path d="M25 18V30M22 24H28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 <div class="logo-text">
-                    <span class="brand">Admin Dashboard</span>
+                    <span class="brand">Dashboard</span>
                     <span class="tagline">Jeci Vieira Nails</span>
                 </div>
             </div>
-            <a href="index.html" class="nav-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-            </a>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="logout()" class="nav-btn" title="Sair">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </button>
+                <a href="index.html" class="nav-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </a>
+            </div>
         </header>
-
-        <main id="app">
+        <main>
             <div class="admin-tabs">
                 <button class="tab-btn active" onclick="switchAdminTab('agenda', this)">Agenda</button>
                 <button class="tab-btn" onclick="switchAdminTab('servicos', this)">Serviços</button>
             </div>
-
-            <!-- Tab Agenda -->
             <div id="tab-agenda" class="admin-tab-content active">
-                <h2 class="section-title">Calendário de Agendamentos</h2>
-                
-                <div class="calendar">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h2 class="section-title" style="margin: 0;">Agenda</h2>
+                    <button class="block-btn" onclick="openBlockModal()">Bloquear Horários</button>
+                </div>
+                <div class="calendar" style="margin-bottom: 16px;">
                     <div class="calendar-header">
-                        <button class="calendar-nav" onclick="changeAdminMonth(-1)">◀</button>
+                        <button class="calendar-nav" onclick="changeAdminMonth(-1)">&#9664;</button>
                         <span class="calendar-month" id="adminCalendarMonth"></span>
-                        <button class="calendar-nav" onclick="changeAdminMonth(1)">▶</button>
+                        <button class="calendar-nav" onclick="changeAdminMonth(1)">&#9654;</button>
                     </div>
                     <div class="calendar-weekdays">
                         <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
                     </div>
                     <div class="calendar-days" id="adminCalendarDays"></div>
                 </div>
-                
-                <div id="loadingIndicator" class="loading-indicator">
-                    <div class="spinner"></div>
-                    <span>Carregando...</span>
-                </div>
-                
-                <h3 class="agenda-title" style="margin-top: 20px;">
-                    Agenda do Dia <span class="agenda-badge" id="agendaCount">0 agendamentos</span>
-                </h3>
-                <div class="agenda-list" id="agendaList">
-                    <div class="empty-agenda">
-                        <p>Nenhum agendamento para esta data.</p>
-                    </div>
+                <h3 class="agenda-title">Agenda do Dia <span class="agenda-badge" id="agendaCount">0</span></h3>
+                <div class="agenda-list" id="agendaList"></div>
+                <div id="blockedList" style="margin-top: 20px; display: none;">
+                    <h3 class="agenda-title">Horários Bloqueados</h3>
+                    <div class="blocked-items" id="blockedItems"></div>
                 </div>
             </div>
-
-            <!-- Tab Serviços -->
             <div id="tab-servicos" class="admin-tab-content">
                 <div class="services-header">
-                    <h2 class="section-title">Gerenciar Serviços</h2>
+                    <h2 class="section-title">Serviços</h2>
                     <button class="primary-btn" onclick="openServiceModal()">+ Novo Serviço</button>
                 </div>
-                
                 <div id="servicesLoadingIndicator" class="loading-indicator">
                     <div class="spinner"></div>
                     <span>Carregando serviços...</span>
                 </div>
-
-                <div class="services-admin-list" id="servicesAdminList">
-                    <p style="text-align: center; color: #9a9a9a; padding: 40px;">Nenhum serviço cadastrado.</p>
-                </div>
+                <div class="services-admin-list" id="servicesAdminList"></div>
             </div>
         </main>
     </div>
-
-    <!-- Modal Serviço -->
     <div id="serviceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-        <div style="background: white; max-width: 500px; margin: 50px auto; padding: 30px; border-radius: 16px;">
-            <h3 style="margin-bottom: 20px;" id="serviceModalTitle">Novo Serviço</h3>
+        <div style="background: white; max-width: 480px; margin: 30px auto; padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg);">
+            <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif; color: var(--secondary); font-size: 1.4rem;" id="serviceModalTitle">Novo Serviço</h3>
             <form id="serviceForm">
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; color: #6b6b6b;">ID do Serviço</label>
-                    <input type="text" id="serviceId" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">ID do Serviço</label>
+                    <input type="text" id="serviceId" required style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; color: #6b6b6b;">Categoria</label>
-                    <select id="serviceCategory" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Categoria</label>
+                    <select id="serviceCategory" required style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
                         <option value="manicure">Manicure & Pedicure</option>
                         <option value="podologia">Podologia</option>
                     </select>
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; color: #6b6b6b;">Nome</label>
-                    <input type="text" id="serviceName" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Nome</label>
+                    <input type="text" id="serviceName" required style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; color: #6b6b6b;">Descrição</label>
-                    <textarea id="serviceDesc" rows="2" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Descrição</label>
+                    <textarea id="serviceDesc" style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main); min-height: 80px; resize: vertical;"></textarea>
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; color: #6b6b6b;">Preço (R$)</label>
-                    <input type="number" id="servicePrice" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Preço (R$)</label>
+                        <input type="number" id="servicePrice" step="0.01" required style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Duração (min)</label>
+                        <input type="number" id="serviceDuration" required style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
+                    </div>
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; color: #6b6b6b;">Duração (minutos)</label>
-                    <input type="number" id="serviceDuration" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" class="primary-btn" style="flex: 1;">Salvar</button>
-                    <button type="button" onclick="closeServiceModal()" style="padding: 12px 24px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer;">Cancelar</button>
+                <div style="display: flex; gap: 12px;">
+                    <button type="submit" class="modal-btn" style="flex: 1; padding: 14px;">Salvar</button>
+                    <button type="button" onclick="closeServiceModal()" class="modal-btn-secondary" style="padding: 14px 24px; cursor: pointer;">Cancelar</button>
                 </div>
             </form>
         </div>
     </div>
-
+    <div id="blockModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="background: white; max-width: 480px; margin: 30px auto; padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto;">
+            <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif; color: var(--secondary); font-size: 1.4rem;">Bloquear Horários</h3>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500; font-size: 0.9rem;">Selecione a Data</label>
+                <input type="date" id="blockDate" style="width: 100%; padding: 14px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500; font-size: 0.9rem;">Selecione o Período <span style="font-weight: 400; color: var(--text-muted);">(clique no horário inicial e final)</span></label>
+                <div class="time-grid" id="blockTimeGrid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                    <p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px; font-size: 0.9rem;">Selecione uma data primeiro</p>
+                </div>
+                <div id="blockTimeSelection" style="margin-top: 12px; display: none;">
+                    <span class="block-selection" id="blockSelectedTime"></span>
+                </div>
+            </div>
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500; font-size: 0.9rem;">Motivo <span style="font-weight: 400; color: var(--text-muted);">(opcional)</span></label>
+                <input type="text" id="blockReason" placeholder="Ex: Férias, Feriado, Outros" style="width: 100%; padding: 14px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button type="button" id="blockSaveBtn" class="modal-btn" style="flex: 1; padding: 14px;" onclick="saveBlock()">Bloquear</button>
+                <button type="button" onclick="closeBlockModal()" class="modal-btn-secondary" style="padding: 14px 24px; cursor: pointer;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script>
-        // API URL
-        const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
+        firebase.initializeApp(firebaseConfig);
         
-        // Variáveis globais
-        let adminCurrentMonth = new Date().getMonth();
-        let adminCurrentYear = new Date().getFullYear();
-        let adminSelectedDate = null;
-        let allAppointments = [];
-        let blockedSchedules = [];
-        let adminServices = [];
-        
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', () => {
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            } else {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('adminContent').style.display = 'block';
+                initApp();
+            }
+        });
+
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                localStorage.removeItem('admin_auth_token');
+                localStorage.removeItem('admin_email');
+                window.location.href = 'login.html';
+            });
+        }
+
+        async function initApp() {
+            const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
+            let adminCurrentMonth = new Date().getMonth();
+            let adminCurrentYear = new Date().getFullYear();
+            let adminSelectedDate = null;
+            let allAppointments = [];
+            let blockedSchedules = [];
+            let adminServices = [];
+            
             const today = new Date();
             adminSelectedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             renderAdminCalendar();
             fetchAppointments();
             fetchBlockedSchedules();
-        });
-        
-        // Funções de Tab
-        function switchAdminTab(tabName, btn) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
-            if (btn) btn.classList.add('active');
-            document.getElementById(`tab-${tabName}`).classList.add('active');
-            if (tabName === 'servicos' && adminServices.length === 0) {
-                fetchAdminServices();
+            
+            window.switchAdminTab = function(tabName, btn) {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+                document.getElementById('tab-' + tabName).classList.add('active');
+                if (tabName === 'servicos' && adminServices.length === 0) {
+                    fetchAdminServices();
+                }
+            };
+            
+            window.changeAdminMonth = function(delta) {
+                adminCurrentMonth += delta;
+                if (adminCurrentMonth > 11) { adminCurrentMonth = 0; adminCurrentYear++; }
+                if (adminCurrentMonth < 0) { adminCurrentMonth = 11; adminCurrentYear--; }
+                renderAdminCalendar();
+            };
+            
+            window.openServiceModal = function() {
+                document.getElementById('serviceId').value = '';
+                document.getElementById('serviceCategory').value = 'manicure';
+                document.getElementById('serviceName').value = '';
+                document.getElementById('serviceDesc').value = '';
+                document.getElementById('servicePrice').value = '';
+                document.getElementById('serviceDuration').value = '30';
+                document.getElementById('serviceModalTitle').textContent = 'Novo Serviço';
+                document.getElementById('serviceModal').style.display = 'block';
+            };
+            
+            window.closeServiceModal = function() {
+                document.getElementById('serviceModal').style.display = 'none';
+            };
+            
+            function renderAdminCalendar() {
+                const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                document.getElementById('adminCalendarMonth').textContent = monthNames[adminCurrentMonth] + ' ' + adminCurrentYear;
+                
+                const firstDay = new Date(adminCurrentYear, adminCurrentMonth, 1).getDay();
+                const daysInMonth = new Date(adminCurrentYear, adminCurrentMonth + 1, 0).getDate();
+                const daysInPrevMonth = new Date(adminCurrentYear, adminCurrentMonth, 0).getDate();
+                const todayDate = new Date();
+                todayDate.setHours(0, 0, 0, 0);
+                
+                let html = '';
+                
+                for (let i = firstDay - 1; i >= 0; i--) {
+                    html += '<button class="calendar-day other-month" disabled>' + (daysInPrevMonth - i) + '</button>';
+                }
+                
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = adminCurrentYear + '-' + String(adminCurrentMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                    const isToday = dateStr === todayDate.toISOString().split('T')[0];
+                    const hasAppointments = allAppointments.some(a => a.data === dateStr);
+                    let classes = 'calendar-day';
+                    if (isToday) classes += ' today';
+                    if (hasAppointments) classes += ' has-appointments';
+                    if (adminSelectedDate === dateStr) classes += ' selected';
+                    html += '<button class="' + classes + '" onclick="selectAdminDate(\'' + dateStr + '\')">' + d + '</button>';
+                }
+                
+                const remaining = 42 - (firstDay + daysInMonth);
+                for (let i = 1; i <= remaining; i++) {
+                    html += '<button class="calendar-day other-month" disabled>' + i + '</button>';
+                }
+                
+                document.getElementById('adminCalendarDays').innerHTML = html;
             }
-        }
-        
-        // Calendário
-        function renderAdminCalendar() {
-            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-            document.getElementById('adminCalendarMonth').textContent = `${monthNames[adminCurrentMonth]} ${adminCurrentYear}`;
             
-            const firstDay = new Date(adminCurrentYear, adminCurrentMonth, 1).getDay();
-            const daysInMonth = new Date(adminCurrentYear, adminCurrentMonth + 1, 0).getDate();
-            const daysInPrevMonth = new Date(adminCurrentYear, adminCurrentMonth, 0).getDate();
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            window.selectAdminDate = function(dateStr) {
+                adminSelectedDate = dateStr;
+                renderAdminCalendar();
+                renderAdminAppointments();
+            };
             
-            let html = '';
-            
-            // Dias do mês anterior
-            for (let i = firstDay - 1; i >= 0; i--) {
-                html += `<button class="calendar-day other-month" disabled>${daysInPrevMonth - i}</button>`;
+            function renderAdminAppointments() {
+                const dayAppointments = allAppointments.filter(a => a.data === adminSelectedDate);
+                const container = document.getElementById('agendaList');
+                document.getElementById('agendaCount').textContent = dayAppointments.length;
+                
+                if (dayAppointments.length === 0) {
+                    container.innerHTML = '<div class="empty-agenda"><p>Nenhum agendamento para esta data.</p></div>';
+                    return;
+                }
+                
+                container.innerHTML = dayAppointments.map(function(app) {
+                    return '<div class="appointment-card">' +
+                        '<div class="appointment-time">' + (app.hora || '--:--') + '</div>' +
+                        '<div class="appointment-info">' +
+                        '<div class="appointment-client">' + (app.cliente || 'Cliente') + '</div>' +
+                        '<div class="appointment-service">' + (app.servico || 'Serviço') + '</div>' +
+                        '</div>' +
+                        '<button class="cancel-btn" onclick="cancelAdminAppointment(\'' + app.data + '\', \'' + app.hora + '\')">✕</button>' +
+                        '</div>';
+                }).join('');
             }
             
-            // Dias do mês atual
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(adminCurrentYear, adminCurrentMonth, day);
-                const dateStr = `${adminCurrentYear}-${String(adminCurrentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                let classes = 'calendar-day';
-                if (date < today) classes += ' disabled';
-                if (date.getTime() === today.getTime()) classes += ' today';
-                if (adminSelectedDate === dateStr) classes += ' selected';
-                html += `<button class="${classes}" onclick="selectAdminDate('${dateStr}', this)">${day}</button>`;
-            }
-            
-            // Preencher restante
-            const remaining = 42 - (firstDay + daysInMonth);
-            for (let i = 1; i <= remaining; i++) {
-                html += `<button class="calendar-day other-month" disabled>${i}</button>`;
-            }
-            
-            document.getElementById('adminCalendarDays').innerHTML = html;
-        }
-        
-        function changeAdminMonth(delta) {
-            adminCurrentMonth += delta;
-            if (adminCurrentMonth > 11) { adminCurrentMonth = 0; adminCurrentYear++; }
-            if (adminCurrentMonth < 0) { adminCurrentMonth = 11; adminCurrentYear--; }
-            renderAdminCalendar();
-        }
-        
-        function selectAdminDate(dateStr, element) {
-            adminSelectedDate = dateStr;
-            document.querySelectorAll('.calendar-day').forEach(day => day.classList.remove('selected'));
-            element.classList.add('selected');
-            showAgendaForDate(dateStr);
-        }
-        
-        // API Functions
-        function fetchAppointments() {
-            fetch(API_URL + '?action=getAgendamentos')
-                .then(res => res.json())
-                .then(data => {
-                    allAppointments = Array.isArray(data) ? data : [];
-                    document.getElementById('loadingIndicator').style.display = 'none';
+            async function fetchAppointments() {
+                try {
+                    const res = await fetch(API_URL + '?action=getAgendamentos');
+                    allAppointments = await res.json();
                     renderAdminCalendar();
-                    showAgendaForDate(adminSelectedDate);
-                })
-                .catch(err => {
-                    console.error('Erro:', err);
-                    document.getElementById('loadingIndicator').style.display = 'none';
-                });
-        }
-        
-        function fetchBlockedSchedules() {
-            fetch(API_URL + '?action=getBloqueios')
-                .then(res => res.json())
-                .then(data => {
-                    blockedSchedules = Array.isArray(data) ? data : [];
-                    showAgendaForDate(adminSelectedDate);
-                })
-                .catch(err => console.error('Erro bloqueios:', err));
-        }
-        
-        function fetchAdminServices() {
-            document.getElementById('servicesLoadingIndicator').style.display = 'flex';
-            fetch(API_URL + '?action=getServicos')
-                .then(res => res.json())
-                .then(data => {
-                    adminServices = Array.isArray(data) ? data : [];
-                    document.getElementById('servicesLoadingIndicator').style.display = 'none';
-                    renderAdminServices();
-                })
-                .catch(err => {
-                    console.error('Erro:', err);
-                    document.getElementById('servicesLoadingIndicator').style.display = 'none';
-                });
-        }
-        
-        function renderAdminServices() {
-            const container = document.getElementById('servicesAdminList');
-            if (adminServices.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #9a9a9a; padding: 40px;">Nenhum serviço cadastrado.</p>';
-                return;
-            }
-            container.innerHTML = adminServices.map(s => `
-                <div class="service-admin-card">
-                    <div class="service-admin-info">
-                        <h4>${s.name}</h4>
-                        <p>${s.description || 'Sem descrição'}</p>
-                        <div class="service-admin-price">R$ ${parseFloat(s.price).toFixed(2)} • ${s.duration} min</div>
-                    </div>
-                    <div class="service-admin-actions">
-                        <button class="action-btn" onclick="deleteService('${s.id}')" title="Excluir">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        function showAgendaForDate(dateStr) {
-            const listEl = document.getElementById('agendaList');
-            const dayApps = allAppointments.filter(app => String(app.data) === dateStr);
-            document.getElementById('agendaCount').textContent = `${dayApps.length} agendamento(s)`;
-            
-            if (dayApps.length === 0) {
-                listEl.innerHTML = '<div class="empty-agenda"><p>Nenhum agendamento para esta data.</p></div>';
-                return;
+                    if (adminSelectedDate) renderAdminAppointments();
+                } catch (err) {
+                    console.error('Erro ao buscar agendamentos:', err);
+                }
             }
             
-            listEl.innerHTML = dayApps.map(app => `
-                <div class="agenda-card">
-                    <div class="agenda-time">${app.hora || '--:--'}</div>
-                    <div class="agenda-info">
-                        <h4>${app.cliente || 'Sem nome'}</h4>
-                        <p>${app.servico || 'Sem serviço'}</p>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        // Modal Functions
-        function openServiceModal() {
-            document.getElementById('serviceId').value = '';
-            document.getElementById('serviceName').value = '';
-            document.getElementById('serviceDesc').value = '';
-            document.getElementById('servicePrice').value = '';
-            document.getElementById('serviceDuration').value = '30';
-            document.getElementById('serviceModal').style.display = 'block';
-        }
-        
-        function closeServiceModal() {
-            document.getElementById('serviceModal').style.display = 'none';
-        }
-        
-        document.getElementById('serviceForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new URLSearchParams({
-                action: 'salvarServico',
-                id: document.getElementById('serviceId').value,
-                category: document.getElementById('serviceCategory').value,
-                name: document.getElementById('serviceName').value,
-                description: document.getElementById('serviceDesc').value,
-                price: document.getElementById('servicePrice').value,
-                duration: document.getElementById('serviceDuration').value,
-                icon: 'circle'
+            async function fetchBlockedSchedules() {
+                try {
+                    const res = await fetch(API_URL + '?action=getBloqueios');
+                    blockedSchedules = await res.json();
+                    renderBlockedList();
+                } catch (err) {
+                    console.error('Erro ao buscar bloqueios:', err);
+                }
+            }
+            
+            function renderBlockedList() {
+                const container = document.getElementById('blockedList');
+                const itemsContainer = document.getElementById('blockedItems');
+                
+                if (blockedSchedules.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                itemsContainer.innerHTML = blockedSchedules.map(function(b) {
+                    var dateParts = b.data.split('-');
+                    var formattedDate = dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0];
+                    return '<div class="blocked-item">' +
+                        '<div class="blocked-item-info">' +
+                        '<div class="blocked-item-row">' +
+                        '<span class="blocked-item-date">' + formattedDate + '</span>' +
+                        '<span class="blocked-item-time">' + b.hora_inicio + ' - ' + b.hora_fim + '</span>' +
+                        '</div>' +
+                        (b.motivo ? '<div class="blocked-item-reason">Motivo: ' + b.motivo + '</div>' : '') +
+                        '</div>' +
+                        '<button class="blocked-item-remove" onclick="unblockSchedule(\'' + b.id + '\')">Desbloquear</button>' +
+                        '</div>';
+                }).join('');
+            }
+            
+            window.unblockSchedule = async function(id) {
+                if (!confirm('Remover este bloqueio?')) return;
+                try {
+                    await fetch(API_URL + '?action=desbloquearHorario&id=' + encodeURIComponent(id), { method: 'POST' });
+                    fetchBlockedSchedules();
+                } catch (err) {
+                    console.error('Erro ao desbloquear:', err);
+                }
+            };
+            
+            window.openBlockModal = function() {
+                document.getElementById('blockDate').value = '';
+                document.getElementById('blockReason').value = '';
+                document.getElementById('blockTimeGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #9a9a9a; padding: 20px;">Selecione uma data primeiro</p>';
+                document.getElementById('blockTimeSelection').style.display = 'none';
+                blockStartTime = null;
+                blockEndTime = null;
+                document.getElementById('blockModal').style.display = 'block';
+            };
+            
+            window.closeBlockModal = function() {
+                document.getElementById('blockModal').style.display = 'none';
+            };
+            
+            var blockStartTime = null;
+            var blockEndTime = null;
+            
+            document.getElementById('blockDate').addEventListener('change', function() {
+                var date = this.value;
+                if (!date) return;
+                
+                renderBlockTimeGrid(date);
             });
             
-            fetch(API_URL, { method: 'POST', body: formData })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.sucesso) {
-                        closeServiceModal();
-                        fetchAdminServices();
-                        alert('Serviço salvo com sucesso!');
+            function renderBlockTimeGrid(date) {
+                var grid = document.getElementById('blockTimeGrid');
+                var times = ['07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
+                
+                var dayBlocked = blockedSchedules.filter(function(b) { return b.data === date; });
+                
+                grid.innerHTML = times.map(function(time) {
+                    var isBlocked = dayBlocked.some(function(b) {
+                        return time >= b.hora_inicio && time < b.hora_fim;
+                    });
+                    
+                    var classes = 'time-slot';
+                    if (isBlocked) classes += ' disabled';
+                    if (blockStartTime && time === blockStartTime) classes += ' selected';
+                    if (blockStartTime && blockEndTime && time > blockStartTime && time <= blockEndTime) classes += ' range';
+                    
+                    return '<button class="' + classes + '" ' + (isBlocked ? 'disabled' : '') + ' onclick="selectBlockTime(\'' + time + '\')">' + time + '</button>';
+                }).join('');
+            }
+            
+            window.selectBlockTime = function(time) {
+                if (!blockStartTime || (blockStartTime && blockEndTime)) {
+                    blockStartTime = time;
+                    blockEndTime = null;
+                } else {
+                    if (time < blockStartTime) {
+                        blockEndTime = blockStartTime;
+                        blockStartTime = time;
                     } else {
-                        alert(data.erro || 'Erro ao salvar');
+                        blockEndTime = time;
                     }
-                })
-                .catch(err => {
+                }
+                
+                renderBlockTimeGrid(document.getElementById('blockDate').value);
+                
+                var selectionDiv = document.getElementById('blockTimeSelection');
+                var selectionText = document.getElementById('blockSelectedTime');
+                
+                if (blockStartTime && blockEndTime) {
+                    selectionDiv.style.display = 'block';
+                    selectionText.textContent = blockStartTime + ' - ' + blockEndTime;
+                } else if (blockStartTime) {
+                    selectionDiv.style.display = 'block';
+                    selectionText.textContent = 'Início: ' + blockStartTime + ' (selecione o horário final)';
+                } else {
+                    selectionDiv.style.display = 'none';
+                }
+            };
+            
+            window.saveBlock = async function() {
+                var date = document.getElementById('blockDate').value;
+                var reason = document.getElementById('blockReason').value;
+                var btn = document.getElementById('blockSaveBtn');
+                
+                if (!date) {
+                    alert('Selecione uma data');
+                    return;
+                }
+                if (!blockStartTime || !blockEndTime) {
+                    alert('Selecione o horário de início e fim');
+                    return;
+                }
+                
+                btn.disabled = true;
+                btn.textContent = 'Salvando...';
+                
+                try {
+                    var formData = new URLSearchParams();
+                    formData.append('action', 'bloquearHorario');
+                    formData.append('data', date);
+                    formData.append('hora_inicio', blockStartTime);
+                    formData.append('hora_fim', blockEndTime);
+                    formData.append('motivo', reason);
+                    
+                    await fetch(API_URL, { method: 'POST', body: formData });
+                    
+                    closeBlockModal();
+                    fetchBlockedSchedules();
+                    fetchBlockedSchedules();
+                    alert('Horário bloqueado com sucesso!');
+                } catch (err) {
+                    console.error('Erro ao bloquear:', err);
+                    alert('Erro ao bloquear horário');
+                }
+                
+                btn.disabled = false;
+                btn.textContent = 'Bloquear';
+            };
+            
+            window.cancelAdminAppointment = async function(data, hora) {
+                if (!confirm('Cancelar este agendamento?')) return;
+                try {
+                    const formData = new URLSearchParams();
+                    formData.append('action', 'cancelarAgendamento');
+                    formData.append('data', data);
+                    formData.append('hora', hora);
+                    await fetch(API_URL, { method: 'POST', body: formData });
+                    fetchAppointments();
+                } catch (err) {
                     console.error('Erro:', err);
-                    alert('Erro ao salvar serviço');
-                });
-        });
-        
-        function deleteService(id) {
-            if (!confirm('Excluir este serviço?')) return;
-            fetch(API_URL + '?action=excluirServico&id=' + encodeURIComponent(id))
-                .then(res => res.json())
-                .then(data => {
-                    if (data.sucesso) {
-                        fetchAdminServices();
-                    }
-                })
-                .catch(err => console.error('Erro:', err));
+                }
+            };
+            
+            async function fetchAdminServices() {
+                try {
+                    const res = await fetch(API_URL + '?action=getServicos');
+                    adminServices = await res.json();
+                    renderAdminServices();
+                } catch (err) {
+                    console.error('Erro:', err);
+                }
+            }
+            
+            function renderAdminServices() {
+                const container = document.getElementById('servicesAdminList');
+                document.getElementById('servicesLoadingIndicator').style.display = 'none';
+                
+                if (adminServices.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #9a9a9a; padding: 40px;">Nenhum serviço cadastrado.</p>';
+                    return;
+                }
+                
+                container.innerHTML = adminServices.map(function(s) {
+                    return '<div class="service-admin-item">' +
+                        '<div class="service-admin-info">' +
+                        '<div class="service-admin-name">' + s.name + '</div>' +
+                        '<div class="service-admin-category">' + s.category + '</div>' +
+                        '<p>' + (s.description || 'Sem descrição') + '</p>' +
+                        '</div>' +
+                        '<div class="service-admin-actions">' +
+                        '<div class="service-admin-price">R$ ' + parseFloat(s.price).toFixed(2) + ' • ' + s.duration + ' min</div>' +
+                        '<button onclick="editService(\'' + s.id + '\')" style="padding: 8px 16px; background: #f5d5d8; border: none; border-radius: 8px; cursor: pointer; margin-right: 8px;">Editar</button>' +
+                        '<button onclick="deleteService(\'' + s.id + '\')" style="padding: 8px 16px; background: #fee; border: none; border-radius: 8px; cursor: pointer; color: #c00;">Excluir</button>' +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+            }
+            
+            window.editService = function(id) {
+                const s = adminServices.find(function(x) { return x.id === id; });
+                if (!s) return;
+                document.getElementById('serviceId').value = s.id;
+                document.getElementById('serviceCategory').value = s.category || 'manicure';
+                document.getElementById('serviceName').value = s.name;
+                document.getElementById('serviceDesc').value = s.description || '';
+                document.getElementById('servicePrice').value = s.price;
+                document.getElementById('serviceDuration').value = s.duration;
+                document.getElementById('serviceModalTitle').textContent = 'Editar Serviço';
+                document.getElementById('serviceModal').style.display = 'block';
+            };
+            
+            window.deleteService = function(id) {
+                if (!confirm('Excluir este serviço?')) return;
+                fetch(API_URL + '?action=excluirServico&id=' + encodeURIComponent(id))
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.sucesso) {
+                            fetchAdminServices();
+                        }
+                    })
+                    .catch(function(err) { console.error('Erro:', err); });
+            };
+            
+            document.getElementById('serviceForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new URLSearchParams();
+                formData.append('action', 'salvarServico');
+                formData.append('id', document.getElementById('serviceId').value);
+                formData.append('category', document.getElementById('serviceCategory').value);
+                formData.append('name', document.getElementById('serviceName').value);
+                formData.append('description', document.getElementById('serviceDesc').value);
+                formData.append('price', document.getElementById('servicePrice').value);
+                formData.append('duration', document.getElementById('serviceDuration').value);
+                formData.append('icon', 'circle');
+                
+                fetch(API_URL, { method: 'POST', body: formData })
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.sucesso) {
+                            closeServiceModal();
+                            fetchAdminServices();
+                            alert('Serviço salvo com sucesso!');
+                        } else {
+                            alert(data.erro || 'Erro ao salvar');
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('Erro:', err);
+                        alert('Erro ao salvar serviço');
+                    });
+            });
         }
     </script>
 </body>

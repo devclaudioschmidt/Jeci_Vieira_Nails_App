@@ -2041,7 +2041,7 @@ body {
 .spinner { width: 40px; height: 40px; border: 3px solid rgba(232, 180, 184, 0.3); border-top-color: var(--primary-dark); border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .calendar-day.has-appointments { position: relative; font-weight: bold; color: var(--primary-dark); }
-.calendar-indicator { position: absolute; top: 4px; right: 4px; width: 14px; height: 14px; background: var(--primary-dark); color: white; border-radius: 50%; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.calendar-count { position: absolute; bottom: 2px; right: 2px; min-width: 16px; height: 14px; background: var(--primary-dark); color: white; border-radius: 8px; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: bold; padding: 0 4px; }
 .admin-modal-content { text-align: left; padding: 24px; }
 
 /* Tabs Admin */

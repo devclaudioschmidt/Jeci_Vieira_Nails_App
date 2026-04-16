@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Administrativo | Jeci Vieira Nails</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--bg-gradient);
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(232, 180, 184, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            animation: fadeInUp 0.6s ease;
+        }
+        .login-logo {
+            margin-bottom: 30px;
+            color: var(--primary-dark);
+        }
+        .login-logo svg {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+        .login-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--secondary);
+            margin-bottom: 8px;
+        }
+        .login-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            text-align: left;
+        }
+        .form-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-input-group label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .login-input {
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(232, 180, 184, 0.4);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        .login-input:focus {
+            outline: none;
+            border-color: var(--primary-dark);
+            box-shadow: 0 0 0 4px rgba(232, 180, 184, 0.2);
+        }
+        .login-btn {
+            background: var(--primary-dark);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .login-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-message {
+            background: #fff5f5;
+            color: #e53e3e;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid #feb2b2;
+            animation: fadeIn 0.3s ease;
+        }
+        .spinner-inner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .back-to-site {
+            display: block;
+            margin-top: 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .back-to-site:hover {
+            color: var(--primary-dark);
+        }
+        .admin-badge {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="login-page">
+    <div class="login-card">
+        <div class="login-logo">
+            <svg viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="25" cy="25" r="23" stroke="currentColor" stroke-width="2"/>
+                <path d="M25 12C25 12 18 18 18 26C18 31 21 35 25 35C29 35 32 31 32 26C32 18 25 12 25 12Z" fill="currentColor" opacity="0.3"/>
+                <path d="M25 18V30M22 24H28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="admin-badge">Área Administrativa</span>
+            <h1 class="login-title">Login Admin</h1>
+            <p class="login-subtitle">Jeci Vieira Nails & Podologia</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <form id="loginForm" class="login-form">
+            <div class="form-input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" class="login-input" placeholder="seu@email.com" required autocomplete="email">
+            </div>
+            <div class="form-input-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" class="login-input" placeholder="Sua senha" required autocomplete="current-password">
+            </div>
+            <button type="submit" id="loginBtn" class="login-btn">
+                <span>Entrar</span>
+                <div class="spinner-inner" id="loginSpinner"></div>
+            </button>
+        </form>
+
+        <a href="login.html" class="back-to-site">← Login de Cliente</a>
+        <a href="index.html" class="back-to-site">Voltar para agendamento</a>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script>
+        const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
+        
+        const ADMIN_EMAILS = [
+            'claudio_schmidt@icloud.com',
+            'jecianevieiera@gmail.com'
+        ];
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            const spinner = document.getElementById('loginSpinner');
+            const errorMsg = document.getElementById('errorMessage');
+
+            errorMsg.style.display = 'none';
+            btn.disabled = true;
+            spinner.style.display = 'block';
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const userEmail = userCredential.user.email.toLowerCase();
+                
+                if (ADMIN_EMAILS.includes(userEmail)) {
+                    const idToken = await userCredential.user.getIdToken();
+                    localStorage.setItem('admin_auth_token', idToken);
+                    localStorage.setItem('admin_email', userEmail);
+                    window.location.href = 'admin.html';
+                } else {
+                    await auth.signOut();
+                    errorMsg.textContent = 'Este email não tem acesso administrativo.';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (error) {
+                let errorMessage = 'Erro ao realizar login.';
+                if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Email inválido.';
+                } else if (error.code === 'auth/user-not-found') {
+                    errorMessage = 'Usuário não encontrado.';
+                } else if (error.code === 'auth/wrong-password') {
+                    errorMessage = 'Senha incorreta.';
+                } else if (error.code === 'auth/invalid-credential') {
+                    errorMessage = 'Email ou senha incorretos.';
+                }
+                errorMsg.textContent = errorMessage;
+                errorMsg.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        });
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                const userEmail = user.email.toLowerCase();
+                if (ADMIN_EMAILS.includes(userEmail)) {
+                    window.location.href = 'admin.html';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

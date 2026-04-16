@@ -212,15 +212,17 @@
         let selectedTime = null;
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
+        let clienteUid = null;
+        let clienteTelefone = null;
         
-        const clienteUid = localStorage.getItem('cliente_uid');
-        const clienteTelefone = localStorage.getItem('cliente_telefone');
-
-        if (!clienteUid) {
-            window.location.href = 'login.html';
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
+            clienteUid = localStorage.getItem('cliente_uid');
+            clienteTelefone = localStorage.getItem('cliente_telefone');
+
+            if (!clienteUid) {
+                window.location.href = 'login.html';
+            }
+            
             loadData();
             loadSalaoData();
             document.getElementById('globalLoader').style.opacity = '0';
@@ -263,6 +265,30 @@
             `).join('');
         }
 
+        function getServiceIcon(iconType) {
+            const icons = {
+                hand: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M24 44C24 44 8 32 8 20C8 14 12 8 18 8C20 8 22 9 24 11"/><path d="M24 44C24 44 40 32 40 20C40 14 36 8 30 8C28 8 26 9 24 11"/><path d="M24 11V44"/></svg>`,
+                hands: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M14 8C14 8 10 12 10 20C10 28 14 40 14 40"/><path d="M24 8C24 8 20 12 20 20C20 28 24 40 24 40"/><path d="M34 8C34 8 30 12 30 20C30 28 34 40 34 40"/><path d="M10 40H38"/></svg>`,
+                bottle: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><rect x="16" y="4" width="16" height="8" rx="2"/><path d="M18 12V40C18 42 20 44 24 44C28 44 30 42 30 40V12"/><path d="M20 20H28M20 28H28"/></svg>`,
+                longnail: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M24 44V20"/><path d="M24 20C24 20 18 18 18 12C18 8 20 6 24 6C28 6 30 8 30 12C30 18 24 20 24 20"/><path d="M20 44C20 44 22 38 24 38C26 38 28 44 28 44"/></svg>`,
+                foot: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M24 8C16 8 10 16 10 28C10 40 16 44 24 44C32 44 38 40 38 28C38 16 32 8 24 8Z"/><path d="M18 24H30"/><path d="M24 18V30"/></svg>`,
+                spa: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M24 4L28 12L36 8L32 16L40 20L32 20L36 28L28 24L24 32L20 24L12 28L16 20L8 20L16 16L12 8L20 12L24 4Z"/><path d="M18 32C18 32 20 36 24 36C28 36 30 32 30 32"/></svg>`,
+                circle: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><circle cx="24" cy="24" r="16"/><circle cx="24" cy="24" r="8"/><path d="M24 8V16M24 32V40M8 24H16M32 24H40"/></svg>`,
+                brace: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M16 36L24 12L32 36"/><path d="M18 28H30"/></svg>`
+            };
+            return icons[iconType] || icons.circle;
+        }
+
+        function getServiceIconByName(serviceName) {
+            const name = serviceName.toLowerCase();
+            if (name.includes('gel') || name.includes('esmaltação') || name.includes('esmaltação')) return 'bottle';
+            if (name.includes('spa')) return 'spa';
+            if (name.includes('pé') || name.includes('pedicure')) return 'foot';
+            if (name.includes('mão') || name.includes('manicure')) return 'hand';
+            if (name.includes('alongamento') || name.includes('unha')) return 'longnail';
+            return 'circle';
+        }
+
         window.selectCategory = function(categoryId) {
             selectedCategory = categoryId;
             const categoryName = appData.categories.find(c => c.id === categoryId).name;
@@ -280,9 +306,7 @@
             listEl.innerHTML = services.map(s => `
                 <div class="service-card" onclick="selectService('${s.name}', ${s.duration})">
                     <div class="service-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--primary-dark);">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                        </svg>
+                        ${getServiceIcon(getServiceIconByName(s.name))}
                     </div>
                     <div class="service-info" style="position: relative; z-index: 1;">
                         <h3 style="font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 600; color: var(--secondary); margin-bottom: 2px;">${s.name}</h3>

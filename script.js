@@ -494,15 +494,18 @@ function renderCalendar() {
     // Dias do mês atual
     for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(currentYear, currentMonth, day);
+        date.setHours(12, 0, 0, 0);
         const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const delayClass = `delay-${(dayIndex % 6) + 1}`;
         
         let classes = 'calendar-day animate-scale-in ' + delayClass;
         
+        const dayOfWeek = date.getDay();
+        
         if (date < today) {
             classes += ' disabled';
             html += `<button class="${classes}" disabled>${day}</button>`;
-        } else if (date.getDay() === 0) { // Domingo
+        } else if (dayOfWeek === 0) { // Domingo
             classes += ' disabled';
             html += `<button class="${classes}" disabled>${day}</button>`;
         } else {

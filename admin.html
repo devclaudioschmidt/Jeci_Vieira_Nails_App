@@ -71,6 +71,7 @@
         .appointment-client { font-weight: 500; color: #2d2d2d; }
         .appointment-service { font-size: 0.85rem; color: #6b6b6b; }
         .cancel-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #feb2b2; background: white; color: #e53e3e; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .details-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #d4919a; background: white; color: #d4919a; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
         .services-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .primary-btn { background: #d4919a; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 500; }
         .primary-btn:hover { background: #c07c85; }
@@ -189,15 +190,11 @@
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">WhatsApp (com DDI)</label>
-                        <input type="tel" id="salaoTelefone" placeholder="+5511999999999" style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
+                        <input type="tel" id="salaoTelefone" placeholder="+55(11)99999-9999" oninput="mascaraTelefone(this)" style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Instagram</label>
-                        <input type="text" id="salaoInstagram" placeholder="@seuinstagram" style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Data de Aniversário</label>
-                        <input type="date" id="salaoAniversario" style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main); color-scheme: light;">
+                        <input type="text" id="salaoInstagram" placeholder="@seuinstagram" oninput="mascaraInstagram(this)" style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
                     </div>
                     <button type="submit" class="primary-btn" style="margin-top: 8px;">Salvar Dados</button>
                 </form>
@@ -270,15 +267,170 @@
             </div>
         </div>
     </div>
+    <div id="appointmentDetailsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; width: 85%; max-width: 450px; margin: 20px; padding: 24px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div id="appointmentDetailsContent"></div>
+            <button onclick="closeAppointmentDetails()" class="modal-btn" style="width: 100%; margin-top: 20px; padding: 14px;">Fechar</button>
+        </div>
+    </div>
     <script src="config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script>
+        function mascaraTelefone(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                if (!value.startsWith('+')) {
+                    value = '+' + value;
+                }
+            }
+            if (value.length > 1 && value.startsWith('+')) {
+                const ddi = value.substring(1, 3);
+                const resto = value.substring(3);
+                const cleaned = resto.replace(/\D/g, '');
+                if (cleaned.length <= 2) {
+                    value = '+' + ddi + cleaned;
+                } else if (cleaned.length <= 7) {
+                    value = '+' + ddi + '(' + cleaned.substring(0, 2) + ')' + cleaned.substring(2);
+                } else {
+                    value = '+' + ddi + '(' + cleaned.substring(0, 2) + ')' + cleaned.substring(2, 7) + '-' + cleaned.substring(7, 11);
+                }
+            }
+            input.value = value;
+        }
+
+        function mascaraInstagram(input) {
+            let value = input.value;
+            if (!value.startsWith('@')) {
+                value = '@' + value.replace(/^@+/, '');
+            }
+            input.value = value;
+        }
+
+        function openAppointmentDetails(app) {
+            const modal = document.getElementById('appointmentDetailsModal');
+            const content = document.getElementById('appointmentDetailsContent');
+            
+            const dataParts = app.data ? app.data.split('-') : ['', '', ''];
+            const dataFormatada = dataParts.length === 3 ? `${dataParts[2]}/${dataParts[1]}/${dataParts[0]}` : app.data;
+            
+            let telefoneLink = '';
+            let telefoneDisplay = app.telefone || 'Não informado';
+            let horarioDisplay = app.hora || '--:--';
+            let valorDisplay = app.valor ? 'R$ ' + parseFloat(app.valor).toFixed(2) : 'Não informado';
+            if (app.hora && app.duracao) {
+                const [h, m] = app.hora.split(':').map(Number);
+                const inicioMin = h * 60 + m;
+                const fimMin = inicioMin + parseInt(app.duracao);
+                const hFim = Math.floor(fimMin / 60);
+                const mFim = fimMin % 60;
+                const horaFim = `${String(hFim).padStart(2, '0')}:${String(mFim).padStart(2, '0')}`;
+                horarioDisplay = `${app.hora} - ${horaFim}`;
+            }
+            if (app.telefone) {
+                const telClean = app.telefone.replace(/\D/g, '');
+                telefoneLink = `https://wa.me/${telClean}`;
+                telefoneDisplay = `<a href="${telefoneLink}" target="_blank" style="color: #25D366; text-decoration: none; display: flex; align-items: center; gap: 6px;">
+                    ${app.telefone}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                </a>`;
+            }
+            
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 24px; position: relative;">
+                    <button onclick="closeAppointmentDetails()" style="position: absolute; top: -10px; right: -10px; background: var(--primary-light); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--primary-dark); font-size: 1.2rem;">×</button>
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #d4919a 0%, #c07c85 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 4px 15px rgba(212, 145, 154, 0.4);">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <h3 style="font-family: 'Playfair Display', serif; color: var(--secondary); font-size: 1.5rem; margin-bottom: 8px;">${app.cliente || 'Cliente'}</h3>
+                    <span style="background: linear-gradient(135deg, #d4919a 0%, #c07c85 100%); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">Agendamento</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 14px; padding: 16px; background: #fdf8f8; border-radius: 12px; border: 1px solid rgba(232, 180, 184, 0.3);">
+                        <div style="width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4919a" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Data</span>
+                            <div style="font-weight: 600; color: var(--text-primary); font-size: 1rem;">${dataFormatada}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 14px; padding: 16px; background: #fdf8f8; border-radius: 12px; border: 1px solid rgba(232, 180, 184, 0.3);">
+                        <div style="width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4919a" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12,6 12,12 16,14"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Horário</span>
+                            <div style="font-weight: 600; color: var(--text-primary); font-size: 1rem;">${horarioDisplay}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 14px; padding: 16px; background: #fdf8f8; border-radius: 12px; border: 1px solid rgba(232, 180, 184, 0.3);">
+                        <div style="width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4919a" stroke-width="2">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Telefone</span>
+                            <div style="font-weight: 600; color: var(--text-primary); font-size: 1rem;">${telefoneDisplay}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 14px; padding: 16px; background: linear-gradient(135deg, rgba(212, 145, 154, 0.15) 0%, rgba(192, 124, 133, 0.15) 100%); border-radius: 12px; border: 1px solid var(--primary-dark);">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #d4919a 0%, #c07c85 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(212, 145, 154, 0.3);">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.75rem; color: var(--primary-dark); text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7;">Serviço</span>
+                            <div style="font-weight: 600; color: var(--primary-dark); font-size: 1rem;">${app.servico || 'Serviço'}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 14px; padding: 16px; background: #fdf8f8; border-radius: 12px; border: 1px solid rgba(232, 180, 184, 0.3);">
+                        <div style="width: 40px; height: 40px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4919a" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Valor</span>
+                            <div style="font-weight: 600; color: #38a169; font-size: 1rem;">${valorDisplay}</div>
+                        </div>
+                    </div>
+                </div>
+                ${app.telefone ? `<a href="${telefoneLink}" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #25D366 0%, #20BD5A 100%); color: white; padding: 14px 20px; border-radius: 12px; text-decoration: none; font-weight: 600; margin-top: 20px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                    Enviar WhatsApp
+                </a>` : ''}
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function closeAppointmentDetails() {
+            document.getElementById('appointmentDetailsModal').style.display = 'none';
+        }
+        
         firebase.initializeApp(firebaseConfig);
         
         firebase.auth().onAuthStateChanged(async (user) => {
             if (!user) {
-                window.location.href = 'login.html';
+                window.location.href = 'login-admin.html';
             } else {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('adminContent').style.display = 'block';
@@ -290,7 +442,7 @@
             firebase.auth().signOut().then(() => {
                 localStorage.removeItem('admin_auth_token');
                 localStorage.removeItem('admin_email');
-                window.location.href = 'login.html';
+                window.location.href = 'login-admin.html';
             });
         }
 
@@ -360,12 +512,15 @@
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dateStr = adminCurrentYear + '-' + String(adminCurrentMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
                     const isToday = dateStr === todayDate.toISOString().split('T')[0];
-                    const hasAppointments = allAppointments.some(a => a.data === dateStr);
+                    const dayAppointments = allAppointments.filter(a => a.data === dateStr);
+                    const count = dayAppointments.length;
+                    const hasAppointments = count > 0;
                     let classes = 'calendar-day';
                     if (isToday) classes += ' today';
                     if (hasAppointments) classes += ' has-appointments';
                     if (adminSelectedDate === dateStr) classes += ' selected';
-                    html += '<button class="' + classes + '" onclick="selectAdminDate(\'' + dateStr + '\')">' + d + '</button>';
+                    const countBadge = hasAppointments ? '<span class="calendar-count">' + count + '</span>' : '';
+                    html += '<button class="' + classes + '" onclick="selectAdminDate(\'' + dateStr + '\')"><span style="position: relative; z-index: 1;">' + d + '</span>' + countBadge + '</button>';
                 }
                 
                 const remaining = 42 - (firstDay + daysInMonth);
@@ -399,6 +554,7 @@
                         '<div class="appointment-client">' + (app.cliente || 'Cliente') + '</div>' +
                         '<div class="appointment-service">' + (app.servico || 'Serviço') + '</div>' +
                         '</div>' +
+                        '<button class="details-btn" onclick="openAppointmentDetails(' + JSON.stringify(app).replace(/"/g, '&quot;') + ')">i</button>' +
                         '<button class="cancel-btn" onclick="cancelAdminAppointment(\'' + app.data + '\', \'' + app.hora + '\')">✕</button>' +
                         '</div>';
                 }).join('');

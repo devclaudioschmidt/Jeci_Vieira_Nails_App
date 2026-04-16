@@ -17,6 +17,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/style.css">
+    <style>
+        </style>
 </head>
 <body>
     <div id="globalLoader" style="position: fixed; inset: 0; background: var(--bg-main); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
@@ -330,33 +332,23 @@
                     <path d="M9 18L15 12L9 6"/>
                 </svg>
             </a>
-
-            <a href="#" class="menu-item" onclick="showMenuSection('historico')">
+            <a href="login.html" class="menu-item admin-link">
                 <div class="menu-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12,6 12,12 16,14"/>
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"/>
                     </svg>
                 </div>
                 <div class="menu-content">
-                    <span class="menu-title">Meu Histórico</span>
-                    <span class="menu-subtitle">Seus agendamentos</span>
+                    <span class="menu-title">Login</span>
+                    <span class="menu-subtitle">Entrar ou criar conta</span>
                 </div>
                 <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 18L15 12L9 6"/>
                 </svg>
             </a>
 
-            <a href="cadastro.html" class="menu-item" style="border-top: 1px solid rgba(232, 180, 184, 0.2);">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="8.5" cy="7" r="4"></circle>
-                        <line x1="20" y1="8" x2="20" y2="14"></line>
-                        <line x1="23" y1="11" x2="17" y2="11"></line>
-                    </svg>
-                    <span>Cadastre-se</span>
-                </a>
-                <a href="login.html" class="menu-item admin-link">
+            <a href="login-admin.html" class="menu-item admin-link">
                 <div class="menu-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -364,8 +356,8 @@
                     </svg>
                 </div>
                 <div class="menu-content">
-                    <span class="menu-title">Acesso Restrito</span>
-                    <span class="menu-subtitle">Área Administrativa</span>
+                    <span class="menu-title">Admin</span>
+                    <span class="menu-subtitle">Área administrativa</span>
                 </div>
                 <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 18L15 12L9 6"/>

@@ -668,14 +668,43 @@ document.getElementById('confirmForm').addEventListener('submit', async function
     const category = appData.categories.find(c => c.id === selectedCategory);
     const categoryText = category ? category.name : 'Manicure & Pedicure';
     
-    const formData = new URLSearchParams();
-    formData.append('action', 'agendar');
-    formData.append('data', selectedDate);
-    formData.append('hora', selectedTime);
-    formData.append('servico', selectedService);
-    formData.append('cliente', name);
-    formData.append('telefone', phone);
-    formData.append('duracao', selectedDuration || 30);
+    // Mostrar modal de confirmação
+    const detailsHtml = `
+        <p><span class="label">Nome:</span> <span class="value">${name}</span></p>
+        <p><span class="label">WhatsApp:</span> <span class="value">${phone}</span></p>
+        <p><span class="label">Área:</span> <span class="value">${categoryText}</span></p>
+        <p><span class="label">Serviço:</span> <span class="value">${selectedService}</span></p>
+        <p><span class="label">Data:</span> <span class="value">${formatDate(selectedDate)}</span></p>
+        <p><span class="label">Horário:</span> <span class="value">${selectedTime}</span></p>
+        <p><span class="label">Valor:</span> <span class="value">R$ ${selectedPrice}</span></p>
+    `;
+    
+    document.getElementById('confirmDetails').innerHTML = detailsHtml;
+    document.getElementById('confirmModal').style.display = 'flex';
+    
+    // Armazenar dados para uso na confirmação
+    window.confirmData = {
+        name,
+        phone,
+        categoryText,
+        formData: new URLSearchParams({
+            action: 'agendar',
+            data: selectedDate,
+            hora: selectedTime,
+            servico: selectedService,
+            cliente: name,
+            telefone: phone,
+            duracao: selectedDuration || 30
+        })
+    };
+});
+
+window.backToForm = function() {
+    document.getElementById('confirmModal').style.display = 'none';
+};
+
+window.confirmAndSendWhatsApp = async function() {
+    const { name, phone, categoryText, formData } = window.confirmData;
     
     try {
         const response = await fetch(API_URL, {
@@ -686,10 +715,8 @@ document.getElementById('confirmForm').addEventListener('submit', async function
         const result = await response.json();
         
         if (result.sucesso) {
-            // Salva no histórico local
             saveToHistory(selectedService, selectedDate, selectedTime, selectedPrice, selectedCategory);
             
-            // Abre WhatsApp com mensagem
             const message = `Olá! Gostaria de confirmar meu agendamento:\n\n` +
                 `👤 Nome: ${name}\n` +
                 `📱 WhatsApp: ${phone}\n` +
@@ -700,9 +727,14 @@ document.getElementById('confirmForm').addEventListener('submit', async function
                 `💰 Valor: R$ ${selectedPrice}`;
             
             const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
             
-            // Mostra modal de sucesso
+            // Tentar abrir de forma mais confiável
+            const waWindow = window.open(whatsappUrl, '_blank');
+            if (!waWindow || waWindow.closed || typeof waWindow.closed === 'undefined') {
+                location.href = whatsappUrl;
+            }
+            
+            document.getElementById('confirmModal').style.display = 'none';
             document.getElementById('successModal').style.display = 'flex';
         } else {
             alert(result.erro || 'Erro ao agendar. Tente novamente.');
@@ -711,7 +743,7 @@ document.getElementById('confirmForm').addEventListener('submit', async function
         console.error('Erro:', error);
         alert('Erro ao agendar. Tente novamente.');
     }
-});
+};
 
 function closeModal() {
     document.getElementById('successModal').style.display = 'none';

@@ -1097,7 +1097,7 @@ body {
 }
 
 /* Modal */
-.success-modal {
+.success-modal, .confirm-modal {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
@@ -1177,6 +1177,63 @@ body {
 
 .modal-btn:active {
     transform: scale(0.98);
+}
+
+.confirm-details {
+    text-align: left;
+    background: var(--bg-main);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin: 20px 0;
+}
+
+.confirm-details p {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(232, 180, 184, 0.2);
+    font-size: 0.9rem;
+}
+
+.confirm-details p:last-child {
+    border-bottom: none;
+}
+
+.confirm-details .label {
+    color: var(--text-secondary);
+}
+
+.confirm-details .value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.confirm-buttons .modal-btn {
+    flex: 1;
+}
+
+.modal-btn-secondary {
+    flex: 1;
+    padding: 16px;
+    background: white;
+    border: 1px solid rgba(232, 180, 184, 0.4);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.modal-btn-secondary:hover {
+    background: var(--bg-main);
 }
 
 /* Scrollbar */

@@ -2,20 +2,20 @@
     "name": "Jeci Vieira Nails & Podologia",
     "short_name": "Jeci Nails",
     "description": "Sistema de agendamento online para salão de manicure e podologia",
-    "start_url": "/",
+    "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#fdf8f8",
     "theme_color": "#d4919a",
     "orientation": "portrait",
     "icons": [
         {
-            "src": "assets/icon-192.svg",
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%23fdf8f8' rx='20'/%3E%3Ccircle cx='96' cy='96' r='70' fill='%23f5d5d8' stroke='%23d4919a' stroke-width='4'/%3E%3Ccircle cx='96' cy='80' r='25' fill='%23d4919a' opacity='0.3'/%3E%3Cpath d='M96 55V120M80 80H112' stroke='%23d4919a' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='70' cy='95' r='8' fill='%23d4919a' opacity='0.5'/%3E%3Ccircle cx='122' cy='95' r='8' fill='%23d4919a' opacity='0.5'/%3E%3C/svg%3E",
             "sizes": "192x192",
             "type": "image/svg+xml",
             "purpose": "any"
         },
         {
-            "src": "assets/icon-192.svg",
+            "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%23fdf8f8' rx='20'/%3E%3Ccircle cx='96' cy='96' r='70' fill='%23f5d5d8' stroke='%23d4919a' stroke-width='4'/%3E%3Ccircle cx='96' cy='80' r='25' fill='%23d4919a' opacity='0.3'/%3E%3Cpath d='M96 55V120M80 80H112' stroke='%23d4919a' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='70' cy='95' r='8' fill='%23d4919a' opacity='0.5'/%3E%3Ccircle cx='122' cy='95' r='8' fill='%23d4919a' opacity='0.5'/%3E%3C/svg%3E",
             "sizes": "192x192",
             "type": "image/svg+xml",
             "purpose": "maskable"

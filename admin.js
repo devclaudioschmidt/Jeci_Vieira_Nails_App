@@ -416,6 +416,8 @@ function switchAdminTab(tabName, btn) {
         if (adminServices.length === 0) {
             fetchAdminServices();
         }
+    } else if (tabName === 'salao') {
+        loadSalaoData();
     }
 }
 
@@ -692,4 +694,77 @@ function confirmCancel() {
             console.error(err);
             alert('Erro ao cancelar');
         });
+}
+
+function loadSalaoData() {
+    fetch(API_URL + '?action=getSalao')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('salaoNome').value = data.nome || 'Jeci Vieira Nails & Podologia';
+            document.getElementById('salaoTelefone').value = data.telefone || '';
+            document.getElementById('salaoInstagram').value = data.instagram || '';
+            document.getElementById('salaoAniversario').value = data.aniversario || '';
+            if (data.fotoPerfil) {
+                document.getElementById('salaoFotoPreview').innerHTML = `<img src="${data.fotoPerfil}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            }
+        })
+        .catch(err => console.error('Erro ao carregar dados do salão:', err));
+}
+
+function previewSalaoFoto(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('salaoFotoPreview').innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+document.getElementById('salaoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const fotoInput = document.getElementById('salaoFoto');
+    const fotoFile = fotoInput.files[0];
+    
+    if (fotoFile) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            saveSalaoData(event.target.result);
+        };
+        reader.readAsDataURL(fotoFile);
+    } else {
+        const preview = document.getElementById('salaoFotoPreview').querySelector('img');
+        saveSalaoData(preview ? preview.src : '');
+    }
+});
+
+function saveSalaoData(fotoBase64) {
+    const data = {
+        action: 'updateSalao',
+        nome: document.getElementById('salaoNome').value,
+        telefone: document.getElementById('salaoTelefone').value,
+        instagram: document.getElementById('salaoInstagram').value,
+        aniversario: document.getElementById('salaoAniversario').value,
+        fotoPerfil: fotoBase64
+    };
+    
+    fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.sucesso) {
+            alert('Dados salvos com sucesso!');
+        } else {
+            alert('Erro ao salvar: ' + (result.erro || 'Desconhecido'));
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Erro ao salvar dados');
+    });
+}
 }

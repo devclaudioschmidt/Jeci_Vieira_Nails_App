@@ -346,33 +346,6 @@ exports.api = functions.https.onRequest(async (req, res) => {
         return sendResponse(res, 200, { sucesso: true });
       }
       
-      case 'cancelarAgendamento': {
-        const { data, hora } = req.body;
-        
-        const dataNormalized = normalizeDate(data);
-        const horaNormalized = normalizeTime(hora);
-        
-        const agendamentos = await readFirebase('agendamentos') || {};
-        
-        let foundKey = null;
-        Object.keys(agendamentos).forEach(key => {
-          const app = agendamentos[key];
-          const dataNaPlanilha = normalizeDate(app.data);
-          const horaNaPlanilha = normalizeTime(app.hora);
-          
-          if (dataNaPlanilha === dataNormalized && horaNaPlanilha === horaNormalized) {
-            foundKey = key;
-          }
-        });
-        
-        if (!foundKey) {
-          return sendResponse(res, 400, { sucesso: false, erro: 'Agendamento não encontrado' });
-        }
-        
-        await deleteFirebase(`agendamentos/${foundKey}`);
-        return sendResponse(res, 200, { sucesso: true });
-      }
-      
       case 'bloquearHorario': {
         const data = req.body.data || req.query.data;
         const hora_inicio = normalizeTime(req.body.hora_inicio || req.body.horaInicio || req.query.hora_inicio);
@@ -415,6 +388,190 @@ exports.api = functions.https.onRequest(async (req, res) => {
         });
         
         return sendResponse(res, 200, lista);
+      }
+      
+      case 'getSalao': {
+        const salaoData = await readFirebase('salao');
+        if (salaoData) {
+          return sendResponse(res, 200, salaoData);
+        }
+        return sendResponse(res, 200, {
+          nome: 'Jeci Vieira Nails & Podologia',
+          telefone: '',
+          instagram: '',
+          aniversario: '',
+          fotoPerfil: ''
+        });
+      }
+      
+      case 'updateSalao': {
+        const { nome, telefone, instagram, aniversario, fotoPerfil } = req.body;
+        await writeFirebase('salao', {
+          nome: nome || 'Jeci Vieira Nails & Podologia',
+          telefone: telefone || '',
+          instagram: instagram || '',
+          aniversario: aniversario || '',
+          fotoPerfil: fotoPerfil || '',
+          updatedAt: new Date().toISOString()
+        });
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'saveCliente': {
+        const { uid, nome, email, telefone } = req.body;
+        if (!uid || !email) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'UID e email são obrigatórios' });
+        }
+        await writeFirebase(`clientes/${uid}`, {
+          nome: nome || '',
+          email: email,
+          telefone: telefone || '',
+          createdAt: new Date().toISOString()
+        });
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'getCliente': {
+        const uid = req.query.uid || req.body.uid;
+        if (!uid) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'UID é obrigatório' });
+        }
+        const clienteData = await readFirebase(`clientes/${uid}`);
+        if (clienteData) {
+          return sendResponse(res, 200, clienteData);
+        }
+        return sendResponse(res, 200, { nome: '', email: '', telefone: '' });
+      }
+      
+      case 'updateCliente': {
+        const { uid, nome, telefone } = req.body;
+        if (!uid) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'UID é obrigatório' });
+        }
+        await writeFirebase(`clientes/${uid}`, {
+          nome: nome || '',
+          telefone: telefone || '',
+          updatedAt: new Date().toISOString()
+        });
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'getSalaoPublico': {
+        const salaoData = await readFirebase('salao') || {};
+        return sendResponse(res, 200, {
+          telefone: salaoData.telefone || '',
+          instagram: salaoData.instagram || '',
+          nome: salaoData.nome || 'Jeci Vieira Nails'
+        });
+      }
+      
+      case 'getClientAppointments': {
+        const uid = req.query.uid || req.body.uid;
+        if (!uid) {
+          return sendResponse(res, 200, []);
+        }
+        const allAgendamentos = await readFirebase('agendamentos') || {};
+        const ninetyDaysAgo = new Date();
+        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+        
+        const lista = [];
+        Object.keys(allAgendamentos).forEach(key => {
+          const app = allAgendamentos[key];
+          if (app.clienteUid === uid) {
+            const appDate = new Date(app.data);
+            if (appDate >= ninetyDaysAgo) {
+              lista.push({ id: key, ...app });
+            }
+          }
+        });
+        
+        lista.sort((a, b) => {
+          const dateA = new Date(a.data + 'T' + (a.hora || '00:00'));
+          const dateB = new Date(b.data + 'T' + (b.hora || '00:00'));
+          return dateB - dateA;
+        });
+        
+        return sendResponse(res, 200, lista);
+      }
+      
+      case 'agendarCliente': {
+        const { uid, data, hora, servico, telefone, duracao } = req.body;
+        
+        if (!uid || !data || !hora || !servico) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'Parâmetros incompletos' });
+        }
+        
+        const dataNormalized = normalizeDate(data);
+        const horaNormalized = normalizeTime(hora);
+        const duracaoInt = parseInt(duracao) || 30;
+        const clienteNome = localStorage.getItem('cliente_nome') || 'Cliente';
+        
+        const agendamentos = await readFirebase('agendamentos') || {};
+        
+        Object.keys(agendamentos).forEach(key => {
+          const app = agendamentos[key];
+          const dataNaPlanilha = normalizeDate(app.data);
+          const status = String(app.status || '').toLowerCase().trim();
+          
+          if (dataNaPlanilha === dataNormalized && status === 'confirmado') {
+            const horaExistente = normalizeTime(app.hora);
+            const durExistente = parseInt(app.duracao) || 30;
+            
+            const existParts = horaExistente.split(':');
+            const existStartMin = parseInt(existParts[0]) * 60 + parseInt(existParts[1]);
+            const existEndMin = existStartMin + durExistente;
+            
+            const novoParts = horaNormalized.split(':');
+            const novoStartMin = parseInt(novoParts[0]) * 60 + parseInt(novoParts[1]);
+            const novoEndMin = novoStartMin + duracaoInt;
+            
+            if (!(novoEndMin <= existStartMin || novoStartMin >= existEndMin)) {
+              return sendResponse(res, 400, { sucesso: false, erro: 'Horário conflita com agendamento existente!' });
+            }
+          }
+        });
+        
+        const newId = generateId();
+        await writeFirebase(`agendamentos/${newId}`, {
+          data: data,
+          hora: hora,
+          servico: servico,
+          cliente: clienteNome,
+          telefone: telefone || '',
+          clienteUid: uid,
+          status: 'confirmado',
+          duracao: duracaoInt,
+          criado_em: new Date().toISOString()
+        });
+        
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'cancelarAgendamento': {
+        const { data, hora } = req.body;
+        
+        const dataNormalized = normalizeDate(data);
+        const horaNormalized = normalizeTime(hora);
+        
+        const agendamentos = await readFirebase('agendamentos') || {};
+        
+        let foundKey = null;
+        Object.keys(agendamentos).forEach(key => {
+          const app = agendamentos[key];
+          const dataNaPlanilha = normalizeDate(app.data);
+          const horaNaPlanilha = normalizeTime(app.hora);
+          
+          if (dataNaPlanilha === dataNormalized && horaNaPlanilha === horaNormalized) {
+            foundKey = key;
+          }
+        });
+        
+        if (!foundKey) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'Agendamento não encontrado' });
+        }
+        
+        await deleteFirebase(`agendamentos/${foundKey}`);
+        return sendResponse(res, 200, { sucesso: true });
       }
       
       case 'login': {

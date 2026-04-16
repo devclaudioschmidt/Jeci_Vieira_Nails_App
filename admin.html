@@ -131,6 +131,7 @@
             <div class="admin-tabs">
                 <button class="tab-btn active" onclick="switchAdminTab('agenda', this)">Agenda</button>
                 <button class="tab-btn" onclick="switchAdminTab('servicos', this)">Serviços</button>
+                <button class="tab-btn" onclick="switchAdminTab('salao', this)">Meu Salão</button>
             </div>
             <div id="tab-agenda" class="admin-tab-content active">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -165,6 +166,41 @@
                     <span>Carregando serviços...</span>
                 </div>
                 <div class="services-admin-list" id="servicesAdminList"></div>
+            </div>
+            <div id="tab-salao" class="admin-tab-content">
+                <h2 class="section-title">Dados do Salão</h2>
+                <form id="salaoForm" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="color: var(--text-secondary); font-size: 0.9rem;">Foto de Perfil</label>
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div id="salaoFotoPreview" style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="1.5" style="opacity: 0.5;">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <input type="file" id="salaoFoto" accept="image/*" onchange="previewSalaoFoto(this)" style="display: none;">
+                            <button type="button" onclick="document.getElementById('salaoFoto').click()" style="background: white; border: 1px solid var(--primary-dark); color: var(--primary-dark); padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer;">Alterar Foto</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Nome do Salão</label>
+                        <input type="text" id="salaoNome" required style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">WhatsApp (com DDI)</label>
+                        <input type="tel" id="salaoTelefone" placeholder="+5511999999999" style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Instagram</label>
+                        <input type="text" id="salaoInstagram" placeholder="@seuinstagram" style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; color: var(--text-secondary); font-size: 0.9rem;">Data de Aniversário</label>
+                        <input type="date" id="salaoAniversario" style="width: 100%; padding: 12px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main); color-scheme: light;">
+                    </div>
+                    <button type="submit" class="primary-btn" style="margin-top: 8px;">Salvar Dados</button>
+                </form>
             </div>
         </main>
     </div>

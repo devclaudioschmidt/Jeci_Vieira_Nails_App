@@ -180,6 +180,23 @@
                 </div>
 
                 <form class="confirm-form" id="confirmForm">
+                    <div style="background: var(--primary-light); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <span style="font-weight: 500; color: var(--secondary);">Já tem conta?</span>
+                        </div>
+                        <a href="login.html" class="primary-btn" style="padding: 8px 16px; font-size: 0.85rem; text-decoration: none;">Fazer Login</a>
+                    </div>
+                    
+                    <p style="text-align: center; margin-bottom: 16px;">
+                        <a href="#" onclick="openRegisterModal(); return false;" style="color: var(--primary-dark); text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 16v-4M12 8h.01"/>
+                            </svg>
+                            Por que se cadastrar?
+                        </a>
+                    </p>
+
                     <div class="form-group">
                         <label for="clientName">Seu nome</label>
                         <input type="text" id="clientName" placeholder="Digite seu nome completo" required>
@@ -330,7 +347,16 @@
                 </svg>
             </a>
 
-            <a href="login.html" class="menu-item admin-link">
+            <a href="cadastro.html" class="menu-item" style="border-top: 1px solid rgba(232, 180, 184, 0.2);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    <span>Cadastre-se</span>
+                </a>
+                <a href="login.html" class="menu-item admin-link">
                 <div class="menu-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -387,6 +413,73 @@
             <div class="confirm-buttons">
                 <button onclick="backToForm()" class="modal-btn-secondary">Voltar</button>
                 <button onclick="confirmAndSendWhatsApp()" class="modal-btn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="registerModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: var(--radius-md); max-width: 400px; width: 100%; padding: 24px; box-shadow: var(--shadow-lg);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--secondary);">Por que se cadastrar?</h2>
+                <button onclick="closeRegisterModal()" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-muted);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="width: 32px; height: 32px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong style="color: var(--secondary);">Histórico de agendamentos</strong>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">Veja todos os seus agendamentos anteriores</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="width: 32px; height: 32px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong style="color: var(--secondary);">Próximo agendamento</strong>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">Visualize seu próximo horário sempre em destaque</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="width: 32px; height: 32px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong style="color: var(--secondary);">Cancelar ou reagendar</strong>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">Gerencie seus horários facilmente</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="width: 32px; height: 32px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong style="color: var(--secondary);">Contato direto</strong>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">Fale comigo diretamente pelo WhatsApp</p>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <a href="cadastro.html" class="primary-btn" style="flex: 1; text-align: center; text-decoration: none;">Cadastrar</a>
+                <button onclick="closeRegisterModal()" style="flex: 1; padding: 12px; background: white; border: 1px solid var(--primary-light); border-radius: var(--radius-sm); color: var(--text-muted); cursor: pointer;">Agora não</button>
             </div>
         </div>
     </div>

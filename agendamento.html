@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4919a">
+    <meta name="description" content="Agendamento - Jeci Vieira Nails">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Agendar | Jeci Vieira Nails</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <div id="globalLoader" style="position: fixed; inset: 0; background: var(--bg-main); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; color: var(--primary-dark); font-family: 'Playfair Display', serif;">Carregando...</p>
+    </div>
+    <div class="app-container">
+        <header class="header">
+            <button class="back-btn" onclick="window.location.href='cliente.html'" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 8px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19L5 12L12 5"/>
+                </svg>
+            </button>
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 50 50" fill="none">
+                    <circle cx="25" cy="25" r="23" stroke="currentColor" stroke-width="2"/>
+                    <path d="M25 12C25 12 18 18 18 26C18 31 21 35 25 35C29 35 32 31 32 26C32 18 25 12 25 12Z" fill="currentColor" opacity="0.3"/>
+                    <path d="M25 18V30M22 24H28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div class="logo-text">
+                    <span class="brand">Agendar</span>
+                    <span class="tagline">Jeci Nails</span>
+                </div>
+            </div>
+            <div style="width: 40px;"></div>
+        </header>
+
+        <main id="app">
+            <section class="hero" style="min-height: auto; padding: 30px 20px;">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        Novo Agendamento
+                    </div>
+                    <h1 class="hero-title" style="font-size: 1.6rem;">Escolha seu <span class="highlight">serviço</span></h1>
+                </div>
+            </section>
+
+            <section id="step1" class="services-section">
+                <div class="section-header">
+                    <h2 class="section-title">Selecione o Serviço</h2>
+                    <p class="section-subtitle">Toque para escolher</p>
+                </div>
+                <div class="category-grid" id="categoryGrid" style="margin-bottom: 20px;">
+                </div>
+            </section>
+
+            <section id="step-manicure" class="services-section" style="display: none;">
+                <button class="back-btn" onclick="goBackToHome()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19L5 12L12 5"/>
+                    </svg>
+                    Voltar
+                </button>
+                <div class="section-header">
+                    <h2 class="section-title">Carregando...</h2>
+                    <p class="section-subtitle">Aguarde</p>
+                </div>
+                <div class="service-list" id="serviceListManicure"></div>
+            </section>
+
+            <section id="step-podologia" class="services-section" style="display: none;">
+                <button class="back-btn" onclick="goBackToHome()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19L5 12L12 5"/>
+                    </svg>
+                    Voltar
+                </button>
+                <div class="section-header">
+                    <h2 class="section-title">Carregando...</h2>
+                    <p class="section-subtitle">Aguarde</p>
+                </div>
+                <div class="service-list" id="serviceListPodologia"></div>
+            </section>
+
+            <section id="step-date" class="services-section" style="display: none;">
+                <button class="back-btn" onclick="goBackToServices()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19L5 12L12 5"/>
+                    </svg>
+                    Voltar
+                </button>
+                <div class="section-header">
+                    <h2 class="section-title">Escolha a Data</h2>
+                    <p class="section-subtitle" id="selectedServiceName"></p>
+                </div>
+                <div class="calendar" style="margin-bottom: 20px;">
+                    <div class="calendar-header">
+                        <button class="calendar-nav" onclick="changeMonth(-1)">&#9664;</button>
+                        <span class="calendar-month" id="calendarMonth"></span>
+                        <button class="calendar-nav" onclick="changeMonth(1)">&#9654;</button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                    </div>
+                    <div class="calendar-days" id="calendarDays"></div>
+                </div>
+            </section>
+
+            <section id="step-time" class="services-section" style="display: none;">
+                <button class="back-btn" onclick="goBackToDate()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19L5 12L12 5"/>
+                    </svg>
+                    Voltar
+                </button>
+                <div class="section-header">
+                    <h2 class="section-title">Escolha o Horário</h2>
+                    <p class="section-subtitle" id="selectedDateName"></p>
+                </div>
+                <div class="time-grid" id="timeGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                </div>
+            </section>
+
+            <section id="step-confirm" class="services-section" style="display: none;">
+                <button class="back-btn" onclick="goBackToTime()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19L5 12L12 5"/>
+                    </svg>
+                    Voltar
+                </button>
+                <div class="section-header">
+                    <h2 class="section-title">Confirmar</h2>
+                    <p class="section-subtitle">Revise os dados</p>
+                </div>
+                <div style="background: white; border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--primary-light);">
+                        <span style="color: var(--text-muted);">Serviço</span>
+                        <span style="font-weight: 600; color: var(--secondary);" id="confirmService">-</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--primary-light);">
+                        <span style="color: var(--text-muted);">Data</span>
+                        <span style="font-weight: 600; color: var(--secondary);" id="confirmDate">-</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--primary-light);">
+                        <span style="color: var(--text-muted);">Horário</span>
+                        <span style="font-weight: 600; color: var(--secondary);" id="confirmTime">-</span>
+                    </div>
+                </div>
+                <button class="primary-btn" onclick="confirmAppointment()" style="width: 100%; margin-top: 20px; padding: 16px; font-size: 1.1rem;">
+                    Confirmar Agendamento
+                </button>
+            </section>
+
+            <section id="step-success" class="services-section" style="display: none;">
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div style="width: 80px; height: 80px; background: rgba(34, 154, 74, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#229a4e" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <h2 class="section-title" style="font-size: 1.5rem;">Agendado!</h2>
+                    <p class="section-subtitle" style="margin-bottom: 10px;">Sua agenda foi confirmada com sucesso.</p>
+                    
+                    <div id="successDetails" style="background: white; border-radius: var(--radius-md); padding: 20px; margin: 20px 0; box-shadow: var(--shadow-sm); text-align: left;">
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--primary-light);">
+                            <span style="color: var(--text-muted);">Serviço</span>
+                            <span style="font-weight: 600; color: var(--secondary);" id="successService">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--primary-light);">
+                            <span style="color: var(--text-muted);">Data</span>
+                            <span style="font-weight: 600; color: var(--secondary);" id="successDate">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                            <span style="color: var(--text-muted);">Horário</span>
+                            <span style="font-weight: 600; color: var(--secondary);" id="successTime">-</span>
+                        </div>
+                    </div>
+                    
+                    <a href="cliente.html" class="primary-btn" style="display: inline-block; text-decoration: none;">
+                        Voltar ao Dashboard
+                    </a>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <a href="#" id="whatsappFab" class="whatsapp-fab" target="_blank" style="display: none; position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); cursor: pointer; z-index: 1000;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.148-.66-1.6-.906-2.166-.244-.565-.497-1.003-.713-1.166-.218-.164-.487-.198-.664-.198-.177 0-.389.025-.56.149-.173.124-.297.298-.297.398-.075.198.298.571.446.721.149.149.32.347.492.496.173.149.297.223.446.124.149-.099.62-.497 1.03-.793.296-.219.62-.348.88-.347.248-.002.492-.025.698-.025.209 0 .497-.05.716-.248.22-.199.446-.496.571-.743.124-.248.049-.495-.025-.694-.075-.198-.645-1.556-.906-2.105-.248-.547-.468-.96-.66-1.123-.193-.163-.345-.248-.496-.273-.149-.025-.297-.025-.446-.025-.148 0-.371.025-.496.173zM12 22c2.763 0 5-2.239 5-5s-2.237-5-5-5-5 2.239-5 5 2.238 5 5 5z"/>
+        </svg>
+    </a>
+
+    <script src="config.js"></script>
+    <script>
+        const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
+        
+        let appData = { categories: [], services: [] };
+        let selectedCategory = null;
+        let selectedService = null;
+        let selectedDate = null;
+        let selectedTime = null;
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        
+        const clienteUid = localStorage.getItem('cliente_uid');
+        const clienteTelefone = localStorage.getItem('cliente_telefone');
+
+        if (!clienteUid) {
+            window.location.href = 'login.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            loadSalaoData();
+            document.getElementById('globalLoader').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('globalLoader').style.display = 'none';
+            }, 500);
+        });
+
+        async function loadData() {
+            try {
+                const response = await fetch(API_URL + '?action=getServicos');
+                const services = await response.json();
+                
+                appData.categories = [
+                    { id: 'manicure', name: 'Manicure & Pedicure', description: 'Nails, gel, alongamento e spa dos pés' },
+                    { id: 'podologia', name: 'Podologia', description: 'Tratamento especializado para os pés' }
+                ];
+                appData.services = services;
+                
+                renderCategories();
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        }
+
+        function renderCategories() {
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = appData.categories.map(cat => `
+                <div class="category-card" onclick="selectCategory('${cat.id}')">
+                    <div class="category-icon" style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary-dark); margin: 0 auto 16px;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            ${cat.id === 'manicure' ? '<path d="M12 2C12 2 8 6 8 10C8 13 10 15 12 15C14 15 16 13 16 10C16 6 12 2 12 2Z"/>' : '<path d="M12 2L8 6L12 10L16 6L12 2Z"/><path d="M8 6V14C8 17 10 19 12 19C14 19 16 17 16 14V6"/><path d="M8 14L6 22H10L8 14Z"/><path d="M16 14L14 22H18L16 14Z"/>'}
+                        </svg>
+                    </div>
+                    <div class="category-info" style="text-align: center;">
+                        <h3 style="font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--secondary); margin-bottom: 4px;">${cat.name}</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">${cat.description}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.selectCategory = function(categoryId) {
+            selectedCategory = categoryId;
+            const categoryName = appData.categories.find(c => c.id === categoryId).name;
+            
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step-' + categoryId).style.display = 'block';
+            
+            const section = document.getElementById('step-' + categoryId);
+            section.querySelector('.section-title').textContent = categoryName;
+            
+            const services = appData.services.filter(s => s.category === categoryId);
+            const listId = 'serviceList' + (categoryId === 'manicure' ? 'Manicure' : 'Podologia');
+            const listEl = document.getElementById(listId);
+            
+            listEl.innerHTML = services.map(s => `
+                <div class="service-card" onclick="selectService('${s.name}', ${s.duration})">
+                    <div class="service-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--primary-dark);">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                    </div>
+                    <div class="service-info" style="position: relative; z-index: 1;">
+                        <h3 style="font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 600; color: var(--secondary); margin-bottom: 2px;">${s.name}</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">${s.duration} min</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            if (services.length === 0) {
+                listEl.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhum serviço disponível</p>';
+            }
+        };
+
+        window.selectService = function(name, duration) {
+            selectedService = { name, duration };
+            selectedDate = null;
+            selectedTime = null;
+            
+            document.getElementById('step-manicure').style.display = 'none';
+            document.getElementById('step-podologia').style.display = 'none';
+            document.getElementById('step-date').style.display = 'block';
+            
+            document.getElementById('selectedServiceName').textContent = name;
+            renderCalendar();
+        };
+
+        window.goBackToHome = function() {
+            document.getElementById('step-manicure').style.display = 'none';
+            document.getElementById('step-podologia').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
+        };
+
+        window.goBackToServices = function() {
+            document.getElementById('step-date').style.display = 'none';
+            if (selectedCategory === 'manicure') {
+                document.getElementById('step-manicure').style.display = 'block';
+            } else {
+                document.getElementById('step-podologia').style.display = 'block';
+            }
+        };
+
+        window.changeMonth = function(delta) {
+            currentMonth += delta;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            renderCalendar();
+        };
+
+        function renderCalendar() {
+            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            document.getElementById('calendarMonth').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let html = '';
+            const dayList = [];
+            
+            if (firstDay > 0) {
+                const prevMonth = new Date(currentYear, currentMonth, 0).getDate();
+                for (let i = firstDay - 1; i >= 0; i--) {
+                    dayList.push({ day: prevMonth - i, other: true });
+                }
+            }
+            
+            for (let d = 1; d <= daysInMonth; d++) {
+                dayList.push({ day: d, other: false });
+            }
+            
+            const remaining = 42 - dayList.length;
+            for (let d = 1; d <= remaining; d++) {
+                dayList.push({ day: d, other: true });
+            }
+            
+            dayList.forEach(day => {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`;
+                const dateObj = new Date(dateStr);
+                const isPast = dateObj < today;
+                const isToday = dateObj.getTime() === today.getTime();
+                const isSelected = dateStr === selectedDate;
+                const isDisabled = isPast || dateObj.getDay() === 0;
+                
+                html += `<div class="calendar-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${day.other ? 'other-month' : ''} ${isDisabled ? 'disabled' : ''}" 
+                     onclick="${isDisabled ? '' : `selectDate('${dateStr}')`}">${day.day}</div>`;
+            });
+            
+            document.getElementById('calendarDays').innerHTML = html;
+        }
+
+        window.selectDate = function(date) {
+            selectedDate = date;
+            selectedTime = null;
+            renderCalendar();
+            loadTimes();
+        };
+
+        function loadTimes() {
+            document.getElementById('step-date').style.display = 'none';
+            document.getElementById('step-time').style.display = 'block';
+            
+            const parts = selectedDate.split('-');
+            document.getElementById('selectedDateName').textContent = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            document.getElementById('timeGrid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;"><div class="spinner" style="margin: 0 auto;"></div></div>';
+            
+            fetch(API_URL + '?action=getHorarios&data=' + selectedDate + '&duracao=' + selectedService.duration)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.horarios && data.horarios.length > 0) {
+                        renderTimes(data.horarios);
+                    } else {
+                        document.getElementById('timeGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px;">Nenhum horário disponível</p>';
+                    }
+                });
+        }
+
+        function renderTimes(times) {
+            document.getElementById('timeGrid').innerHTML = times.map(t => `
+                <button class="time-slot" onclick="selectTime('${t}')">${t}</button>
+            `).join('');
+        }
+
+        window.selectTime = function(time) {
+            selectedTime = time;
+            document.querySelectorAll('.time-slot').forEach(el => {
+                el.classList.toggle('selected', el.textContent === time);
+            });
+            
+            setTimeout(() => {
+                document.getElementById('step-time').style.display = 'none';
+                document.getElementById('step-confirm').style.display = 'block';
+                const dateParts = selectedDate.split('-');
+                document.getElementById('confirmService').textContent = selectedService.name;
+                document.getElementById('confirmDate').textContent = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                document.getElementById('confirmTime').textContent = selectedTime;
+            }, 300);
+        };
+
+        window.goBackToDate = function() {
+            document.getElementById('step-time').style.display = 'none';
+            document.getElementById('step-date').style.display = 'block';
+        };
+
+        window.goBackToTime = function() {
+            document.getElementById('step-confirm').style.display = 'none';
+            document.getElementById('step-time').style.display = 'block';
+        };
+
+        function confirmAppointment() {
+            if (!selectedDate || !selectedTime) return;
+            
+            const btn = document.querySelector('#step-confirm .primary-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Agendando...';
+            btn.disabled = true;
+            
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'agendarCliente',
+                    uid: clienteUid,
+                    data: selectedDate,
+                    hora: selectedTime,
+                    servico: selectedService.name,
+                    telefone: clienteTelefone,
+                    duracao: selectedService.duration
+                })
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.sucesso) {
+                    document.getElementById('step-confirm').style.display = 'none';
+                    
+                    document.getElementById('successService').textContent = selectedService.name;
+                    const dateParts = selectedDate.split('-');
+                    document.getElementById('successDate').textContent = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                    document.getElementById('successTime').textContent = selectedTime;
+                    
+                    document.getElementById('step-success').style.display = 'block';
+                } else {
+                    alert(result.erro || 'Erro ao agendar');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Erro ao agendar');
+                btn.disabled = false;
+                btn.textContent = originalText;
+            });
+        }
+
+        async function loadSalaoData() {
+            try {
+                const response = await fetch(API_URL + '?action=getSalaoPublico');
+                const data = await response.json();
+                
+                if (data.telefone) {
+                    const whatsappFab = document.getElementById('whatsappFab');
+                    const cleanPhone = data.telefone.replace(/\D/g, '');
+                    const message = encodeURIComponent('Olá! Gostaria de mais informações.');
+                    whatsappFab.href = `https://wa.me/${cleanPhone}?text=${message}`;
+                    whatsappFab.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados do salão:', error);
+            }
+        }
+    </script>
+</body>
+</html>

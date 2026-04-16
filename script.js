@@ -36,6 +36,32 @@ let currentYear = new Date().getFullYear();
 
 // Firebase Functions API URL (substitui Google Apps Script)
 const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
+
+document.addEventListener('DOMContentLoaded', function() {
+    const loggedUid = localStorage.getItem('cliente_uid');
+    const loggedNome = localStorage.getItem('cliente_nome');
+    const loggedTelefone = localStorage.getItem('cliente_telefone');
+    
+    if (loggedUid && loggedNome) {
+        const nameInput = document.getElementById('clientName');
+        const phoneInput = document.getElementById('clientPhone');
+        if (nameInput) nameInput.value = loggedNome;
+        if (phoneInput && loggedTelefone) {
+            let value = loggedTelefone.replace(/\D/g, '');
+            if (value.length <= 2) {
+                value = '(' + value;
+            } else if (value.length <= 6) {
+                value = '(' + value.slice(0, 2) + ') ' + value.slice(2);
+            } else if (value.length <= 10) {
+                value = '(' + value.slice(0, 2) + ') ' + value.slice(2, 6) + '-' + value.slice(6);
+            } else {
+                value = '(' + value.slice(0, 2) + ') ' + value.slice(2, 7) + '-' + value.slice(7, 11);
+            }
+            phoneInput.value = value;
+        }
+    }
+});
+
 // ============================================
 // HISTÓRICO E LOCALSTORAGE
 // ============================================
@@ -1158,3 +1184,29 @@ function submitWaitlist() {
     alert('Você foi adicionado à lista de espera! Entraremos em contato quando houver disponibilidade.');
     closeMenuSection();
 }
+
+window.openRegisterModal = function() {
+    document.getElementById('registerModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeRegisterModal = function() {
+    document.getElementById('registerModal').style.display = 'none';
+    document.body.style.overflow = '';
+};
+
+document.getElementById('clientPhone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 0) {
+        if (value.length <= 2) {
+            value = '(' + value;
+        } else if (value.length <= 6) {
+            value = '(' + value.slice(0, 2) + ') ' + value.slice(2);
+        } else if (value.length <= 10) {
+            value = '(' + value.slice(0, 2) + ') ' + value.slice(2, 6) + '-' + value.slice(6);
+        } else {
+            value = '(' + value.slice(0, 2) + ') ' + value.slice(2, 7) + '-' + value.slice(7, 11);
+        }
+    }
+    e.target.value = value;
+});

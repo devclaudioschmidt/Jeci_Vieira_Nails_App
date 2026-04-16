@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Administrativo | Jeci Vieira Nails</title>
+    <title>Cadastre-se | Jeci Vieira Nails</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -98,52 +98,30 @@
         }
         .login-btn:hover {
             background: var(--secondary);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-        .login-btn:active {
-            transform: scale(0.98);
         }
         .login-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
         }
         .error-message {
-            background: #fff5f5;
+            background: rgba(229, 62, 62, 0.1);
             color: #e53e3e;
             padding: 12px;
             border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            margin-bottom: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
             display: none;
-            border: 1px solid #feb2b2;
-            animation: fadeIn 0.3s ease;
         }
         .success-message {
-            background: #f0fff4;
-            color: #38a169;
+            background: rgba(34, 154, 74, 0.1);
+            color: #229a4e;
             padding: 12px;
             border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            margin-bottom: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
             display: none;
-            border: 1px solid #9ae6b4;
-            animation: fadeIn 0.3s ease;
         }
-        .forgot-password {
-            display: block;
-            text-align: center;
-            margin-top: 16px;
-            font-size: 0.85rem;
-            color: var(--primary-dark);
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .forgot-password:hover {
-            text-decoration: underline;
-        }
-.back-to-site {
+        .back-to-site {
             display: block;
             margin-top: 20px;
             color: var(--text-muted);
@@ -172,6 +150,10 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="login-page">
@@ -182,31 +164,42 @@
                 <path d="M25 12C25 12 18 18 18 26C18 31 21 35 25 35C29 35 32 31 32 26C32 18 25 12 25 12Z" fill="currentColor" opacity="0.3"/>
                 <path d="M25 18V30M22 24H28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <h1 class="login-title">Login</h1>
+            <h1 class="login-title">Criar Conta</h1>
             <p class="login-subtitle">Jeci Vieira Nails & Podologia</p>
         </div>
 
         <div id="errorMessage" class="error-message"></div>
         <div id="successMessage" class="success-message"></div>
 
-        <form id="loginForm" class="login-form">
+        <form id="cadastroForm" class="login-form">
+            <div class="form-input-group">
+                <label for="nome">Nome Completo</label>
+                <input type="text" id="nome" class="login-input" placeholder="Seu nome completo" required autocomplete="name">
+            </div>
             <div class="form-input-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" class="login-input" placeholder="seu@email.com" required autocomplete="email">
             </div>
-            <div class="form-input-group" id="passwordGroup">
-                <label for="password">Senha</label>
-                <input type="password" id="password" class="login-input" placeholder="Sua senha" required autocomplete="current-password">
+            <div class="form-input-group">
+                <label for="telefone">WhatsApp (com DDI)</label>
+                <input type="tel" id="telefone" class="login-input" placeholder="+55 (11) 99999-9999" required autocomplete="tel">
             </div>
-            <button type="submit" id="loginBtn" class="login-btn">
-                <span>Entrar</span>
-                <div class="spinner-inner" id="loginSpinner"></div>
+            <div class="form-input-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" class="login-input" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password">
+            </div>
+            <div class="form-input-group">
+                <label for="confirmPassword">Confirmar Senha</label>
+                <input type="password" id="confirmPassword" class="login-input" placeholder="Repita a senha" required minlength="6" autocomplete="new-password">
+            </div>
+            <button type="submit" id="cadastroBtn" class="login-btn">
+                <span>Criar Conta</span>
+                <div class="spinner-inner" id="cadastroSpinner"></div>
             </button>
         </form>
 
-        <a href="#" id="forgotPassword" class="forgot-password">Esqueceu a senha?</a>
-        <a href="cadastro.html" class="have-account">Não tem conta? Cadastre-se</a>
-        <a href="index.html" class="back-to-site">← Voltar para agendamento</a>
+        <a href="login.html" class="have-account">Já tem conta? Fazer login</a>
+        <a href="index.html" class="back-to-site">← Agendar sem conta</a>
     </div>
 
     <script src="config.js"></script>
@@ -218,95 +211,109 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        document.getElementById('cadastroForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const email = document.getElementById('email').value;
+            const nome = document.getElementById('nome').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const telefone = document.getElementById('telefone').value.trim();
             const password = document.getElementById('password').value;
-            const btn = document.getElementById('loginBtn');
-            const spinner = document.getElementById('loginSpinner');
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const btn = document.getElementById('cadastroBtn');
+            const spinner = document.getElementById('cadastroSpinner');
             const errorMsg = document.getElementById('errorMessage');
 
             errorMsg.style.display = 'none';
+
+            if (password !== confirmPassword) {
+                errorMsg.textContent = 'As senhas não conferem.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            if (password.length < 6) {
+                errorMsg.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
             btn.disabled = true;
             spinner.style.display = 'block';
 
             try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const idToken = await userCredential.user.getIdToken();
-                
-                localStorage.setItem('cliente_uid', userCredential.user.uid);
-                localStorage.setItem('cliente_email', email);
-                
-                const nome = userCredential.user.displayName || '';
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                await user.updateProfile({
+                    displayName: nome
+                });
+
+                await saveClienteData(user.uid, {
+                    nome: nome,
+                    email: email,
+                    telefone: telefone
+                });
+
+                localStorage.setItem('cliente_uid', user.uid);
                 localStorage.setItem('cliente_nome', nome);
-                
+                localStorage.setItem('cliente_email', email);
+                localStorage.setItem('cliente_telefone', telefone);
+
                 window.location.href = 'cliente.html';
             } catch (error) {
-                let errorMessage = 'Erro ao realizar login.';
-                if (error.code === 'auth/invalid-email') {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                
+                let errorMessage = 'Erro ao criar conta.';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Este email já está cadastrado.';
+                } else if (error.code === 'auth/invalid-email') {
                     errorMessage = 'Email inválido.';
-                } else if (error.code === 'auth/user-not-found') {
-                    errorMessage = 'Usuário não encontrado.';
-                } else if (error.code === 'auth/wrong-password') {
-                    errorMessage = 'Senha incorreta.';
-                } else if (error.code === 'auth/invalid-credential') {
-                    errorMessage = 'Email ou senha incorretos.';
-                } else if (error.code === 'auth/too-many-requests') {
-                    errorMessage = 'Muitas tentativas. Tente novamente mais tarde.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'Senha muito fraca.';
                 }
                 errorMsg.textContent = errorMessage;
                 errorMsg.style.display = 'block';
-                btn.disabled = false;
-                spinner.style.display = 'none';
             }
         });
 
-        document.querySelectorAll('.login-input').forEach(input => {
-            input.addEventListener('input', () => {
-                document.getElementById('errorMessage').style.display = 'none';
-                document.getElementById('successMessage').style.display = 'none';
-            });
-        });
-
-        document.getElementById('forgotPassword').addEventListener('click', async function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const errorMsg = document.getElementById('errorMessage');
-            const successMsg = document.getElementById('successMessage');
-            const forgotLink = document.getElementById('forgotPassword');
-            
-            if (!email) {
-                errorMsg.textContent = 'Por favor, insira seu email primeiro.';
-                errorMsg.style.display = 'block';
-                return;
-            }
-            
-            forgotLink.style.display = 'none';
-            errorMsg.style.display = 'none';
-            
+        async function saveClienteData(uid, data) {
             try {
-                await auth.sendPasswordResetEmail(email);
-                successMsg.textContent = 'Email de redefinição enviado! Verifique sua caixa de entrada.';
-                successMsg.style.display = 'block';
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'saveCliente',
+                        uid: uid,
+                        nome: data.nome,
+                        email: data.email,
+                        telefone: data.telefone
+                    })
+                });
+                return await response.json();
             } catch (error) {
-                forgotLink.style.display = 'block';
-                if (error.code === 'auth/user-not-found') {
-                    errorMsg.textContent = 'Email não cadastrado.';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMsg.textContent = 'Email inválido.';
-                } else {
-                    errorMsg.textContent = 'Erro ao enviar email. Tente novamente.';
+                console.error('Erro ao salvar dados do cliente:', error);
+            }
+        }
+    document.getElementById('telefone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                if (!value.startsWith('55')) {
+                    value = '55' + value;
                 }
-                errorMsg.style.display = 'block';
+                if (value.length > 13) value = value.slice(0, 13);
+                
+                if (value.length <= 2) {
+                    value = '+' + value;
+                } else if (value.length <= 4) {
+                    value = '+' + value.slice(0, 2) + ' (' + value.slice(2);
+                } else if (value.length <= 9) {
+                    value = '+' + value.slice(0, 2) + ' (' + value.slice(2, 3) + ') ' + value.slice(3);
+                } else {
+                    value = '+' + value.slice(0, 2) + ' (' + value.slice(2, 4) + ') ' + value.slice(4, 9) + '-' + value.slice(9);
+                }
             }
-        });
-
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                window.location.href = 'cliente.html';
-            }
+            e.target.value = value;
         });
     </script>
 </body>

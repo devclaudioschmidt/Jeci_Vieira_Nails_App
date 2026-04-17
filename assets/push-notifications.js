@@ -2,6 +2,7 @@ const PushNotifications = {
   messaging: null,
   tokenKey: 'fcm_token',
   permissionKey: 'notification_permission',
+  vapidKey: 'BIKDFUWEE9pfGmPoapc35jQjqx7cp6z1exO0q6Dv5W1VvvKHpubhwVfdgKZPn_QoWOCjTLS9wuu_LuksuSSnIq0',
 
   init: function() {
     if (!this.isSupported()) {
@@ -14,7 +15,7 @@ const PushNotifications = {
       return Promise.resolve(false);
     }
 
-    this.messaging = firebase.messaging();
+    this.messaging = firebase.messaging({ vapidKey: this.vapidKey });
     this.messaging.useServiceWorkerRegistration(this.getServiceWorkerRegistration());
 
     this.messaging.onTokenRefresh(function() {

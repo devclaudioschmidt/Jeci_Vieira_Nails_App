@@ -133,6 +133,7 @@
         <main>
             <div class="admin-tabs">
                 <button class="tab-btn active" onclick="switchAdminTab('agenda', this)">Agenda</button>
+                <button class="tab-btn" onclick="switchAdminTab('lembretes', this)">Lembretes</button>
                 <button class="tab-btn" onclick="switchAdminTab('servicos', this)">Serviços</button>
                 <button class="tab-btn" onclick="switchAdminTab('salao', this)">Meu Salão</button>
             </div>
@@ -158,6 +159,17 @@
                     <h3 class="agenda-title">Horários Bloqueados</h3>
                     <div class="blocked-items" id="blockedItems"></div>
                 </div>
+            </div>
+            <div id="tab-lembretes" class="admin-tab-content">
+                <div class="services-header">
+                    <h2 class="section-title">Lembretes de Amanhã</h2>
+                </div>
+                <div id="lembretesLoadingIndicator" class="loading-indicator">
+                    <div class="spinner"></div>
+                    <span>Carregando...</span>
+                </div>
+                <div id="lembretesList" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                <p id="noLembretesMsg" style="text-align: center; color: var(--text-muted); padding: 40px 20px; display: none;">Nenhum agendamento para amanhã.</p>
             </div>
             <div id="tab-servicos" class="admin-tab-content">
                 <div class="services-header">
@@ -514,6 +526,69 @@
                 document.getElementById('tab-' + tabName).classList.add('active');
                 if (tabName === 'servicos' && adminServices.length === 0) {
                     fetchAdminServices();
+                }
+                if (tabName === 'lembretes') {
+                    loadLembretes();
+                }
+            };
+            
+            window.loadLembretes = async function() {
+                const loadingEl = document.getElementById('lembretesLoadingIndicator');
+                const listEl = document.getElementById('lembretesList');
+                const noEl = document.getElementById('noLembretesMsg');
+                
+                loadingEl.style.display = 'flex';
+                listEl.style.display = 'none';
+                noEl.style.display = 'none';
+                
+                try {
+                    const response = await fetch(API_URL + '?action=getAgendamentos');
+                    const appointments = await response.json();
+                    
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+                    
+                    const tomorrowAppts = appointments.filter(app => {
+                        return app.data === tomorrowStr && (app.status === 'confirmado' || !app.status);
+                    });
+                    
+                    loadingEl.style.display = 'none';
+                    
+                    if (tomorrowAppts.length === 0) {
+                        noEl.style.display = 'block';
+                        return;
+                    }
+                    
+                    tomorrowAppts.sort((a, b) => {
+                        return a.hora.localeCompare(b.hora);
+                    });
+                    
+                    listEl.innerHTML = tomorrowAppts.map(app => {
+                        const dataFormatada = app.data.split('-').reverse().join('/');
+                        const mensagem = encodeURIComponent('Olá ' + app.cliente + '! Amanhã você tem agendamento às ' + app.hora + ' (' + app.servico + '). Não esqueça de vir! 😊');
+                        const phone = app.telefone ? app.telefone.replace(/\D/g, '') : '';
+                        const waLink = phone ? 'https://wa.me/' + phone + '?text=' + mensagem : '#';
+                        
+                        return `
+                            <div style="background: white; padding: 16px; border-radius: 12px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--secondary);">${app.cliente}</div>
+                                    <div style="font-size: 0.9rem; color: var(--text-muted);">${app.servico} • ${app.hora} • ${dataFormatada}</div>
+                                </div>
+                                <a href="${waLink}" target="_blank" class="primary-btn" style="padding: 10px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; ${!phone ? 'opacity: 0.5; pointer-events: none;' : ''}">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.58-.347-.83-.347-.297 0-.645.149-.925.273-.271.124-.447.198-.644.198.198 0 .521.199.748.497.297.297.747.794.855.855.147.073.271.198.321.32.05.122.05.248 0.347.174.073-.073.321-.321.447-.496.147-.174.297-.347.421-.52.124-.174.075-.347.05-.521-.024-.174-.173-.347-.174-.347zm2.807-.076c.084-.096.271-.32.347-.422.074-.102.148-.248.099-.371-.024-.124-.174-.496-.248-.672-.073-.176-.147-.198-.347-.099-.197.099-.42.173-.597.198-.174.025-.321.025-.446.025-.124 0-.298-.024-.454-.174-.156-.149-.264-.347-.264-.521 0-.347.248-.785.495-1.064.248-.278.495-.495.793-.743l.321-.32c.147-.147.248-.198.347-.198.099 0 .248.024.372.124.124.099.424.495.609.793.178.297.248.595.248.795 0 .173-.025.372-.248.795l-.347.347zM5.827 21.994c-.041-.041-.124-.148-.198-.347-.074-.198-.124-.421-.173-.596-.025-.174.025-.347.074-.52.049-.173.124-.297.198-.347.074-.05.173-.124.297-.198l.546-.546c.173-.173.347-.347.495-.546.147-.198.247-.347.321-.521l.074-.248c-.124.025-.297.124-.495.248l-.793.793c-.347.347-.793.793-1.064 1.064-.27.27-.546.546-.843.793-.297.248-.595.495-.916.841-.322.347-.669.742-1.045 1.064-.124.124-.321.347-.495.596-.173.248-.347.52-.495.772-.147.248-.322.546-.495.772-.173.225-.074.396.024.546.099.149.198.272.347.372.149.099.297.173.446.297.149.124.322.198.495.297.173.099.347.198.52.322.173.124.347.248.495.372.149.124.298.174.446.271h.002c.124.049.248.099.347.149.347.174.772.347 1.238.347.467 0 .919-.173 1.238-.347.32-.174.596-.347.919-.495l.495-.248c.173-.074.347-.173.52-.297.173-.124.297-.297.42-.495.124-.198.198-.42.248-.596l.049-.173zM12.514 2.181c.855-.855 1.584-1.564 2.137-2.24.553-.674.966-1.392 1.319-2.094.347-.695.595-1.392.793-2.094.198-.702.297-1.392.297-2.094 0-.702-.124-1.392-.347-2.094-.225-.702-.596-1.392-1.092-2.094-.495-.702-1.141-1.392-1.919-2.094-.779-.702-1.709-1.317-2.79-1.844-1.081-.527-2.379-.937-3.893-1.239-1.515-.302-3.279-.453-5.291-.453h-.129c-2.012 0-3.776.151-5.291.453-1.514.302-2.812.712-3.893 1.239-1.081.527-2.011 1.142-2.79 1.844-.778.702-1.424 1.392-1.919 2.094-.496.702-.867 1.392-1.092 2.094-.224.702-.348 1.392-.348 2.094 0 .702.099 1.392.297 2.094.198.702.446 1.399.793 2.094.353.702.766 1.42 1.319 2.094.553.676 1.282 1.385 2.137 2.24.855.855 1.564 1.564 2.24 2.137.676.553 1.392.966 2.094 1.319.702.347 1.392.595 2.094.793.702.198 1.392.297 2.094.297.702 0 1.392-.099 2.094-.297.702-.198 1.399-.446 2.094-.793.674-.353 1.42-.766 2.094-1.319zm-7.333 10.246c-.779-.779-1.613-1.467-2.465-2.039-.852-.572-1.765-.99-2.723-1.239-.958-.249-1.959-.388-2.99-.388-.173 0-.347 0-.52.025-.173.025-.347.025-.495.049.025-.173.099-.347.173-.52.074-.173.124-.347.173-.495.049-.322.173-.628.321-.919.148-.291.32-.545.495-.772.176-.227.371-.42.546-.596.174-.173.347-.32.495-.443.148-.124.297-.198.42-.272l.024-.024c.173-.124.347-.272.546-.42.198-.149.42-.297.672-.42.251-.124.546-.227.841-.32.295-.093.613-.166.965-.217l.198-.024c.173-.025.347-.025.495-.049.173-.025.347-.049.495-.074-.025.173-.074.347-.099.495-.025.149-.025.322-.049.495-.024.172-.024.347-.074.495-.049.148-.074.295-.124.443-.049.148-.124.295-.173.443-.05.149-.099.297-.124.443-.05.149-.093.284-.141.406z"/></svg>
+                                    WhatsApp
+                                </a>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    listEl.style.display = 'flex';
+                } catch (error) {
+                    console.error('Erro ao carregar lembretes:', error);
+                    loadingEl.style.display = 'none';
+                    noEl.style.display = 'block';
                 }
             };
             

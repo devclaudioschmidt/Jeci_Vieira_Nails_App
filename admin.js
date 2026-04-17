@@ -343,6 +343,14 @@ function showAgendaForDate(dateStr) {
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
                     </button>
+                    <button class="action-btn-small edit" onclick="event.stopPropagation(); openEditModal('${encodedApp}')" title="Reagendar" style="background: rgba(34, 154, 74, 0.1); color: #229a4e;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 2v6h-6"></path>
+                            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                            <path d="M3 22v-6h6"></path>
+                            <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                        </svg>
+                    </button>
                     <button class="action-btn-small delete" onclick="event.stopPropagation(); openCancelModal('${encodedApp}')" title="Cancelar">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"></circle>

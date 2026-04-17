@@ -29,6 +29,7 @@ function handleRequest(e) {
   
   if (action === 'editarAgendamento') return editarAgendamento(params);
   if (action === 'cancelarAgendamento') return cancelarAgendamento(params);
+  if (action === 'reagendarAgendamento') return reagendarAgendamento(params);
   if (action === 'bloquearHorario') return bloquearHorario(params);
   if (action === 'desbloquearHorario') return desbloquearHorario(params);
   if (action === 'getBloqueios') return getBloqueios();
@@ -90,10 +91,68 @@ function bloquearHorario(params) {
     if (!hora_inicio) desc.push('hora_inicio');
     if (!hora_fim) desc.push('hora_fim');
     
-    return ContentService.createTextOutput(
-      JSON.stringify({ sucesso: false, erro: 'Parâmetros incompletos ou inválidos: ' + desc.join(', ') })
-    ).setMimeType(ContentService.MimeType.JSON);
+return ContentService.createTextOutput(
+    JSON.stringify({ sucesso: false, erro: 'Agendamento não encontrado' })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ============================================
+// reagendarAgendamento - Altera data/hora do agendamento
+// ============================================
+function reagendarAgendamento(params) {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var tz = ss.getSpreadsheetTimeZone();
+  var sheet = ss.getSheetByName('agendamentos');
+  var dados = sheet.getDataRange().getValues();
+  
+  var dataStr = String(params.data);
+  var horaStr = String(params.hora);
+  
+  Logger.log('Procurando agendamento: data=' + dataStr + ', hora=' + horaStr);
+  
+  for (var i = 1; i < dados.length; i++) {
+    var rowData = dados[i][0];
+    var rowHora = dados[i][1];
+    
+    var dataMatch = String(rowData) === dataStr || String(rowData) === params.data;
+    var horaMatch = String(rowHora).trim() === horaStr.trim() || normalizeTime(rowHora, tz) === normalizeTime(horaStr, tz);
+    
+    Logger.log('Linha ' + i + ': ' + rowData + ' ' + rowHora + ' -> match=' + dataMatch + 'x' + horaMatch);
+    
+    if (dataMatch && horaMatch) {
+      var servico = dados[i][2];
+      var cliente = dados[i][3];
+      var telefone = dados[i][4];
+      var status = dados[i][5];
+      var createdAt = dados[i][6];
+      var duracao = dados[i][7];
+      
+      sheet.deleteRow(i + 1);
+      
+      sheet.appendRow([
+        params.novaData,
+        params.novaHora,
+        servico,
+        cliente,
+        telefone,
+        status,
+        createdAt,
+        duracao
+      ]);
+      
+      Logger.log('Agendamento movido para ' + params.novaData + ' ' + params.novaHora);
+      
+      return ContentService.createTextOutput(
+        JSON.stringify({ sucesso: true })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
   }
+  
+  Logger.log('Agendamento não encontrado!');
+  return ContentService.createTextOutput(
+    JSON.stringify({ sucesso: false, erro: 'Agendamento não encontrado' })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
   
   var ss = SpreadsheetApp.openById(SS_ID);
   var sheet = ss.getSheetByName('bloqueios');
@@ -233,7 +292,10 @@ function getHorarios(data, duracao) {
   var dados = sheet.getDataRange().getValues();
   
   var dateObj = new Date(data + 'T12:00:00');
+  Logger.log('Data recebida: ' + data);
+  Logger.log('Date object: ' + dateObj);
   var diaSemana = dateObj.getDay();
+  Logger.log('Dia da semana: ' + diaSemana);
   var todosHorarios = [];
   var horarioFechamento = 21 * 60;
   var intervaloInicio = 11 * 60;
@@ -264,6 +326,8 @@ function getHorarios(data, duracao) {
   for (var i = 1; i < dados.length; i++) {
     var dataNaPlanilha = normalizeDate(dados[i][0], tz);
     var status = String(dados[i][5] || '').toLowerCase().trim();
+    
+    Logger.log('Linha ' + i + ': planilha=' + dataNaPlanilha + ', buscando=' + dataNormalized + ', status=' + status);
     
     if (dataNaPlanilha === dataNormalized && status === 'confirmado') {
       var horaRaw = dados[i][1];
@@ -311,7 +375,7 @@ function getHorarios(data, duracao) {
     }
   }
   
-  var disponiveis = todosHorarios.filter(function(h) {
+var disponiveis = todosHorarios.filter(function(h) {
     var parts = h.split(':');
     var hMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
     var hEnd = hMin + duracaoServico;
@@ -329,7 +393,8 @@ function getHorarios(data, duracao) {
     
     return true;
   });
-
+  
+  Logger.log('Horarios disponiveis: ' + disponiveis.length);
   return ContentService.createTextOutput(
     JSON.stringify({ data: data, horarios: disponiveis })
   ).setMimeType(ContentService.MimeType.JSON);
@@ -567,27 +632,58 @@ function editarAgendamento(params) {
   var sheet = ss.getSheetByName('agendamentos');
   var dados = sheet.getDataRange().getValues();
   
-  var originalData = normalizeDate(params.originalData, tz);
-  var originalTime = normalizeTime(params.originalTime, tz);
+  var originalData = params.originalData;
+  var originalTime = params.originalTime;
+  var novaData = params.data;
+  var novaHora = params.hora;
   var duracao = parseInt(params.duracao) || 30;
+  var cliente = params.cliente || '';
+  var telefone = params.telefone || '';
+  var servico = params.servico || '';
+  
+  // Verifica se o novo horario ja esta ocupado
+  for (var j = 1; j < dados.length; j++) {
+    var rowData = String(dados[j][0]);
+    var rowHora = String(dados[j][1]).trim();
+    var status = String(dados[j][5] || '').toLowerCase().trim();
+    
+    if (rowData === novaData && rowHora === novaHora && status === 'confirmado') {
+      return ContentService.createTextOutput(
+        JSON.stringify({ sucesso: false, erro: 'Horario ja ocupado!' })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  
+  Logger.log('editarAgendamento - original: ' + originalData + ' ' + originalTime + ', novo: ' + novaData + ' ' + novaHora);
+  Logger.log('Total linhas: ' + dados.length);
   
   for (var i = 1; i < dados.length; i++) {
-    var dataNaPlanilha = normalizeDate(dados[i][0], tz);
-    var horaNaPlanilha = normalizeTime(dados[i][1], tz);
+    var rowData = String(dados[i][0]);
+    var rowHora = String(dados[i][1]).trim();
     
-    if (dataNaPlanilha === originalData && horaNaPlanilha === originalTime) {
-      sheet.getRange(i + 1, 1).setValue(params.data);
-      sheet.getRange(i + 1, 2).setValue(params.hora);
-      sheet.getRange(i + 1, 4).setValue(params.cliente);
-      sheet.getRange(i + 1, 5).setValue(params.telefone);
-      sheet.getRange(i + 1, 3).setValue(params.servico);
+    Logger.log('Linha ' + i + ': ' + rowData + ' ' + rowHora + ' == ' + originalData + ' ' + originalTime + ' ? ' + (rowData === originalData && rowHora === originalTime));
+    
+    if (rowData === originalData && rowHora === originalTime) {
+      sheet.getRange(i + 1, 1).setValue(novaData);
+      sheet.getRange(i + 1, 2).setValue(novaHora);
+      sheet.getRange(i + 1, 4).setValue(cliente);
+      sheet.getRange(i + 1, 5).setValue(telefone);
+      sheet.getRange(i + 1, 3).setValue(servico);
       sheet.getRange(i + 1, 8).setValue(duracao);
+      
+      Logger.log('Agendamento atualizado na linha ' + i);
       
       return ContentService.createTextOutput(
         JSON.stringify({ sucesso: true })
       ).setMimeType(ContentService.MimeType.JSON);
     }
   }
+  
+  Logger.log('Agendamento nao encontrado!');
+  return ContentService.createTextOutput(
+    JSON.stringify({ sucesso: false, erro: 'Agendamento nao encontrado' })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
   
   return ContentService.createTextOutput(
     JSON.stringify({ sucesso: false, erro: 'Agendamento não encontrado' })

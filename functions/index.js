@@ -328,6 +328,8 @@ exports.api = functions.https.onRequest(async (req, res) => {
         const agendamentos = await readFirebase('agendamentos') || {};
         const originalDataNorm = normalizeDate(originalData);
         const originalTimeNorm = normalizeTime(originalTime);
+        const newDataNorm = normalizeDate(data);
+        const newTimeNorm = normalizeTime(hora);
         
         let foundKey = null;
         Object.keys(agendamentos).forEach(key => {
@@ -342,6 +344,21 @@ exports.api = functions.https.onRequest(async (req, res) => {
         
         if (!foundKey) {
           return sendResponse(res, 400, { sucesso: false, erro: 'Agendamento não encontrado' });
+        }
+        
+        // Verifica se o novo horário já está ocupado (e não é o mesmo agendamento)
+        const isSameSlot = originalDataNorm === newDataNorm && originalTimeNorm === newTimeNorm;
+        if (!isSameSlot) {
+          const conflicts = Object.entries(agendamentos).filter(([key, app]) => {
+            if (key === foundKey) return false;
+            const appData = normalizeDate(app.data);
+            const appHora = normalizeTime(app.hora);
+            return appData === newDataNorm && appHora === newTimeNorm;
+          });
+          
+          if (conflicts.length > 0) {
+            return sendResponse(res, 400, { sucesso: false, erro: 'Horário já está ocupado' });
+          }
         }
         
         await writeFirebase(`agendamentos/${foundKey}`, {

@@ -198,8 +198,16 @@
 
         async function loadHistory() {
             try {
-                const response = await fetch(API_URL + '?action=getClientAppointments&uid=' + clienteUid);
-                const appointments = await response.json();
+                const response = await fetch(API_URL + '?action=getAgendamentos');
+                const allAppointments = await response.json();
+                const clienteUid = localStorage.getItem('cliente_uid');
+                const clienteNome = localStorage.getItem('cliente_nome') || '';
+                console.log('clienteUid:', clienteUid, 'clienteNome:', clienteNome);
+                console.log('Total agendamentos:', allAppointments.length);
+                const appointments = allAppointments.filter(function(app) {
+                    return app.cliente === clienteNome;
+                });
+                console.log('Agendamentos filtrados:', appointments.length);
                 
                 const list = document.getElementById('historyList');
                 
@@ -216,37 +224,42 @@
                     return;
                 }
                 
-                list.innerHTML = appointments.map(app => {
-                    const dateParts = app.data.split('-');
-                    const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-                    const status = app.status || 'confirmado';
-                    
-                    return `
-                        <div class="history-card">
-                            <div class="history-card-header">
-                                <span class="history-service">${app.servico}</span>
-                                <span class="history-status ${status}">${status === 'confirmado' ? 'Agendado' : status === 'cancelado' ? 'Cancelado' : 'Realizado'}</span>
+                console.log('Primeiro agendamento:', appointments[0]);
+                list.innerHTML = 'Carregando...';
+                
+                setTimeout(function() {
+                    list.innerHTML = appointments.map(app => {
+                        const dateParts = app.data.split('-');
+                        const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                        const status = app.status || 'confirmado';
+                        
+                        return `
+                            <div class="history-card">
+                                <div class="history-card-header">
+                                    <span class="history-service">${app.servico}</span>
+                                    <span class="history-status ${status}">${status === 'confirmado' ? 'Agendado' : status === 'cancelado' ? 'Cancelado' : 'Realizado'}</span>
+                                </div>
+                                <div class="history-details">
+                                    <span class="history-detail">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                                            <line x1="16" y1="2" x2="16" y2="6"/>
+                                            <line x1="8" y1="2" x2="8" y2="6"/>
+                                        </svg>
+                                        ${formattedDate}
+                                    </span>
+                                    <span class="history-detail">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <polyline points="12 6 12 12 16 14"/>
+                                        </svg>
+                                        ${app.hora}
+                                    </span>
+                                </div>
                             </div>
-                            <div class="history-details">
-                                <span class="history-detail">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                                        <line x1="16" y1="2" x2="16" y2="6"/>
-                                        <line x1="8" y1="2" x2="8" y2="6"/>
-                                    </svg>
-                                    ${formattedDate}
-                                </span>
-                                <span class="history-detail">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <polyline points="12 6 12 12 16 14"/>
-                                    </svg>
-                                    ${app.hora}
-                                </span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                        `;
+                    }).join('');
+                }, 100);
                 
             } catch (error) {
                 console.error('Erro ao carregar histórico:', error);

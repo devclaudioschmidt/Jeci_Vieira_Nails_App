@@ -72,6 +72,8 @@
         .appointment-service { font-size: 0.85rem; color: #6b6b6b; }
         .cancel-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #feb2b2; background: white; color: #e53e3e; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .details-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #d4919a; background: white; color: #d4919a; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .reschedule-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #68d391; background: white; color: #38a169; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .reschedule-btn:hover { background: #f0fff4; }
         .services-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .primary-btn { background: #d4919a; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 500; }
         .primary-btn:hover { background: #c07c85; }
@@ -273,6 +275,26 @@
             <button onclick="closeAppointmentDetails()" class="modal-btn" style="width: 100%; margin-top: 20px; padding: 14px;">Fechar</button>
         </div>
     </div>
+    <div id="rescheduleModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; max-width: 480px; margin: 30px auto; padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto;">
+            <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif; color: var(--secondary); font-size: 1.4rem;">Reagendar Agendamento</h3>
+            <p style="margin-bottom: 16px; color: #6b6b6b;">Horário atual: <strong id="currentRescheduleDateTime" style="color: var(--secondary);"></strong></p>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500; font-size: 0.9rem;">Selecione a Nova Data</label>
+                <input type="date" id="rescheduleNewDate" style="width: 100%; padding: 14px; border: 1px solid rgba(232, 180, 184, 0.4); border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; background: var(--bg-main);">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500; font-size: 0.9rem;">Selecione o Novo Horário</label>
+                <div class="time-grid" id="rescheduleTimeGrid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                    <p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px; font-size: 0.9rem;">Selecione uma data primeiro</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button onclick="confirmReschedule()" class="modal-btn" style="flex: 1; padding: 14px;" disabled id="rescheduleConfirmBtn">Confirmar</button>
+                <button onclick="closeRescheduleModal()" class="modal-btn-secondary" style="padding: 14px 24px; cursor: pointer;">Cancelar</button>
+            </div>
+        </div>
+    </div>
     <script src="config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -317,7 +339,16 @@
             let telefoneLink = '';
             let telefoneDisplay = app.telefone || 'Não informado';
             let horarioDisplay = app.hora || '--:--';
-            let valorDisplay = app.valor ? 'R$ ' + parseFloat(app.valor).toFixed(2) : 'Não informado';
+            // Busca o preço nos serviços cadastrados pelo nome do serviço agendado
+            let valorDisplay = 'Não informado';
+            if (window.adminServicesCache && app.servico) {
+                const servicoEncontrado = window.adminServicesCache.find(s =>
+                    s.name && s.name.toLowerCase() === app.servico.toLowerCase()
+                );
+                if (servicoEncontrado && servicoEncontrado.price != null) {
+                    valorDisplay = 'R$ ' + parseFloat(servicoEncontrado.price).toFixed(2);
+                }
+            }
             if (app.hora && app.duracao) {
                 const [h, m] = app.hora.split(':').map(Number);
                 const inicioMin = h * 60 + m;
@@ -460,6 +491,7 @@
             renderAdminCalendar();
             fetchAppointments();
             fetchBlockedSchedules();
+            fetchAdminServices(); // Carrega serviços para o cache de preços no modal
             
             window.switchAdminTab = function(tabName, btn) {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -555,6 +587,7 @@
                         '<div class="appointment-service">' + (app.servico || 'Serviço') + '</div>' +
                         '</div>' +
                         '<button class="details-btn" onclick="openAppointmentDetails(' + JSON.stringify(app).replace(/"/g, '&quot;') + ')">i</button>' +
+                        '<button class="reschedule-btn" onclick="rescheduleAdminAppointment(null, \'' + app.data + '\', \'' + app.hora + '\', \'' + (app.servico || '') + '\', \'' + (app.cliente || '') + '\', \'' + (app.telefone || '') + '\')">↻</button>' +
                         '<button class="cancel-btn" onclick="cancelAdminAppointment(\'' + app.data + '\', \'' + app.hora + '\')">✕</button>' +
                         '</div>';
                 }).join('');
@@ -744,10 +777,143 @@
                 }
             };
             
+            window.rescheduleAdminAppointment = function(id, data, hora) {
+                window.currentRescheduleData = data;
+                window.currentRescheduleHora = hora;
+                window.rescheduleSelectedTime = null;
+                
+                const dataParts = data.split('-');
+                const dataFormatada = dataParts[2] + '/' + dataParts[1] + '/' + dataParts[0];
+                document.getElementById('currentRescheduleDateTime').textContent = dataFormatada + ' às ' + hora;
+                
+                document.getElementById('rescheduleNewDate').value = data;
+                document.getElementById('rescheduleTimeGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px; font-size: 0.9rem;">Selecione uma data primeiro</p>';
+                document.getElementById('rescheduleConfirmBtn').disabled = true;
+                document.getElementById('rescheduleModal').style.display = 'block';
+            };
+            
+            window.closeRescheduleModal = function() {
+                document.getElementById('rescheduleModal').style.display = 'none';
+                window.currentRescheduleData = null;
+                window.currentRescheduleHora = null;
+                window.rescheduleSelectedTime = null;
+            };
+            
+            window.selectRescheduleTime = function(time, element) {
+                document.querySelectorAll('#rescheduleTimeGrid .time-slot').forEach(function(el) {
+                    el.classList.remove('selected');
+                });
+                element.classList.add('selected');
+                window.rescheduleSelectedTime = time;
+                document.getElementById('rescheduleConfirmBtn').disabled = false;
+            };
+            
+            document.getElementById('rescheduleNewDate').addEventListener('change', function() {
+                var newDate = this.value;
+                if (!newDate) return;
+                
+                console.log('Buscando horarios para:', newDate);
+                var grid = document.getElementById('rescheduleTimeGrid');
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 20px;">Carregando...</p>';
+                
+                var url = API_URL + '?action=getHorarios&data=' + newDate + '&duracao=30';
+                console.log('URL:', url);
+                fetch(url)
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        console.log('getHorarios response:', data);
+                        var slots = data.horarios || [];
+                        if (slots.length === 0) {
+                            var diaSemana = new Date(newDate).getDay();
+                            if (diaSemana === 0 || diaSemana === 6) {
+                                slots = ['07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
+                            } else {
+                                slots = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'];
+                            }
+                        }
+                        console.log('Slots length:', slots.length);
+                        var html = '';
+                        for (var i = 0; i < slots.length; i++) {
+                            html += '<button class="time-slot" onclick="selectRescheduleTime(\'' + slots[i] + '\', this)" style="padding:10px;margin:2px;border:1px solid #ddd;background:#fff;cursor:pointer;">' + slots[i] + '</button>';
+                        }
+                        grid.innerHTML = html || '<p style="padding:20px;">Sem horários</p>';
+                    })
+                    .catch(function(err) {
+                        console.error(err);
+                        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px;">Erro ao carregar horários</p>';
+                    });
+            });
+            
+            window.confirmReschedule = function() {
+                const newDate = document.getElementById('rescheduleNewDate').value;
+                const newTime = window.rescheduleSelectedTime;
+                const oldDate = window.currentRescheduleData;
+                const oldTime = window.currentRescheduleHora;
+                
+                if (!newDate || !newTime) {
+                    alert('Selecione nova data e horario.');
+                    return;
+                }
+                
+                if (newDate === oldDate && newTime === oldTime) {
+                    alert('O novo horario e igual ao atual.');
+                    return;
+                }
+                
+                if (!confirm('Confirmar reagendamento?')) return;
+                
+                var formData = new URLSearchParams();
+                formData.append('action', 'editarAgendamento');
+                formData.append('originalData', oldDate);
+                formData.append('originalTime', oldTime);
+                formData.append('data', newDate);
+                formData.append('hora', newTime);
+                formData.append('cliente', window.currentRescheduleCliente || '');
+                formData.append('telefone', window.currentRescheduleTelefone || '');
+                formData.append('servico', window.currentRescheduleServico || '');
+                formData.append('duracao', '30');
+                
+                fetch(API_URL, { method: 'POST', body: formData })
+                    .then(function(res) { return res.json(); })
+                    .then(function(result) {
+                        if (result.sucesso) {
+                            alert('Agendamento reagendado com sucesso!');
+                            closeRescheduleModal();
+                            fetchAppointments();
+                        } else {
+                            alert(result.erro || 'Erro ao reagendar');
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('Erro:', err);
+                        alert('Erro ao reagendar');
+                    });
+            };
+            
+            window.rescheduleAdminAppointment = function(id, data, hora, servico, cliente, telefone) {
+                window.currentRescheduleData = data;
+                window.currentRescheduleHora = hora;
+                window.currentRescheduleServico = servico;
+                window.currentRescheduleCliente = cliente;
+                window.currentRescheduleTelefone = telefone;
+                window.rescheduleSelectedTime = null;
+                
+                var dataParts = data.split('-');
+                var dataFormatada = dataParts[2] + '/' + dataParts[1] + '/' + dataParts[0];
+                document.getElementById('currentRescheduleDateTime').textContent = dataFormatada + ' às ' + hora;
+                
+                document.getElementById('rescheduleNewDate').value = data;
+                document.getElementById('rescheduleTimeGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px; font-size: 0.9rem;">Selecione uma data diferente</p>';
+                document.getElementById('rescheduleConfirmBtn').disabled = true;
+                document.getElementById('rescheduleModal').style.display = 'block';
+            };
+            
             async function fetchAdminServices() {
                 try {
                     const res = await fetch(API_URL + '?action=getServicos');
                     adminServices = await res.json();
+                    // Cache global para uso no modal de detalhes de agendamento
+                    window.adminServicesCache = Array.isArray(adminServices) ? adminServices : [];
                     renderAdminServices();
                 } catch (err) {
                     console.error('Erro:', err);

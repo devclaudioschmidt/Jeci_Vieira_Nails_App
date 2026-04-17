@@ -305,6 +305,15 @@
 
         auth.onAuthStateChanged((user) => {
             if (user) {
+                if (!localStorage.getItem('cliente_uid')) {
+                    localStorage.setItem('cliente_uid', user.uid);
+                }
+                if (user.email && !localStorage.getItem('cliente_email')) {
+                    localStorage.setItem('cliente_email', user.email);
+                }
+                if (user.displayName && !localStorage.getItem('cliente_nome')) {
+                    localStorage.setItem('cliente_nome', user.displayName);
+                }
                 window.location.href = 'cliente.html';
             }
         });

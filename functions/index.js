@@ -225,11 +225,21 @@ exports.api = functions.https.onRequest(async (req, res) => {
         
         const ultimoHorarioMin = horarioFechamento - duracao;
         
+        const now = new Date();
+        const nowBrt = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+        const hojeBrStr = nowBrt.toISOString().split('T')[0];
+        let currentMinutes = -1;
+        
+        if (hojeBrStr === dataNormalized) {
+          currentMinutes = nowBrt.getUTCHours() * 60 + nowBrt.getUTCMinutes();
+        }
+        
         const disponiveis = todosHorarios.filter(h => {
           const parts = h.split(':');
           const hMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
           const hEnd = hMin + duracao;
           
+          if (hMin <= currentMinutes) return false;
           if (hMin > ultimoHorarioMin) return false;
           
           for (const exist of agendamentos) {
@@ -444,15 +454,22 @@ exports.api = functions.https.onRequest(async (req, res) => {
       }
       
       case 'updateCliente': {
-        const { uid, nome, telefone } = req.body;
+        const { uid, nome, telefone, email } = req.body;
         if (!uid) {
           return sendResponse(res, 400, { sucesso: false, erro: 'UID é obrigatório' });
         }
-        await writeFirebase(`clientes/${uid}`, {
+        
+        const updateData = {
           nome: nome || '',
           telefone: telefone || '',
           updatedAt: new Date().toISOString()
-        });
+        };
+        
+        if (email) {
+          updateData.email = email;
+        }
+        
+        await writeFirebase(`clientes/${uid}`, updateData, 'PATCH');
         return sendResponse(res, 200, { sucesso: true });
       }
       
@@ -504,7 +521,9 @@ exports.api = functions.https.onRequest(async (req, res) => {
         const dataNormalized = normalizeDate(data);
         const horaNormalized = normalizeTime(hora);
         const duracaoInt = parseInt(duracao) || 30;
-        const clienteNome = localStorage.getItem('cliente_nome') || 'Cliente';
+        const clienteData = await readFirebase(`clientes/${uid}`);
+        const clienteNome = (clienteData && clienteData.nome) ? clienteData.nome : 'Cliente';
+        const clienteTelefoneDB = (clienteData && clienteData.telefone) ? clienteData.telefone : '';
         
         const agendamentos = await readFirebase('agendamentos') || {};
         
@@ -537,7 +556,7 @@ exports.api = functions.https.onRequest(async (req, res) => {
           hora: hora,
           servico: servico,
           cliente: clienteNome,
-          telefone: telefone || '',
+          telefone: telefone || clienteTelefoneDB || '',
           clienteUid: uid,
           status: 'confirmado',
           duracao: duracaoInt,
@@ -547,6 +566,15 @@ exports.api = functions.https.onRequest(async (req, res) => {
         return sendResponse(res, 200, { sucesso: true });
       }
       
+      case 'cancelarAgendamentoPorId': {
+        const id = req.body.id || req.query.id;
+        if (!id) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'ID é obrigatório' });
+        }
+        await deleteFirebase(`agendamentos/${id}`);
+        return sendResponse(res, 200, { sucesso: true });
+      }
+
       case 'cancelarAgendamento': {
         const { data, hora } = req.body;
         

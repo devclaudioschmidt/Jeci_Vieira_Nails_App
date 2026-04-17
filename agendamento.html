@@ -61,8 +61,7 @@
                     <h2 class="section-title">Selecione o Serviço</h2>
                     <p class="section-subtitle">Toque para escolher</p>
                 </div>
-                <div class="category-grid" id="categoryGrid" style="margin-bottom: 20px;">
-                </div>
+                <div class="category-grid" id="categoryGrid" style="margin-bottom: 20px;"></div>
             </section>
 
             <section id="step-manicure" class="services-section" style="display: none;">
@@ -73,8 +72,8 @@
                     Voltar
                 </button>
                 <div class="section-header">
-                    <h2 class="section-title">Carregando...</h2>
-                    <p class="section-subtitle">Aguarde</p>
+                    <h2 class="section-title">Manicure &amp; Pedicure</h2>
+                    <p class="section-subtitle">Selecione um serviço</p>
                 </div>
                 <div class="service-list" id="serviceListManicure"></div>
             </section>
@@ -87,8 +86,8 @@
                     Voltar
                 </button>
                 <div class="section-header">
-                    <h2 class="section-title">Carregando...</h2>
-                    <p class="section-subtitle">Aguarde</p>
+                    <h2 class="section-title">Podologia</h2>
+                    <p class="section-subtitle">Selecione um serviço</p>
                 </div>
                 <div class="service-list" id="serviceListPodologia"></div>
             </section>
@@ -102,18 +101,36 @@
                 </button>
                 <div class="section-header">
                     <h2 class="section-title">Escolha a Data</h2>
-                    <p class="section-subtitle" id="selectedServiceName"></p>
+                    <p class="section-subtitle">Escolha o melhor dia</p>
                 </div>
-                <div class="calendar" style="margin-bottom: 20px;">
-                    <div class="calendar-header">
-                        <button class="calendar-nav" onclick="changeMonth(-1)">&#9664;</button>
-                        <span class="calendar-month" id="calendarMonth"></span>
-                        <button class="calendar-nav" onclick="changeMonth(1)">&#9654;</button>
+
+                <div class="selected-service-card">
+                    <div class="selected-service-info">
+                        <span class="selected-label">Serviço selecionado</span>
+                        <span class="selected-name" id="selectedServiceName">-</span>
                     </div>
-                    <div class="calendar-weekdays">
-                        <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                </div>
+
+                <div class="date-picker-wrapper">
+                    <div class="calendar" style="margin-bottom: 20px;">
+                        <div class="calendar-header">
+                            <button class="calendar-nav" onclick="changeMonth(-1)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M15 18L9 12L15 6"/>
+                                </svg>
+                            </button>
+                            <span class="calendar-month" id="calendarMonth"></span>
+                            <button class="calendar-nav" onclick="changeMonth(1)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 18L15 12L9 6"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                        </div>
+                        <div class="calendar-days" id="calendarDays"></div>
                     </div>
-                    <div class="calendar-days" id="calendarDays"></div>
                 </div>
             </section>
 
@@ -128,7 +145,8 @@
                     <h2 class="section-title">Escolha o Horário</h2>
                     <p class="section-subtitle" id="selectedDateName"></p>
                 </div>
-                <div class="time-grid" id="timeGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                <div class="time-section" style="display: block;">
+                    <div class="time-grid" id="timeGrid"></div>
                 </div>
             </section>
 
@@ -143,18 +161,22 @@
                     <h2 class="section-title">Confirmar</h2>
                     <p class="section-subtitle">Revise os dados</p>
                 </div>
-                <div style="background: white; border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm);">
-                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--primary-light);">
-                        <span style="color: var(--text-muted);">Serviço</span>
-                        <span style="font-weight: 600; color: var(--secondary);" id="confirmService">-</span>
+                <div class="summary-card" style="margin-top: 20px;">
+                    <div class="summary-row">
+                        <span>Serviço</span>
+                        <span id="confirmService">-</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--primary-light);">
-                        <span style="color: var(--text-muted);">Data</span>
-                        <span style="font-weight: 600; color: var(--secondary);" id="confirmDate">-</span>
+                    <div class="summary-row">
+                        <span>Data</span>
+                        <span id="confirmDate">-</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--primary-light);">
-                        <span style="color: var(--text-muted);">Horário</span>
-                        <span style="font-weight: 600; color: var(--secondary);" id="confirmTime">-</span>
+                    <div class="summary-row">
+                        <span>Horário</span>
+                        <span id="confirmTime">-</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="confirmPrice">-</span>
                     </div>
                 </div>
                 <button class="primary-btn" onclick="confirmAppointment()" style="width: 100%; margin-top: 20px; padding: 16px; font-size: 1.1rem;">
@@ -164,14 +186,13 @@
 
             <section id="step-success" class="services-section" style="display: none;">
                 <div style="text-align: center; padding: 40px 20px;">
-                    <div style="width: 80px; height: 80px; background: rgba(34, 154, 74, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                    <div style="width: 80px; height: 80px; background: rgba(34,154,74,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#229a4e" stroke-width="2">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                     </div>
                     <h2 class="section-title" style="font-size: 1.5rem;">Agendado!</h2>
                     <p class="section-subtitle" style="margin-bottom: 10px;">Sua agenda foi confirmada com sucesso.</p>
-                    
                     <div id="successDetails" style="background: white; border-radius: var(--radius-md); padding: 20px; margin: 20px 0; box-shadow: var(--shadow-sm); text-align: left;">
                         <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--primary-light);">
                             <span style="color: var(--text-muted);">Serviço</span>
@@ -186,7 +207,6 @@
                             <span style="font-weight: 600; color: var(--secondary);" id="successTime">-</span>
                         </div>
                     </div>
-                    
                     <a href="cliente.html" class="primary-btn" style="display: inline-block; text-decoration: none;">
                         Voltar ao Dashboard
                     </a>
@@ -195,7 +215,7 @@
         </main>
     </div>
 
-    <a href="#" id="whatsappFab" class="whatsapp-fab" target="_blank" style="display: none; position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); cursor: pointer; z-index: 1000;">
+    <a href="#" id="whatsappFab" class="whatsapp-fab" target="_blank" style="display: none; position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: #25D366; border-radius: 50%; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); cursor: pointer; z-index: 1000;">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.148-.66-1.6-.906-2.166-.244-.565-.497-1.003-.713-1.166-.218-.164-.487-.198-.664-.198-.177 0-.389.025-.56.149-.173.124-.297.298-.297.398-.075.198.298.571.446.721.149.149.32.347.492.496.173.149.297.223.446.124.149-.099.62-.497 1.03-.793.296-.219.62-.348.88-.347.248-.002.492-.025.698-.025.209 0 .497-.05.716-.248.22-.199.446-.496.571-.743.124-.248.049-.495-.025-.694-.075-.198-.645-1.556-.906-2.105-.248-.547-.468-.96-.66-1.123-.193-.163-.345-.248-.496-.273-.149-.025-.297-.025-.446-.025-.148 0-.371.025-.496.173zM12 22c2.763 0 5-2.239 5-5s-2.237-5-5-5-5 2.239-5 5 2.238 5 5 5z"/>
         </svg>
@@ -203,161 +223,193 @@
 
     <script src="config.js"></script>
     <script>
-        // Polyfill para localStorage
-        if (typeof window.localStorage === 'undefined') {
-            window.localStorage = {
-                _data: {},
-                setItem: function(id, val) { this._data[id] = val; },
-                getItem: function(id) { return this._data[id] || null; },
-                removeItem: function(id) { delete this._data[id]; },
-                clear: function() { this._data = {}; }
-            };
-        }
+<<<<<<< Updated upstream
+        const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
         
-        (function() {
-            const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
-            
-            let appData = { categories: [], services: [] };
-            let selectedCategory = null;
-            let selectedService = null;
-            let selectedDate = null;
-            let selectedTime = null;
-            let currentMonth = new Date().getMonth();
-            let currentYear = new Date().getFullYear();
-            let clienteUid = '';
-            let clienteTelefone = '';
-            
-            function init() {
-                try {
-                    clienteUid = window.localStorage ? window.localStorage.getItem('cliente_uid') || '' : '';
-                    clienteTelefone = window.localStorage ? window.localStorage.getItem('cliente_telefone') || '' : '';
-                } catch(e) {
-                    clienteUid = '';
-                    clienteTelefone = '';
-                }
-                
-                if (!clienteUid) {
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                loadData();
-                loadSalaoData();
-                document.getElementById('globalLoader').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('globalLoader').style.display = 'none';
-                }, 500);
+        let appData = { categories: [], services: [] };
+        let selectedCategory = null;
+        let selectedService = null;
+        let selectedDate = null;
+        let selectedTime = null;
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let clienteUid = null;
+        let clienteTelefone = null;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            clienteUid = localStorage.getItem('cliente_uid');
+            clienteTelefone = localStorage.getItem('cliente_telefone');
+
+            if (!clienteUid) {
+                window.location.href = 'login.html';
             }
             
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
+            loadData();
+            loadSalaoData();
+            document.getElementById('globalLoader').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('globalLoader').style.display = 'none';
+            }, 500);
+        });
+=======
+        var storage = (function() {
+            try {
+                localStorage.setItem('_t', '1');
+                localStorage.removeItem('_t');
+                return localStorage;
+            } catch(e) {
+                return { getItem: function() { return null; }, setItem: function() {}, removeItem: function() {} };
             }
         })();
-    </script>
+>>>>>>> Stashed changes
 
-        async function loadData() {
-            try {
-                const response = await fetch(API_URL + '?action=getServicos');
-                const services = await response.json();
-                
-                appData.categories = [
-                    { id: 'manicure', name: 'Manicure & Pedicure', description: 'Nails, gel, alongamento e spa dos pés' },
-                    { id: 'podologia', name: 'Podologia', description: 'Tratamento especializado para os pés' }
-                ];
-                appData.services = services;
-                
-                renderCategories();
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
+        var API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
+        var appData = {
+            categories: [
+                { id: 'manicure', name: 'Manicure & Pedicure', description: 'Nails, gel, alongamento e spa dos pes' },
+                { id: 'podologia', name: 'Podologia', description: 'Tratamento especializado para os pes' }
+            ],
+            services: []
+        };
+        var selectedCategory = null;
+        var selectedService = null;
+        var selectedDate = null;
+        var selectedTime = null;
+        var currentMonth = new Date().getMonth();
+        var currentYear = new Date().getFullYear();
+        var clienteUid = storage.getItem('cliente_uid') || '';
+        var clienteTelefone = storage.getItem('cliente_telefone') || '';
+
+        function init() {
+            if (!clienteUid) {
+                window.location.href = 'login.html';
+                return;
+            }
+            renderCategories();
+            loadData();
+            loadSalaoData();
+            var loader = document.getElementById('globalLoader');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(function() { loader.style.display = 'none'; }, 500);
             }
         }
 
-        function renderCategories() {
-            const grid = document.getElementById('categoryGrid');
-            grid.innerHTML = appData.categories.map(cat => `
-                <div class="category-card" onclick="selectCategory('${cat.id}')">
-                    <div class="category-icon" style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary-dark); margin: 0 auto 16px;">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            ${cat.id === 'manicure' ? '<path d="M12 2C12 2 8 6 8 10C8 13 10 15 12 15C14 15 16 13 16 10C16 6 12 2 12 2Z"/>' : '<path d="M12 2L8 6L12 10L16 6L12 2Z"/><path d="M8 6V14C8 17 10 19 12 19C14 19 16 17 16 14V6"/><path d="M8 14L6 22H10L8 14Z"/><path d="M16 14L14 22H18L16 14Z"/>'}
-                        </svg>
-                    </div>
-                    <div class="category-info" style="text-align: center;">
-                        <h3 style="font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--secondary); margin-bottom: 4px;">${cat.name}</h3>
-                        <p style="color: var(--text-muted); font-size: 0.9rem;">${cat.description}</p>
-                    </div>
-                </div>
-            `).join('');
+        function loadData() {
+            fetch(API_URL + '?action=getServicos')
+                .then(function(r) { return r.json(); })
+                .then(function(services) {
+                    appData.services = Array.isArray(services) ? services : [];
+                })
+                .catch(function(e) {
+                    console.error('Erro ao buscar servicos:', e);
+                    appData.services = [];
+                });
+        }
+
+        function getCategoryIcon(iconType) {
+            var icons = {
+                nails: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M32 56V28"/><path d="M32 28C32 28 20 24 20 14C20 8 24 4 32 4C40 4 44 8 44 14C44 24 32 28 32 28Z"/><path d="M20 56C20 56 24 44 32 44C40 44 44 56 44 56"/><circle cx="32" cy="12" r="2" fill="currentColor"/></svg>',
+                foot: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M32 8C20 8 12 18 12 32C12 48 20 56 32 56C44 56 52 48 52 32C52 18 44 8 32 8Z"/><path d="M24 28C24 28 28 32 32 32C36 32 40 28 40 28"/><path d="M32 20V32"/><circle cx="32" cy="40" r="3"/></svg>'
+            };
+            return icons[iconType] || icons.nails;
         }
 
         function getServiceIcon(iconType) {
-            const icons = {
-                hand: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M24 44C24 44 8 32 8 20C8 14 12 8 18 8C20 8 22 9 24 11"/><path d="M24 44C24 44 40 32 40 20C40 14 36 8 30 8C28 8 26 9 24 11"/><path d="M24 11V44"/></svg>`,
-                hands: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M14 8C14 8 10 12 10 20C10 28 14 40 14 40"/><path d="M24 8C24 8 20 12 20 20C20 28 24 40 24 40"/><path d="M34 8C34 8 30 12 30 20C30 28 34 40 34 40"/><path d="M10 40H38"/></svg>`,
-                bottle: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><rect x="16" y="4" width="16" height="8" rx="2"/><path d="M18 12V40C18 42 20 44 24 44C28 44 30 42 30 40V12"/><path d="M20 20H28M20 28H28"/></svg>`,
-                longnail: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M24 44V20"/><path d="M24 20C24 20 18 18 18 12C18 8 20 6 24 6C28 6 30 8 30 12C30 18 24 20 24 20"/><path d="M20 44C20 44 22 38 24 38C26 38 28 44 28 44"/></svg>`,
-                foot: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M24 8C16 8 10 16 10 28C10 40 16 44 24 44C32 44 38 40 38 28C38 16 32 8 24 8Z"/><path d="M18 24H30"/><path d="M24 18V30"/></svg>`,
-                spa: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M24 4L28 12L36 8L32 16L40 20L32 20L36 28L28 24L24 32L20 24L12 28L16 20L8 20L16 16L12 8L20 12L24 4Z"/><path d="M18 32C18 32 20 36 24 36C28 36 30 32 30 32"/></svg>`,
-                circle: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><circle cx="24" cy="24" r="16"/><circle cx="24" cy="24" r="8"/><path d="M24 8V16M24 32V40M8 24H16M32 24H40"/></svg>`,
-                brace: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32"><path d="M16 36L24 12L32 36"/><path d="M18 28H30"/></svg>`
+            var icons = {
+                hand: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M24 44C24 44 8 32 8 20C8 14 12 8 18 8C20 8 22 9 24 11"/><path d="M24 44C24 44 40 32 40 20C40 14 36 8 30 8C28 8 26 9 24 11"/><path d="M24 11V44"/></svg>',
+                hands: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 8C14 8 10 12 10 20C10 28 14 40 14 40"/><path d="M24 8C24 8 20 12 20 20C20 28 24 40 24 40"/><path d="M34 8C34 8 30 12 30 20C30 28 34 40 34 40"/><path d="M10 40H38"/></svg>',
+                bottle: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><rect x="16" y="4" width="16" height="8" rx="2"/><path d="M18 12V40C18 42 20 44 24 44C28 44 30 42 30 40V12"/><path d="M20 20H28M20 28H28"/></svg>',
+                longnail: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M24 44V20"/><path d="M24 20C24 20 18 18 18 12C18 8 20 6 24 6C28 6 30 8 30 12C30 18 24 20 24 20"/><path d="M20 44C20 44 22 38 24 38C26 38 28 44 28 44"/></svg>',
+                foot: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M24 8C16 8 10 16 10 28C10 40 16 44 24 44C32 44 38 40 38 28C38 16 32 8 24 8Z"/><path d="M18 24H30"/><path d="M24 18V30"/></svg>',
+                spa: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M24 4L28 12L36 8L32 16L40 20L32 20L36 28L28 24L24 32L20 24L12 28L16 20L8 20L16 16L12 8L20 12L24 4Z"/><path d="M18 32C18 32 20 36 24 36C28 36 30 32 30 32"/></svg>',
+                circle: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><circle cx="24" cy="24" r="16"/><circle cx="24" cy="24" r="8"/><path d="M24 8V16M24 32V40M8 24H16M32 24H40"/></svg>',
+                brace: '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 36L24 12L32 36"/><path d="M18 28H30"/><circle cx="24" cy="22" r="2"/></svg>'
             };
-            return icons[iconType] || icons.circle;
+            return icons[iconType] || icons.hand;
         }
 
-        function getServiceIconByName(serviceName) {
-            const name = serviceName.toLowerCase();
-            if (name.includes('gel') || name.includes('esmaltação') || name.includes('esmaltação')) return 'bottle';
-            if (name.includes('spa')) return 'spa';
-            if (name.includes('pé') || name.includes('pedicure')) return 'foot';
-            if (name.includes('mão') || name.includes('manicure')) return 'hand';
-            if (name.includes('alongamento') || name.includes('unha')) return 'longnail';
-            return 'circle';
+        function formatDuration(minutes) {
+            if (minutes < 60) return minutes + ' min';
+            var h = Math.floor(minutes / 60);
+            var m = minutes % 60;
+            return m > 0 ? h + 'h ' + m + 'min' : h + 'h';
+        }
+
+        function renderCategories() {
+            var grid = document.getElementById('categoryGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = appData.categories.map(function(cat, index) {
+                var iconType = cat.id === 'manicure' ? 'nails' : 'foot';
+                var iconSvg = getCategoryIcon(iconType);
+                var delayClass = 'delay-' + (index + 1);
+                var isPodo = cat.id === 'podologia' ? 'podologia' : '';
+                return ''
+                    + '<button class="category-card ' + isPodo + ' animate-fade-in-up ' + delayClass + '" onclick="selectCategory(\'' + cat.id + '\')">'
+                    + '    <div class="category-icon ' + isPodo + '">' + iconSvg + '</div>'
+                    + '    <h3>' + cat.name + '</h3>'
+                    + '    <p>' + cat.description + '</p>'
+                    + '    <span class="category-arrow">'
+                    + '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+                    + '            <path d="M5 12H19M19 12L12 5M19 12L12 19"/>'
+                    + '        </svg>'
+                    + '    </span>'
+                    + '</button>';
+            }).join('');
         }
 
         window.selectCategory = function(categoryId) {
             selectedCategory = categoryId;
-            const categoryName = appData.categories.find(c => c.id === categoryId).name;
-            
+            var category = appData.categories.filter(function(c) { return c.id === categoryId; })[0];
             document.getElementById('step1').style.display = 'none';
             document.getElementById('step-' + categoryId).style.display = 'block';
-            
-            const section = document.getElementById('step-' + categoryId);
-            section.querySelector('.section-title').textContent = categoryName;
-            
-            const services = appData.services.filter(s => s.category === categoryId);
-            const listId = 'serviceList' + (categoryId === 'manicure' ? 'Manicure' : 'Podologia');
-            const listEl = document.getElementById(listId);
-            
-            listEl.innerHTML = services.map(s => `
-                <div class="service-card" onclick="selectService('${s.name}', ${s.duration})">
-                    <div class="service-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--primary-dark);">
-                        ${getServiceIcon(getServiceIconByName(s.name))}
-                    </div>
-                    <div class="service-info" style="position: relative; z-index: 1;">
-                        <h3 style="font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 600; color: var(--secondary); margin-bottom: 2px;">${s.name}</h3>
-                        <p style="color: var(--text-muted); font-size: 0.85rem;">${s.duration} min</p>
-                    </div>
-                </div>
-            `).join('');
-            
-            if (services.length === 0) {
-                listEl.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhum serviço disponível</p>';
+            var listId = categoryId === 'manicure' ? 'serviceListManicure' : 'serviceListPodologia';
+            var listEl = document.getElementById(listId);
+            if (!listEl) return;
+            if (appData.services.length === 0) {
+                listEl.innerHTML = '<div style="text-align:center;padding:20px;"><div class="spinner" style="margin:0 auto 10px;"></div><p>Carregando servicos...</p></div>';
+                var timer = setInterval(function() {
+                    if (appData.services.length > 0) {
+                        clearInterval(timer);
+                        renderServicos(categoryId, listEl);
+                    }
+                }, 500);
+                return;
             }
+            renderServicos(categoryId, listEl);
         };
 
-        window.selectService = function(name, duration) {
-            selectedService = { name, duration };
-            selectedDate = null;
-            selectedTime = null;
+        function renderServicos(categoryId, listEl) {
+            var services = appData.services.filter(function(s) {
+                return s.category && s.category.toLowerCase() === categoryId.toLowerCase();
+            });
+            if (services.length === 0) {
+                listEl.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px;">Nenhum servico disponivel nesta categoria.</p>';
+                return;
+            }
             
-            document.getElementById('step-manicure').style.display = 'none';
-            document.getElementById('step-podologia').style.display = 'none';
-            document.getElementById('step-date').style.display = 'block';
-            
-            document.getElementById('selectedServiceName').textContent = name;
-            renderCalendar();
-        };
+            listEl.innerHTML = services.map(function(s, index) {
+                var badgeHtml = s.badge ? '<div class="service-badge">' + s.badge + '</div>' : '';
+                var isPodo = categoryId === 'podologia' ? 'podologia' : '';
+                var delayClass = 'delay-' + (index + 1);
+                
+                return ''
+                    + '<button class="service-card animate-fade-in-up ' + delayClass + '" onclick="selectService(\'' + s.name.replace(/'/g, "\\'") + '\',' + s.duration + ',\'' + s.price + '\')">'
+                    + badgeHtml
+                    + '    <div class="service-icon ' + isPodo + '">' + getServiceIcon(s.icon) + '</div>'
+                    + '    <div class="service-info">'
+                    + '        <h3>' + s.name + '</h3>'
+                    + '        <p>' + (s.description || '') + '</p>'
+                    + '    </div>'
+                    + '    <div class="service-meta">'
+                    + '        <span class="price">R$ ' + s.price + '</span>'
+                    + '        <span class="duration">' + formatDuration(s.duration) + '</span>'
+                    + '    </div>'
+                    + '    <div class="card-shine"></div>'
+                    + '</button>';
+            }).join('');
+        }
 
         window.goBackToHome = function() {
             document.getElementById('step-manicure').style.display = 'none';
@@ -365,14 +417,73 @@
             document.getElementById('step1').style.display = 'block';
         };
 
+        window.selectService = function(name, duration, price) {
+            selectedService = { name: name, duration: duration, price: price };
+            selectedDate = null;
+            selectedTime = null;
+            document.getElementById('step-manicure').style.display = 'none';
+            document.getElementById('step-podologia').style.display = 'none';
+            document.getElementById('step-date').style.display = 'block';
+            document.getElementById('selectedServiceName').textContent = name;
+            renderCalendar();
+        };
+
         window.goBackToServices = function() {
             document.getElementById('step-date').style.display = 'none';
-            if (selectedCategory === 'manicure') {
-                document.getElementById('step-manicure').style.display = 'block';
-            } else {
-                document.getElementById('step-podologia').style.display = 'block';
-            }
+            document.getElementById('step-' + selectedCategory).style.display = 'block';
         };
+
+        function renderCalendar() {
+            var months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+            document.getElementById('calendarMonth').textContent = months[currentMonth] + ' ' + currentYear;
+            
+            var firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            var daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            var daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+            
+            var today = new Date(); 
+            today.setHours(0,0,0,0);
+            
+            var html = '';
+            var dayIndex = 0;
+            
+            for (var i = firstDay - 1; i >= 0; i--) {
+                var delayClass = 'delay-' + ((dayIndex % 6) + 1);
+                html += '<button class="calendar-day other-month animate-scale-in ' + delayClass + '" disabled>' + (daysInPrevMonth - i) + '</button>';
+                dayIndex++;
+            }
+            
+            for (var d = 1; d <= daysInMonth; d++) {
+                var date = new Date(currentYear, currentMonth, d);
+                date.setHours(12, 0, 0, 0); // Evitar problemas de timezone
+                var dateStr = currentYear + '-' + String(currentMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+                var delayClass = 'delay-' + ((dayIndex % 6) + 1);
+                
+                var cls = 'calendar-day animate-scale-in ' + delayClass;
+                var dayOfWeek = date.getDay();
+                
+                if (date < today) {
+                    html += '<button class="' + cls + ' disabled" disabled>' + d + '</button>';
+                } else if (dayOfWeek === 0) { // Domingo
+                    html += '<button class="' + cls + ' disabled" disabled>' + d + '</button>';
+                } else {
+                    if (date.getTime() === today.getTime()) cls += ' today';
+                    if (selectedDate === dateStr) cls += ' selected';
+                    html += '<button class="' + cls + '" onclick="selectDate(\'' + dateStr + '\', this)">' + d + '</button>';
+                }
+                dayIndex++;
+            }
+            
+            var totalCells = firstDay + daysInMonth;
+            var remainingCells = 42 - totalCells;
+            for (var j = 1; j <= remainingCells; j++) {
+                var delayClass2 = 'delay-' + ((dayIndex % 6) + 1);
+                html += '<button class="calendar-day other-month animate-scale-in ' + delayClass2 + '" disabled>' + j + '</button>';
+                dayIndex++;
+            }
+            
+            document.getElementById('calendarDays').innerHTML = html;
+        }
 
         window.changeMonth = function(delta) {
             currentMonth += delta;
@@ -381,95 +492,37 @@
             renderCalendar();
         };
 
-        function renderCalendar() {
-            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-            document.getElementById('calendarMonth').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        window.selectDate = function(dateStr, element) {
+            selectedDate = dateStr;
+            document.querySelectorAll('.calendar-day').forEach(function(day) {
+                day.classList.remove('selected');
+            });
+            if (element) element.classList.add('selected');
             
-            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            let html = '';
-            const dayList = [];
-            
-            if (firstDay > 0) {
-                const prevMonth = new Date(currentYear, currentMonth, 0).getDate();
-                for (let i = firstDay - 1; i >= 0; i--) {
-                    dayList.push({ day: prevMonth - i, other: true });
-                }
-            }
-            
-            for (let d = 1; d <= daysInMonth; d++) {
-                dayList.push({ day: d, other: false });
-            }
-            
-            const remaining = 42 - dayList.length;
-            for (let d = 1; d <= remaining; d++) {
-                dayList.push({ day: d, other: true });
-            }
-            
-            dayList.forEach(day => {
-                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`;
-                const dateObj = new Date(dateStr);
-                const isPast = dateObj < today;
-                const isToday = dateObj.getTime() === today.getTime();
-                const isSelected = dateStr === selectedDate;
-                const isDisabled = isPast || dateObj.getDay() === 0;
+            setTimeout(function() {
+                document.getElementById('step-date').style.display = 'none';
+                document.getElementById('step-time').style.display = 'block';
+                var p = dateStr.split('-');
+                document.getElementById('selectedDateName').textContent = p[2]+'/'+p[1]+'/'+p[0];
+                var grid = document.getElementById('timeGrid');
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;"><div class="spinner" style="margin:0 auto;"></div></div>';
                 
-                html += `<div class="calendar-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${day.other ? 'other-month' : ''} ${isDisabled ? 'disabled' : ''}" 
-                     onclick="${isDisabled ? '' : `selectDate('${dateStr}')`}">${day.day}</div>`;
-            });
-            
-            document.getElementById('calendarDays').innerHTML = html;
-        }
-
-        window.selectDate = function(date) {
-            selectedDate = date;
-            selectedTime = null;
-            renderCalendar();
-            loadTimes();
-        };
-
-        function loadTimes() {
-            document.getElementById('step-date').style.display = 'none';
-            document.getElementById('step-time').style.display = 'block';
-            
-            const parts = selectedDate.split('-');
-            document.getElementById('selectedDateName').textContent = `${parts[2]}/${parts[1]}/${parts[0]}`;
-            document.getElementById('timeGrid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;"><div class="spinner" style="margin: 0 auto;"></div></div>';
-            
-            fetch(API_URL + '?action=getHorarios&data=' + selectedDate + '&duracao=' + selectedService.duration)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.horarios && data.horarios.length > 0) {
-                        renderTimes(data.horarios);
-                    } else {
-                        document.getElementById('timeGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px;">Nenhum horário disponível</p>';
-                    }
-                });
-        }
-
-        function renderTimes(times) {
-            document.getElementById('timeGrid').innerHTML = times.map(t => `
-                <button class="time-slot" onclick="selectTime('${t}')">${t}</button>
-            `).join('');
-        }
-
-        window.selectTime = function(time) {
-            selectedTime = time;
-            document.querySelectorAll('.time-slot').forEach(el => {
-                el.classList.toggle('selected', el.textContent === time);
-            });
-            
-            setTimeout(() => {
-                document.getElementById('step-time').style.display = 'none';
-                document.getElementById('step-confirm').style.display = 'block';
-                const dateParts = selectedDate.split('-');
-                document.getElementById('confirmService').textContent = selectedService.name;
-                document.getElementById('confirmDate').textContent = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-                document.getElementById('confirmTime').textContent = selectedTime;
-            }, 300);
+                fetch(API_URL + '?action=getHorarios&data=' + dateStr + '&duracao=' + selectedService.duration)
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.horarios && data.horarios.length > 0) {
+                            grid.innerHTML = data.horarios.map(function(h, index) {
+                                var delayClass = 'delay-' + ((index % 6) + 1);
+                                return '<button class="time-slot animate-scale-in ' + delayClass + '" onclick="selectTime(\'' + h + '\')">' + h + '</button>';
+                            }).join('');
+                        } else {
+                            grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;">Nenhum horario disponivel</p>';
+                        }
+                    })
+                    .catch(function() {
+                        grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;">Erro ao carregar horarios</p>';
+                    });
+            }, 200);
         };
 
         window.goBackToDate = function() {
@@ -477,73 +530,126 @@
             document.getElementById('step-date').style.display = 'block';
         };
 
+        window.selectTime = function(time) {
+            selectedTime = time;
+            document.querySelectorAll('.time-slot').forEach(function(el) {
+                el.classList.toggle('selected', el.textContent.trim() === time);
+            });
+            
+            var parts = time.split(':');
+            var startDate = new Date();
+            startDate.setHours(parseInt(parts[0], 10));
+            startDate.setMinutes(parseInt(parts[1], 10));
+            startDate.setMinutes(startDate.getMinutes() + selectedService.duration);
+            var endHours = startDate.getHours().toString().padStart(2, '0');
+            var endMinutes = startDate.getMinutes().toString().padStart(2, '0');
+            var endTime = endHours + ':' + endMinutes;
+            
+            setTimeout(function() {
+                document.getElementById('step-time').style.display = 'none';
+                document.getElementById('step-confirm').style.display = 'block';
+                var p = selectedDate.split('-');
+                document.getElementById('confirmService').textContent = selectedService.name;
+                document.getElementById('confirmDate').textContent = p[2]+'/'+p[1]+'/'+p[0];
+                document.getElementById('confirmTime').textContent = time + ' às ' + endTime;
+                var verifyPrice = document.getElementById('confirmPrice');
+                if (verifyPrice) {
+                    verifyPrice.textContent = selectedService.price ? 'R$ ' + selectedService.price : 'R$ --';
+                }
+            }, 200);
+        };
+
         window.goBackToTime = function() {
             document.getElementById('step-confirm').style.display = 'none';
             document.getElementById('step-time').style.display = 'block';
         };
 
-        function confirmAppointment() {
-            if (!selectedDate || !selectedTime) return;
-            
-            const btn = document.querySelector('#step-confirm .primary-btn');
-            const originalText = btn.textContent;
-            btn.textContent = 'Agendando...';
+        window.confirmAppointment = function() {
+            var btn = document.querySelector('#step-confirm .primary-btn');
+            var orig = btn.textContent;
             btn.disabled = true;
-            
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'agendarCliente',
-                    uid: clienteUid,
-                    data: selectedDate,
-                    hora: selectedTime,
-                    servico: selectedService.name,
-                    telefone: clienteTelefone,
-                    duracao: selectedService.duration
+            btn.textContent = 'Confirmando...';
+
+            var reagendamentoId = storage.getItem('reagendamento_id') || '';
+
+            function criarNovoAgendamento() {
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'agendarCliente',
+                        uid: clienteUid,
+                        data: selectedDate,
+                        hora: selectedTime,
+                        servico: selectedService.name,
+                        telefone: clienteTelefone,
+                        duracao: selectedService.duration
+                    })
                 })
-            })
-            .then(res => res.json())
-            .then(result => {
-                if (result.sucesso) {
-                    document.getElementById('step-confirm').style.display = 'none';
-                    
-                    document.getElementById('successService').textContent = selectedService.name;
-                    const dateParts = selectedDate.split('-');
-                    document.getElementById('successDate').textContent = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-                    document.getElementById('successTime').textContent = selectedTime;
-                    
-                    document.getElementById('step-success').style.display = 'block';
-                } else {
-                    alert(result.erro || 'Erro ao agendar');
+                .then(function(r) { return r.json(); })
+                .then(function(result) {
+                    if (result.sucesso) {
+                        // Limpa o ID de reagendamento após sucesso
+                        storage.removeItem('reagendamento_id');
+                        document.getElementById('step-confirm').style.display = 'none';
+                        var p = selectedDate.split('-');
+                        document.getElementById('successService').textContent = selectedService.name;
+                        document.getElementById('successDate').textContent = p[2]+'/'+p[1]+'/'+p[0];
+                        document.getElementById('successTime').textContent = selectedTime;
+                        document.getElementById('step-success').style.display = 'block';
+                    } else {
+                        alert('Erro: ' + (result.erro || 'Tente novamente'));
+                        btn.disabled = false;
+                        btn.textContent = orig;
+                    }
+                })
+                .catch(function() {
+                    alert('Erro de conexao. Tente novamente.');
                     btn.disabled = false;
-                    btn.textContent = originalText;
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('Erro ao agendar');
-                btn.disabled = false;
-                btn.textContent = originalText;
-            });
+                    btn.textContent = orig;
+                });
+            }
+
+            // Se for um reagendamento, cancela o horário antigo primeiro
+            if (reagendamentoId) {
+                btn.textContent = 'Cancelando horário anterior...';
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'cancelarAgendamentoPorId',
+                        id: reagendamentoId
+                    })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(result) {
+                    // Mesmo que o cancelamento falhe (ex: já cancelado), cria o novo
+                    btn.textContent = 'Confirmando...';
+                    criarNovoAgendamento();
+                })
+                .catch(function() {
+                    btn.textContent = 'Confirmando...';
+                    criarNovoAgendamento();
+                });
+            } else {
+                criarNovoAgendamento();
+            }
+        };
+
+        function loadSalaoData() {
+            fetch(API_URL + '?action=getSalaoPublico')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.telefone) {
+                        var fab = document.getElementById('whatsappFab');
+                        fab.href = 'https://wa.me/' + data.telefone.replace(/\D/g,'') + '?text=' + encodeURIComponent('Ola! Gostaria de mais informacoes.');
+                        fab.style.display = 'flex';
+                    }
+                })
+                .catch(function() {});
         }
 
-        async function loadSalaoData() {
-            try {
-                const response = await fetch(API_URL + '?action=getSalaoPublico');
-                const data = await response.json();
-                
-                if (data.telefone) {
-                    const whatsappFab = document.getElementById('whatsappFab');
-                    const cleanPhone = data.telefone.replace(/\D/g, '');
-                    const message = encodeURIComponent('Olá! Gostaria de mais informações.');
-                    whatsappFab.href = `https://wa.me/${cleanPhone}?text=${message}`;
-                    whatsappFab.style.display = 'flex';
-                }
-            } catch (error) {
-                console.error('Erro ao carregar dados do salão:', error);
-            }
-        }
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>

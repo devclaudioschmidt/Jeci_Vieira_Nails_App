@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#d4919a">
     <meta name="description" content="Área do cliente - Jeci Vieira Nails">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Minha Conta | Jeci Vieira Nails</title>
@@ -265,7 +266,7 @@
         <div id="nextAppointmentSection">
             <div class="next-appointment">
                 <div class="next-appointment-label">PRÓXIMO AGENDAMENTO</div>
-                <div class="next-appointment-service" id="nextService">Carregando...</div>
+                <div class="next-appointment-service" id="nextService"></div>
                 <div class="next-appointment-details">
                     <div class="next-appointment-date" id="nextDate"></div>
                     <div class="next-appointment-time" id="nextTime"></div>
@@ -386,16 +387,22 @@
         }
 
         checkAuth().then(() => {
-        PushNotifications.init().then(async () => {
-            if (Notification.permission === 'default') {
-                const permitted = await PushNotifications.requestPermission();
-                if (permitted) {
+            PushNotifications.init().then(async () => {
+                if (Notification.permission === 'default') {
+                    const permitted = await PushNotifications.requestPermission();
+                    if (permitted) {
+                        await PushNotifications.saveToken();
+                    }
+                } else if (Notification.permission === 'granted' && !PushNotifications.isEnabled()) {
                     await PushNotifications.saveToken();
                 }
-            } else if (Notification.permission === 'granted' && !PushNotifications.isEnabled()) {
-                await PushNotifications.saveToken();
-            }
-            console.log('[Push] Permission status:', Notification.permission);
+                console.log('[Push] Permission status:', Notification.permission);
+            });
+
+            loadSalaoData();
+            loadNextAppointment().then(() => {
+                console.log('[App] Dados carregados');
+            }).catch(err => console.error('[App] Erro:', err));
         });
 
         async function loadSalaoData() {
@@ -417,13 +424,30 @@
 
         async function loadNextAppointment() {
             const uid = localStorage.getItem('cliente_uid');
-            if (!uid) return;
+            const clienteNome = localStorage.getItem('cliente_nome') || '';
+            console.log('[Debug] Carregando agendamento - UID:', uid, 'Nome:', clienteNome);
+            
+            const nextSection = document.getElementById('nextAppointmentSection');
+            const noSection = document.getElementById('noAppointmentSection');
+            
+            if (!uid) {
+                console.log('[Debug] Sem UID, ocultando');
+                nextSection.style.display = 'none';
+                noSection.style.display = 'none';
+                return;
+            }
             
             try {
+                console.log('[Debug] Buscando agendamentos da API...');
                 const response = await fetch(API_URL + '?action=getAgendamentos');
                 const allAppointments = await response.json();
-                const clienteNome = localStorage.getItem('cliente_nome') || '';
-                const appointments = allAppointments.filter(app => app.cliente === clienteNome);
+                console.log('[Debug] Total agendamentos no banco:', allAppointments.length);
+                console.log('[Debug] Nomes no banco:', allAppointments.map(a => a.cliente));
+                
+                const appointments = allAppointments.filter(app => 
+                    app.cliente && clienteNome && app.cliente.toLowerCase().trim() === clienteNome.toLowerCase().trim()
+                );
+                console.log('[Debug] Agendamentos filtrados:', appointments.length);
                 
                 const now = new Date();
                 const nextAppointments = appointments
@@ -439,6 +463,7 @@
 
                 if (nextAppointments.length > 0) {
                     const next = nextAppointments[0];
+                    console.log('[Debug] Próximo agendamento encontrado:', next);
                     document.getElementById('nextService').textContent = next.servico;
                     
                     const dateParts = next.data.split('-');
@@ -516,10 +541,6 @@
                 window.location.href = 'login.html';
             });
         };
-
-        loadSalaoData();
-            loadNextAppointment();
-        });
     </script>
 </body>
 </html>

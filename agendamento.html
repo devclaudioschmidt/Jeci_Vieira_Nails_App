@@ -203,45 +203,59 @@
 
     <script src="config.js"></script>
     <script>
-        const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
-        
-        let appData = { categories: [], services: [] };
-        let selectedCategory = null;
-        let selectedService = null;
-        let selectedDate = null;
-        let selectedTime = null;
-        let currentMonth = new Date().getMonth();
-        let currentYear = new Date().getFullYear();
-        let clienteUid = null;
-        let clienteTelefone = null;
-        
-        function checkAuth() {
-            try {
-                if (typeof localStorage !== 'undefined') {
-                    clienteUid = localStorage.getItem('cliente_uid');
-                    clienteTelefone = localStorage.getItem('cliente_telefone');
-                }
-            } catch (e) {
-                console.error('localStorage error:', e);
-            }
-            
-            if (!clienteUid) {
-                window.location.href = 'login.html';
-                return false;
-            }
-            return true;
+        // Polyfill para localStorage
+        if (typeof window.localStorage === 'undefined') {
+            window.localStorage = {
+                _data: {},
+                setItem: function(id, val) { this._data[id] = val; },
+                getItem: function(id) { return this._data[id] || null; },
+                removeItem: function(id) { delete this._data[id]; },
+                clear: function() { this._data = {}; }
+            };
         }
         
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!checkAuth()) return;
+        (function() {
+            const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
             
-            loadData();
-            loadSalaoData();
-            document.getElementById('globalLoader').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('globalLoader').style.display = 'none';
-            }, 500);
-        });
+            let appData = { categories: [], services: [] };
+            let selectedCategory = null;
+            let selectedService = null;
+            let selectedDate = null;
+            let selectedTime = null;
+            let currentMonth = new Date().getMonth();
+            let currentYear = new Date().getFullYear();
+            let clienteUid = '';
+            let clienteTelefone = '';
+            
+            function init() {
+                try {
+                    clienteUid = window.localStorage ? window.localStorage.getItem('cliente_uid') || '' : '';
+                    clienteTelefone = window.localStorage ? window.localStorage.getItem('cliente_telefone') || '' : '';
+                } catch(e) {
+                    clienteUid = '';
+                    clienteTelefone = '';
+                }
+                
+                if (!clienteUid) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                loadData();
+                loadSalaoData();
+                document.getElementById('globalLoader').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('globalLoader').style.display = 'none';
+                }, 500);
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
 
         async function loadData() {
             try {

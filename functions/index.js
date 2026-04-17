@@ -3,57 +3,35 @@ const functions = require('firebase-functions');
 const https = require('https');
 
 const DATABASE_URL = 'app-jeci-vieira-nails-default-rtdb.firebaseio.com';
+const PROJECT_ID = 'app-jeci-vieira-nails';
 
-const FCM_SERVER_KEY = 'AAAA9V7n9lU:APA91bF6pVPLQD8uE4w-qqVq6FvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZm0';
+// Função para enviar notificação usando Firebase Admin SDK (incluído automaticamente nas Functions)
+const admin = require('firebase-admin');
+admin.initializeApp();
 
-function sendFCMNotification(token, title, body, data = {}) {
-  return new Promise((resolve, reject) => {
-    const payload = JSON.stringify({
+async function sendFCMNotification(token, title, body, data = {}) {
+  try {
+    const message = {
       token: token,
-      notification: {
-        title: title,
-        body: body
-      },
-      data: data,
+      notification: { title: title, body: body },
+      data: Object.keys(data).length > 0 ? data : undefined,
       webpush: {
-        notification: {
-          title: title,
-          body: body,
-          icon: '/assets/icon-notification.png',
-          badge: '/assets/icon-badge.png'
+        notification: { 
+          title: title, 
+          body: body, 
+          icon: '/assets/icon-notification.png'
         },
-        fcm_options: {
-          link: data.url || '/cliente.html'
-        }
-      }
-    });
-
-    const options = {
-      hostname: 'fcm.googleapis.com',
-      path: '/v1/projects/app-jeci-vieira-nails/messages:send',
-      method: 'POST',
-      headers: {
-        'Authorization': 'key=' + FCM_SERVER_KEY,
-        'Content-Type': 'application/json'
+        fcm_options: { link: data.url || '/cliente.html' }
       }
     };
-
-    const req = https.request(options, (res) => {
-      let responseData = '';
-      res.on('data', chunk => responseData += chunk);
-      res.on('end', () => {
-        try {
-          resolve(JSON.parse(responseData));
-        } catch (e) {
-          resolve(responseData);
-        }
-      });
-    });
-
-    req.on('error', reject);
-    req.write(payload);
-    req.end();
-  });
+    
+    const result = await admin.messaging().send(message);
+    console.log('[FCM] Notificação enviada:', result);
+    return result;
+  } catch (error) {
+    console.error('[FCM] Erro ao enviar:', error);
+    return null;
+  }
 }
 
 async function sendNotificationToRole(role, title, body, data = {}) {

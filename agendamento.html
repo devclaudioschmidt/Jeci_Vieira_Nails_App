@@ -215,13 +215,25 @@
         let clienteUid = null;
         let clienteTelefone = null;
         
-        document.addEventListener('DOMContentLoaded', () => {
-            clienteUid = localStorage.getItem('cliente_uid');
-            clienteTelefone = localStorage.getItem('cliente_telefone');
-
+        function checkAuth() {
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    clienteUid = localStorage.getItem('cliente_uid');
+                    clienteTelefone = localStorage.getItem('cliente_telefone');
+                }
+            } catch (e) {
+                console.error('localStorage error:', e);
+            }
+            
             if (!clienteUid) {
                 window.location.href = 'login.html';
+                return false;
             }
+            return true;
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!checkAuth()) return;
             
             loadData();
             loadSalaoData();

@@ -643,11 +643,13 @@ function editarAgendamento(params) {
   
   // Verifica se o novo horario ja esta ocupado
   for (var j = 1; j < dados.length; j++) {
-    var rowData = String(dados[j][0]);
-    var rowHora = String(dados[j][1]).trim();
+    var rowData = normalizeDate(dados[j][0], tz);
+    var rowHora = normalizeTime(dados[j][1], tz);
+    var novaDataNorm = normalizeDate(novaData, tz);
+    var novaHoraNorm = normalizeTime(novaHora, tz);
     var status = String(dados[j][5] || '').toLowerCase().trim();
     
-    if (rowData === novaData && rowHora === novaHora && status === 'confirmado') {
+    if (rowData === novaDataNorm && rowHora === novaHoraNorm && status === 'confirmado') {
       return ContentService.createTextOutput(
         JSON.stringify({ sucesso: false, erro: 'Horario ja ocupado!' })
       ).setMimeType(ContentService.MimeType.JSON);
@@ -658,12 +660,25 @@ function editarAgendamento(params) {
   Logger.log('Total linhas: ' + dados.length);
   
   for (var i = 1; i < dados.length; i++) {
-    var rowData = String(dados[i][0]);
-    var rowHora = String(dados[i][1]).trim();
+    var rowData = normalizeDate(dados[i][0], tz);
+    var rowHora = normalizeTime(dados[i][1], tz);
+    var rowStatus = String(dados[i][5] || '').toLowerCase().trim();
     
-    Logger.log('Linha ' + i + ': ' + rowData + ' ' + rowHora + ' == ' + originalData + ' ' + originalTime + ' ? ' + (rowData === originalData && rowHora === originalTime));
+    var originalDataNorm = normalizeDate(originalData, tz);
+    var originalTimeNorm = normalizeTime(originalTime, tz);
     
-    if (rowData === originalData && rowHora === originalTime) {
+    var dataMatch = rowData === originalDataNorm;
+    var horaMatch = rowHora === originalTimeNorm;
+    
+    Logger.log('Linha ' + i + ': data="' + rowData + '"=="' + originalDataNorm + '"? ' + dataMatch + ', hora="' + rowHora + '"=="' + originalTimeNorm + '"? ' + horaMatch + ', status=' + rowStatus);
+    
+    if (dataMatch && horaMatch) {
+      if (rowStatus !== 'confirmado') {
+        return ContentService.createTextOutput(
+          JSON.stringify({ sucesso: false, erro: 'Agendamento não encontrado ou já cancelado' })
+        ).setMimeType(ContentService.MimeType.JSON);
+      }
+      
       sheet.getRange(i + 1, 1).setValue(novaData);
       sheet.getRange(i + 1, 2).setValue(novaHora);
       sheet.getRange(i + 1, 4).setValue(cliente);

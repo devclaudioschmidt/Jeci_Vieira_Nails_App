@@ -842,7 +842,7 @@ function openWhatsApp() {
 function openLocation() {
     toggleMenu();
     // Substitua pela sua localização real no Google Maps
-    const locationUrl = 'https://maps.google.com/?q=Rua+Exemplo+123+Joinville+SC';
+    const locationUrl = 'https://maps.google.com/?q=Rua+Erwin+Seiller+46+Joinville+SC';
     window.open(locationUrl, '_blank');
 }
 

@@ -679,8 +679,11 @@ function editarAgendamento(params) {
         ).setMimeType(ContentService.MimeType.JSON);
       }
       
-      sheet.getRange(i + 1, 1).setValue(novaData);
-      sheet.getRange(i + 1, 2).setValue(novaHora);
+      var novaDataNorm = normalizeDate(novaData, tz);
+      var novaHoraNorm = normalizeTime(novaHora, tz);
+      
+      sheet.getRange(i + 1, 1).setValue(novaDataNorm);
+      sheet.getRange(i + 1, 2).setValue(novaHoraNorm);
       sheet.getRange(i + 1, 4).setValue(cliente);
       sheet.getRange(i + 1, 5).setValue(telefone);
       sheet.getRange(i + 1, 3).setValue(servico);

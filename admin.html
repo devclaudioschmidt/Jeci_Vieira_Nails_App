@@ -695,6 +695,21 @@
                     allAppointments = await res.json();
                     renderAdminCalendar();
                     if (adminSelectedDate) renderAdminAppointments();
+                    
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+                    const tomorrowCount = allAppointments.filter(app => app.data === tomorrowStr && (app.status === 'confirmado' || !app.status)).length;
+                    
+                    const countEl = document.getElementById('lembretesCount');
+                    if (countEl) {
+                        if (tomorrowCount > 0) {
+                            countEl.textContent = tomorrowCount;
+                            countEl.style.display = 'inline';
+                        } else {
+                            countEl.style.display = 'none';
+                        }
+                    }
                 } catch (err) {
                     console.error('Erro ao buscar agendamentos:', err);
                 }

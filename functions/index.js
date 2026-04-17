@@ -4,6 +4,72 @@ const https = require('https');
 
 const DATABASE_URL = 'app-jeci-vieira-nails-default-rtdb.firebaseio.com';
 
+const FCM_SERVER_KEY = 'AAAA9V7n9lU:APA91bF6pVPLQD8uE4w-qqVq6FvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqZvVqzvVqZvVqZm0';
+
+function sendFCMNotification(token, title, body, data = {}) {
+  return new Promise((resolve, reject) => {
+    const payload = JSON.stringify({
+      token: token,
+      notification: {
+        title: title,
+        body: body
+      },
+      data: data,
+      webpush: {
+        notification: {
+          title: title,
+          body: body,
+          icon: '/assets/icon-notification.png',
+          badge: '/assets/icon-badge.png'
+        },
+        fcm_options: {
+          link: data.url || '/cliente.html'
+        }
+      }
+    });
+
+    const options = {
+      hostname: 'fcm.googleapis.com',
+      path: '/v1/projects/app-jeci-vieira-nails/messages:send',
+      method: 'POST',
+      headers: {
+        'Authorization': 'key=' + FCM_SERVER_KEY,
+        'Content-Type': 'application/json'
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let responseData = '';
+      res.on('data', chunk => responseData += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(responseData));
+        } catch (e) {
+          resolve(responseData);
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
+async function sendNotificationToRole(role, title, body, data = {}) {
+  const tokensData = await readFirebase('tokens') || {};
+  const promises = [];
+  
+  Object.keys(tokensData).forEach(key => {
+    const tokenEntry = tokensData[key];
+    if (tokenEntry.role === role && tokenEntry.token) {
+      promises.push(sendFCMNotification(tokenEntry.token, title, body, data));
+    }
+  });
+  
+  await Promise.all(promises);
+}
+
 function normalizeDate(data) {
   if (!data) return null;
   if (typeof data === 'string') {
@@ -637,6 +703,38 @@ exports.api = functions.https.onRequest(async (req, res) => {
         }
         
         await deleteFirebase(`agendamentos/${foundKey}`);
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'saveFCMToken': {
+        const { uid, token, role } = req.body;
+        if (!uid || !token) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'UID e token são obrigatórios' });
+        }
+        await writeFirebase(`tokens/${uid}`, {
+          uid: uid,
+          token: token,
+          role: role || 'cliente',
+          timestamp: Date.now()
+        });
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'removeFCMToken': {
+        const { uid, token } = req.body;
+        if (!uid) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'UID é obrigatório' });
+        }
+        await deleteFirebase(`tokens/${uid}`);
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'sendNotification': {
+        const { role, title, body, data } = req.body;
+        if (!role || !title || !body) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'Role, title e body são obrigatórios' });
+        }
+        await sendNotificationToRole(role, title, body, data || {});
         return sendResponse(res, 200, { sucesso: true });
       }
       

@@ -298,6 +298,8 @@
     <script src="config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+    <script src="assets/push-notifications.js"></script>
     <script>
         function mascaraTelefone(input) {
             let value = input.value.replace(/\D/g, '');
@@ -465,7 +467,13 @@
             } else {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('adminContent').style.display = 'block';
+                localStorage.setItem('admin_uid', user.uid);
                 initApp();
+                PushNotifications.init().then(() => {
+                    if (Notification.permission === 'granted' && !PushNotifications.isEnabled()) {
+                        PushNotifications.saveToken();
+                    }
+                });
             }
         });
 

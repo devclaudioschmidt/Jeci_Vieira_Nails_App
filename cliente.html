@@ -359,6 +359,8 @@
     <script src="config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
+    <script src="assets/push-notifications.js"></script>
     <script>
         const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
         
@@ -384,6 +386,11 @@
         }
 
         checkAuth().then(() => {
+        PushNotifications.init().then(() => {
+            if (Notification.permission === 'granted' && !PushNotifications.isEnabled()) {
+                PushNotifications.saveToken();
+            }
+        });
 
         async function loadSalaoData() {
             try {

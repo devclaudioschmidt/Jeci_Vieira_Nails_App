@@ -133,7 +133,7 @@
         <main>
             <div class="admin-tabs">
 <button class="tab-btn active" onclick="switchAdminTab('agenda', this)">Agenda</button>
-                <button class="tab-btn" onclick="switchAdminTab('lembretes', this)">Lembretes</button>
+                <button class="tab-btn" onclick="switchAdminTab('lembretes', this)">Lembretes <span id="lembretesCount" style="background: var(--primary); color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; margin-left: 4px; display: none;">0</span></button>
                 <button class="tab-btn" onclick="switchAdminTab('servicos', this)">Serviços</button>
                 <!--button class="tab-btn" onclick="switchAdminTab('salao', this)">Meu Salão</button-->
             </div>
@@ -552,6 +552,14 @@
                     const tomorrowAppts = appointments.filter(app => {
                         return app.data === tomorrowStr && (app.status === 'confirmado' || !app.status);
                     });
+                    
+                    const countEl = document.getElementById('lembretesCount');
+                    if (tomorrowAppts.length > 0) {
+                        countEl.textContent = tomorrowAppts.length;
+                        countEl.style.display = 'inline';
+                    } else {
+                        countEl.style.display = 'none';
+                    }
                     
                     loadingEl.style.display = 'none';
                     

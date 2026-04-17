@@ -574,6 +574,10 @@
                         document.getElementById('successDate').textContent = p[2]+'/'+p[1]+'/'+p[0];
                         document.getElementById('successTime').textContent = selectedTime;
                         document.getElementById('step-success').style.display = 'block';
+                        
+                        var dataFormatada = p[2]+'/'+p[1]+'/'+p[0];
+                        var mensagem = encodeURIComponent('Olá! Acabei de fazer meu agendamento no Jeci Vieira Nails.\n\nServiço: ' + selectedService.name + '\nData: ' + dataFormatada + '\nHorário: ' + selectedTime + '\n\nEstou aguardando a confirmação.');
+                        window.open('https://wa.me/' + WHATSAPP_NUMBER + '?text=' + mensagem, '_blank');
                     } else {
                         alert('Erro: ' + (result.erro || 'Tente novamente'));
                         btn.disabled = false;

@@ -365,26 +365,25 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        const clienteUid = localStorage.getItem('cliente_uid');
-        
         async function checkAuth() {
-            if (!clienteUid) {
-                window.location.href = 'login.html';
-                return;
-            }
+            return new Promise((resolve) => {
+                auth.onAuthStateChanged((user) => {
+                    const clienteUid = localStorage.getItem('cliente_uid');
+                    
+                    if (!user || !clienteUid) {
+                        localStorage.clear();
+                        window.location.href = 'login.html';
+                        return;
+                    }
 
-            const clienteNome = localStorage.getItem('cliente_nome') || 'Cliente';
-            document.getElementById('clienteNome').textContent = clienteNome.split(' ')[0];
-
-            auth.onAuthStateChanged((user) => {
-                if (!user) {
-                    localStorage.clear();
-                    window.location.href = 'login.html';
-                }
+                    const clienteNome = localStorage.getItem('cliente_nome') || user.displayName || 'Cliente';
+                    document.getElementById('clienteNome').textContent = clienteNome.split(' ')[0];
+                    resolve();
+                });
             });
         }
 
-        checkAuth();
+        checkAuth().then(() => {
 
         async function loadSalaoData() {
             try {
@@ -404,7 +403,8 @@
         }
 
         async function loadNextAppointment() {
-            if (!clienteUid) return;
+            const uid = localStorage.getItem('cliente_uid');
+            if (!uid) return;
             
             try {
                 const response = await fetch(API_URL + '?action=getAgendamentos');
@@ -505,7 +505,8 @@
         };
 
         loadSalaoData();
-        loadNextAppointment();
+            loadNextAppointment();
+        });
     </script>
 </body>
 </html>

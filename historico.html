@@ -68,19 +68,24 @@
         .history-card-header {
             display: flex;
             justify-content: space-between;
-            align-items: start;
-            margin-bottom: 8px;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
         }
         .history-service {
             font-weight: 600;
             color: var(--secondary);
             font-size: 1.1rem;
+            flex: 1;
         }
         .history-status {
             font-size: 0.75rem;
             padding: 4px 10px;
             border-radius: 20px;
             font-weight: 500;
+            white-space: nowrap;
+            min-width: 70px;
+            text-align: center;
         }
         .history-status.confirmado {
             background: rgba(34, 154, 74, 0.1);
@@ -94,13 +99,34 @@
             background: rgba(212, 145, 154, 0.2);
             color: var(--primary-dark);
         }
-        .history-details {
-            display: flex;
-            gap: 16px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+        .history-info {
+            margin-top: 10px;
         }
-        .history-detail {
+        
+        .history-info-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        
+        .history-info-row {
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        
+        .history-detail-date {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .history-detail-time {
             display: flex;
             align-items: center;
             gap: 6px;
@@ -111,6 +137,49 @@
             padding: 40px 20px;
             color: var(--text-muted);
         }
+        
+        .history-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 24px;
+            margin-left: auto;
+        }
+        
+        .history-action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .history-action-btn.reschedule {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+        
+        .history-action-btn.reschedule:hover {
+            background: var(--primary-dark);
+            color: white;
+        }
+        
+        .history-action-btn.cancel {
+            background: rgba(229, 62, 62, 0.15);
+            color: #e53e3e;
+        }
+        
+        .history-action-btn.cancel:hover {
+            background: #e53e3e;
+            color: white;
+        }
+        
         .no-history svg {
             width: 60px;
             height: 60px;
@@ -232,30 +301,54 @@
                         const dateParts = app.data.split('-');
                         const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
                         const status = app.status || 'confirmado';
+                        const isFutureAppointment = status === 'confirmado';
                         
                         return `
-                            <div class="history-card">
+                            <div class="history-card" data-id="${app.id || ''}" data-data="${app.data}" data-hora="${app.hora}" data-servico="${app.servico}">
                                 <div class="history-card-header">
                                     <span class="history-service">${app.servico}</span>
                                     <span class="history-status ${status}">${status === 'confirmado' ? 'Agendado' : status === 'cancelado' ? 'Cancelado' : 'Realizado'}</span>
                                 </div>
-                                <div class="history-details">
-                                    <span class="history-detail">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                                <div class="history-info">
+                                    <div class="history-info-label">Detalhes do Agendamento</div>
+                                    <div class="history-info-row">
+                                        <span class="history-detail-date">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                            </svg>
+                                            ${formattedDate}
+                                        </span>
+                                        <span class="history-detail-time">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <polyline points="12 6 12 12 16 14"/>
+                                            </svg>
+                                            ${app.hora}
+                                        </span>
+                                    </div>
+                                </div>
+                                ${isFutureAppointment ? `
+                                <div class="history-card-actions">
+                                    <button class="history-action-btn reschedule" onclick="rescheduleHistoryAppointment(this)">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                                             <line x1="16" y1="2" x2="16" y2="6"/>
                                             <line x1="8" y1="2" x2="8" y2="6"/>
+                                            <line x1="3" y1="10" x2="21" y2="10"/>
                                         </svg>
-                                        ${formattedDate}
-                                    </span>
-                                    <span class="history-detail">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10"/>
-                                            <polyline points="12 6 12 12 16 14"/>
+                                        Reagendar
+                                    </button>
+                                    <button class="history-action-btn cancel" onclick="cancelHistoryAppointment(this)">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
                                         </svg>
-                                        ${app.hora}
-                                    </span>
+                                        Cancelar
+                                    </button>
                                 </div>
+                                ` : ''}
                             </div>
                         `;
                     }).join('');
@@ -286,6 +379,69 @@
 
         loadHistory();
         loadSalaoData();
+        
+        window.cancelHistoryAppointment = function(btn) {
+            const card = btn.closest('.history-card');
+            const data = card.dataset.data;
+            const hora = card.dataset.hora;
+            const servico = card.dataset.servico;
+            
+            const appDateTime = new Date(data + 'T' + hora);
+            const now = new Date();
+            const hoursDiff = (appDateTime - now) / (1000 * 60 * 60);
+            
+            if (hoursDiff < 24) {
+                alert('Cancelamento permitido apenas com antecedência de 24 horas.');
+                return;
+            }
+            
+            if (confirm(`Deseja cancelar o agendamento de ${servico} no dia ${data} às ${hora}?`)) {
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'cancelarAgendamento',
+                        data: data,
+                        hora: hora
+                    })
+                })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.sucesso) {
+                        alert('Agendamento cancelado com sucesso!');
+                        loadHistory();
+                    } else {
+                        alert(result.erro || 'Erro ao cancelar');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Erro ao cancelar');
+                });
+            }
+        };
+        
+        window.rescheduleHistoryAppointment = function(btn) {
+            const card = btn.closest('.history-card');
+            const id = card.dataset.id;
+            const data = card.dataset.data;
+            const hora = card.dataset.hora;
+            const servico = card.dataset.servico;
+            
+            const appDateTime = new Date(data + 'T' + hora);
+            const now = new Date();
+            const hoursDiff = (appDateTime - now) / (1000 * 60 * 60);
+            
+            if (hoursDiff < 24) {
+                alert('Reagendamento permitido apenas com antecedência de 24 horas.');
+                return;
+            }
+            
+            if (confirm(`Deseja reagendar o agendamento de ${servico} no dia ${data} às ${hora}?`)) {
+                localStorage.setItem('reagendamento_id', id);
+                window.location.href = 'agendamento.html';
+            }
+        };
     </script>
 </body>
 </html>

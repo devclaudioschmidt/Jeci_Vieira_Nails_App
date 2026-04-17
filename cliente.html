@@ -386,10 +386,16 @@
         }
 
         checkAuth().then(() => {
-        PushNotifications.init().then(() => {
-            if (Notification.permission === 'granted' && !PushNotifications.isEnabled()) {
-                PushNotifications.saveToken();
+        PushNotifications.init().then(async () => {
+            if (Notification.permission === 'default') {
+                const permitted = await PushNotifications.requestPermission();
+                if (permitted) {
+                    await PushNotifications.saveToken();
+                }
+            } else if (Notification.permission === 'granted' && !PushNotifications.isEnabled()) {
+                await PushNotifications.saveToken();
             }
+            console.log('[Push] Permission status:', Notification.permission);
         });
 
         async function loadSalaoData() {

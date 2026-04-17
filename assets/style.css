@@ -934,8 +934,8 @@ body {
 }
 
 .time-slot.selected {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
     color: white;
 }
 

@@ -330,34 +330,55 @@ exports.api = functions.https.onRequest(async (req, res) => {
         const originalTimeNorm = normalizeTime(originalTime);
         const newDataNorm = normalizeDate(data);
         const newTimeNorm = normalizeTime(hora);
+        const duracaoInt = parseInt(duracao) || 30;
         
         let foundKey = null;
-        Object.keys(agendamentos).forEach(key => {
+        let foundClientName = null;
+        for (const key in agendamentos) {
           const app = agendamentos[key];
           const dataNaPlanilha = normalizeDate(app.data);
           const horaNaPlanilha = normalizeTime(app.hora);
+          const status = String(app.status || '').toLowerCase().trim();
           
-          if (dataNaPlanilha === originalDataNorm && horaNaPlanilha === originalTimeNorm) {
+          if (dataNaPlanilha === originalDataNorm && horaNaPlanilha === originalTimeNorm && status === 'confirmado') {
             foundKey = key;
+            foundClientName = app.cliente;
+            break;
           }
-        });
-        
-        if (!foundKey) {
-          return sendResponse(res, 400, { sucesso: false, erro: 'Agendamento não encontrado' });
         }
         
-        // Verifica se o novo horário já está ocupado (e não é o mesmo agendamento)
+        if (!foundKey) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'Agendamento não encontrado ou já cancelado' });
+        }
+        
+        // Verifica conflitos de horário (mesma lógica do agendarCliente)
         const isSameSlot = originalDataNorm === newDataNorm && originalTimeNorm === newTimeNorm;
         if (!isSameSlot) {
-          const conflicts = Object.entries(agendamentos).filter(([key, app]) => {
-            if (key === foundKey) return false;
-            const appData = normalizeDate(app.data);
-            const appHora = normalizeTime(app.hora);
-            return appData === newDataNorm && appHora === newTimeNorm;
-          });
-          
-          if (conflicts.length > 0) {
-            return sendResponse(res, 400, { sucesso: false, erro: 'Horário já está ocupado' });
+          const hasConflict = false;
+          for (const key in agendamentos) {
+            const app = agendamentos[key];
+            if (key === foundKey) continue;
+            
+            const dataNaPlanilha = normalizeDate(app.data);
+            const status = String(app.status || '').toLowerCase().trim();
+            
+            if (dataNaPlanilha === newDataNorm && status === 'confirmado') {
+              const horaExistente = normalizeTime(app.hora);
+              const durExistente = parseInt(app.duracao) || 30;
+              
+              const existParts = horaExistente.split(':');
+              const existStartMin = parseInt(existParts[0]) * 60 + parseInt(existParts[1]);
+              const existEndMin = existStartMin + durExistente;
+              
+              const novoParts = newTimeNorm.split(':');
+              const novoStartMin = parseInt(novoParts[0]) * 60 + parseInt(novoParts[1]);
+              const novoEndMin = novoStartMin + duracaoInt;
+              
+              // Verifica sobreposição: novo início < existente fim E novo fim > existente início
+              if (!(novoEndMin <= existStartMin || novoStartMin >= existEndMin)) {
+                return sendResponse(res, 400, { sucesso: false, erro: 'Horário conflita com agendamento existente!' });
+              }
+            }
           }
         }
         
@@ -365,9 +386,9 @@ exports.api = functions.https.onRequest(async (req, res) => {
           data: data,
           hora: hora,
           servico: servico,
-          cliente: cliente,
+          cliente: cliente || foundClientName,
           telefone: telefone || '',
-          duracao: parseInt(duracao) || 30
+          duracao: duracaoInt
         });
         
         return sendResponse(res, 200, { sucesso: true });

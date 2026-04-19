@@ -21,6 +21,15 @@ const appData = {
 };
 
 // ============================================
+// LOCALIZAÇÃO DO SALÃO
+// ============================================
+
+const SALON_LOCATION = {
+    nome: 'Jeci Vieira Nails',
+    coordenadas: { lat: -26.2807517, lng: -48.884255 }
+};
+
+// ============================================
 // VARIÁVEIS DO APP
 // ============================================
 
@@ -841,8 +850,7 @@ function openWhatsApp() {
 
 function openLocation() {
     toggleMenu();
-    // Substitua pela sua localização real no Google Maps
-    const locationUrl = 'https://maps.google.com/?q=Rua+Erwin+Seiller+46+Joinville+SC';
+    const locationUrl = `https://www.google.com/maps/search/?api=1&query=R.+Erwin+Seiller+46%2C+Joinville%2C+SC`;
     window.open(locationUrl, '_blank');
 }
 

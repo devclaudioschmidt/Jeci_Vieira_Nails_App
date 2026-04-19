@@ -185,6 +185,7 @@
         </form>
         
         <a onclick="logout()" class="logout-link">Sair da minha conta</a>
+        <a onclick="excluirConta()" class="logout-link" style="font-size: 0.8rem; margin-top: 12px; opacity: 0.7;">Excluir minha conta</a>
     </div>
 
     <a href="#" id="whatsappFab" class="whatsapp-fab" target="_blank" style="display: none;">
@@ -298,6 +299,40 @@
                     localStorage.removeItem('cliente_telefone');
                     window.location.href = 'login.html';
                 });
+            }
+        };
+
+        window.excluirConta = async function() {
+            const confirmar = confirm('ATENÇÃO: Esta ação é IRREVERSÍVEL.\n\nTodos os seus dados serão excluídos permanentemente. Deseja continuar?');
+            if (!confirmar) return;
+            
+            const confirmar2 = confirm('Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.');
+            if (!confirmar2) return;
+            
+            const user = auth.currentUser;
+            if (!user) {
+                alert('Erro: usuário não encontrado. Faça novamente o login.');
+                return;
+            }
+            
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'excluirCliente',
+                        uid: clienteUid
+                    })
+                });
+                
+                await user.delete();
+                
+                localStorage.clear();
+                alert('Conta excluída com sucesso.');
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Erro ao excluir conta:', error);
+                alert('Erro ao excluir conta. Tente novamente mais tarde.');
             }
         };
 

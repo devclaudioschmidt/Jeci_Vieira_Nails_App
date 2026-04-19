@@ -350,12 +350,20 @@ exports.api = functions.https.onRequest(async (req, res) => {
       }
       
       case 'getAgendamentos': {
-        const data = await readFirebase('agendamentos') || {};
-        const lista = [];
+        let data = await readFirebase('agendamentos') || {};
+        const uid = req.query.uid;
         
-        Object.keys(data).forEach(key => {
-          lista.push({ id: key, ...data[key] });
-        });
+        if (uid) {
+          const filtered = {};
+          Object.keys(data).forEach(key => {
+            if (data[key].clienteUid === uid) {
+              filtered[key] = data[key];
+            }
+          });
+          data = filtered;
+        }
+        
+        const lista = Object.keys(data).map(key => ({ id: key, ...data[key] }));
         
         lista.sort((a, b) => {
           const dateA = new Date(a.data + 'T' + (a.hora || '00:00'));
@@ -566,7 +574,8 @@ exports.api = functions.https.onRequest(async (req, res) => {
       
       case 'getClientAppointments': {
         const uid = req.query.uid || req.body.uid;
-        if (!uid) {
+        const clienteNome = req.query.clienteNome || req.body.clienteNome;
+        if (!uid && !clienteNome) {
           return sendResponse(res, 200, []);
         }
         const allAgendamentos = await readFirebase('agendamentos') || {};
@@ -576,7 +585,10 @@ exports.api = functions.https.onRequest(async (req, res) => {
         const lista = [];
         Object.keys(allAgendamentos).forEach(key => {
           const app = allAgendamentos[key];
-          if (app.clienteUid === uid) {
+          const matchesUid = app.clienteUid === uid;
+          const matchesNome = clienteNome && app.cliente && app.cliente.toLowerCase().trim() === clienteNome.toLowerCase().trim();
+          
+          if (matchesUid || matchesNome) {
             const appDate = new Date(app.data);
             if (appDate >= ninetyDaysAgo) {
               lista.push({ id: key, ...app });
@@ -713,6 +725,16 @@ exports.api = functions.https.onRequest(async (req, res) => {
           return sendResponse(res, 400, { sucesso: false, erro: 'Role, title e body são obrigatórios' });
         }
         await sendNotificationToRole(role, title, body, data || {});
+        return sendResponse(res, 200, { sucesso: true });
+      }
+      
+      case 'excluirCliente': {
+        const uid = req.body.uid || req.query.uid;
+        if (!uid) {
+          return sendResponse(res, 400, { sucesso: false, erro: 'UID é obrigatório' });
+        }
+        await deleteFirebase(`clientes/${uid}`);
+        await deleteFirebase(`tokens/${uid}`);
         return sendResponse(res, 200, { sucesso: true });
       }
       

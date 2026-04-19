@@ -267,16 +267,12 @@
 
         async function loadHistory() {
             try {
-                const response = await fetch(API_URL + '?action=getAgendamentos');
-                const allAppointments = await response.json();
-                const clienteUid = localStorage.getItem('cliente_uid');
+                const uid = localStorage.getItem('cliente_uid');
                 const clienteNome = localStorage.getItem('cliente_nome') || '';
-                console.log('clienteUid:', clienteUid, 'clienteNome:', clienteNome);
-                console.log('Total agendamentos:', allAppointments.length);
-                const appointments = allAppointments.filter(function(app) {
-                    return app.cliente === clienteNome;
-                });
-                console.log('Agendamentos filtrados:', appointments.length);
+                console.log('clienteUid:', uid, 'clienteNome:', clienteNome);
+                const response = await fetch(API_URL + '?action=getClientAppointments&uid=' + uid + '&clienteNome=' + encodeURIComponent(clienteNome));
+                const appointments = await response.json();
+                console.log('Total agendamentos do cliente:', appointments.length);
                 
                 const list = document.getElementById('historyList');
                 

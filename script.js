@@ -101,7 +101,11 @@ function saveToHistory(service, date, time, price, category) {
 function getHistory() {
     var key = getClientKey();
     if (!key) return [];
-    return JSON.parse(localStorage.getItem(key)) || '[]';
+    try {
+        return JSON.parse(localStorage.getItem(key)) || [];
+    } catch (e) {
+        return [];
+    }
 }
 
 function clearHistory() {
@@ -855,8 +859,14 @@ function openLocation() {
 }
 
 function showMenuSection(section) {
+    console.log('showMenuSection called:', section);
     const modal = document.getElementById('menuSectionModal');
     const body = document.getElementById('menuSectionBody');
+    
+    if (!modal || !body) {
+        console.error('Modal elements not found!');
+        return;
+    }
     
     const sectionsContent = {
         horarios: getHorariosContent(),
@@ -871,7 +881,12 @@ function showMenuSection(section) {
     
     body.innerHTML = sectionsContent[section] || '<p>Conteúdo em desenvolvimento.</p>';
     modal.classList.add('active');
-    toggleMenu();
+    
+    const overlay = document.getElementById('menuOverlay');
+    const drawer = document.getElementById('menuDrawer');
+    if (overlay) overlay.classList.remove('active');
+    if (drawer) drawer.classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 function closeMenuSection() {
@@ -883,30 +898,53 @@ function getHorariosContent() {
     return `
         <div class="menu-section-header">
             <h2>Horário de Funcionamento</h2>
-            <p>Estamos disponíveis nos siguientes horários:</p>
+            <p>Estamos disponíveis para atendê-lo nos seguintes horários:</p>
         </div>
-        <div class="info-card">
-            <h3>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 6V12L16 14"/>
-                </svg>
-                Atención
-            </h3>
-            <div class="hours-grid">
-                <div class="hours-row">
-                    <span>Segunda a Sexta</span>
-                    <span>9h às 18h</span>
+        
+        <div class="horarios-card">
+            <div class="dia-card">
+                <div class="dia-header">
+                    <span class="dia-icon">📅</span>
+                    <span class="dia-nome">Segunda à Sexta</span>
                 </div>
-                <div class="hours-row">
-                    <span>Sábado</span>
-                    <span>9h às 14h</span>
+                <div class="horarios-periodos">
+                    <div class="periodo manha">
+                        <span class="periodo-label">☀️ Manhã</span>
+                        <span class="periodo-horario">08:00h - 11:00h</span>
+                    </div>
+                    <div class="periodo tarde">
+                        <span class="periodo-label">🌙 Tarde</span>
+                        <span class="periodo-horario">13:30h - 21:00h</span>
+                    </div>
                 </div>
-                <div class="hours-row closed">
-                    <span>Domingo</span>
+            </div>
+            
+            <div class="dia-card">
+                <div class="dia-header">
+                    <span class="dia-icon">📅</span>
+                    <span class="dia-nome">Sábado</span>
+                </div>
+                <div class="horarios-periodos">
+                    <div class="periodo">
+                        <span class="periodo-label">🕐</span>
+                        <span class="periodo-horario">07:00h - 12:00h</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dia-card fechado">
+                <div class="dia-header">
+                    <span class="dia-icon">🚫</span>
+                    <span class="dia-nome">Domingo e Feriados</span>
+                </div>
+                <div class="periodo-fechado">
                     <span>Fechado</span>
                 </div>
             </div>
+        </div>
+        
+        <div class="obs-card">
+            <p>📞 Agende seu horário com antecedência!</p>
         </div>
     `;
 }
@@ -1017,7 +1055,7 @@ function getPoliticaContent() {
                     </div>
                     <div class="policy-text">
                         <strong>Horário</strong>
-                        <span>Chegue no horário agendado. Atrasos de mais de 15min podem resultar em cancelamento.</span>
+                        <span>Chegue no horário agendado. Atrasos de mais de 10min podem resultar em cancelamento.</span>
                     </div>
                 </li>
                 <li>
@@ -1040,8 +1078,9 @@ function getPoliticaContent() {
                         </svg>
                     </div>
                     <div class="policy-text">
-                        <strong>第一次 Agendamento</strong>
-                        <span>Clientes novas devem agendar com antecedência.</span>
+                        <strong>Verifique o App</strong>
+                        <span>Sempre verifique o app para saber a data do seu próximo agendamento.</span>
+                        <span style="display: block; margin-top: 4px; font-size: 0.85em;">Um (1) dia antes você receberá um lembrete do seu atendimento pelo WhatsApp.</span>
                     </div>
                 </li>
                 <li>
@@ -1064,6 +1103,10 @@ function getPoliticaContent() {
 function getHistoricoContent() {
     const history = getHistory();
     const phone = document.getElementById('clientPhone').value;
+    
+    if (!Array.isArray(history)) {
+        history = [];
+    }
     
     if (!phone) {
         return `

@@ -1563,6 +1563,105 @@ body {
     color: var(--danger);
 }
 
+/* Novos estilos para horários - Layout melhorado */
+.horarios-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dia-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(212, 145, 154, 0.15);
+    border: 1px solid rgba(232, 180, 184, 0.3);
+}
+
+.dia-card.fechado {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.dia-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.dia-icon {
+    font-size: 1.2rem;
+}
+
+.dia-nome {
+    font-weight: 600;
+    color: var(--secondary);
+    font-size: 1rem;
+}
+
+.horarios-periodos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.periodo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--bg-main);
+    border-radius: 10px;
+}
+
+.periodo.manha {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border-left: 3px solid #f97316;
+}
+
+.periodo.tarde {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-left: 3px solid #eab308;
+}
+
+.periodo-label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.periodo-horario {
+    font-weight: 600;
+    color: var(--secondary);
+    font-size: 0.95rem;
+}
+
+.periodo-fechado {
+    text-align: center;
+    padding: 10px;
+    color: #dc2626;
+    font-weight: 500;
+}
+
+.obs-card {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    margin-top: 8px;
+    border: 1px solid #a7f3d0;
+}
+
+.obs-card p {
+    color: #047857;
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
 .testimonial-card {
     background: var(--bg-card);
     border-radius: var(--radius-lg);

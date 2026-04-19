@@ -9,6 +9,21 @@ const PROJECT_ID = 'app-jeci-vieira-nails';
 const admin = require('firebase-admin');
 admin.initializeApp();
 
+async function verifyAuth(req) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return null;
+    }
+    const idToken = authHeader.split('Bearer ')[1];
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    return decodedToken;
+  } catch (error) {
+    console.error('Auth verification failed:', error.message);
+    return null;
+  }
+}
+
 async function sendFCMNotification(token, title, body, data = {}) {
   try {
     const message = {
@@ -220,13 +235,19 @@ exports.api = functions.https.onRequest(async (req, res) => {
         const diaSemana = dateObj.getDay();
         let todosHorarios = [];
         let horarioFechamento = 21 * 60;
+        let horarioFechamentoManha = 11 * 60;
+        let inicioIntervalo = 12 * 60;
         
         if (diaSemana >= 1 && diaSemana <= 5) {
           todosHorarios = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
           horarioFechamento = 21 * 60;
+          horarioFechamentoManha = 11 * 60;
+          inicioIntervalo = 12 * 60;
         } else if (diaSemana === 6) {
           todosHorarios = ['07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
           horarioFechamento = 12 * 60;
+          horarioFechamentoManha = 12 * 60;
+          inicioIntervalo = 14 * 60;
         }
         
         const agendamentosData = await readFirebase('agendamentos') || {};
@@ -267,8 +288,6 @@ exports.api = functions.https.onRequest(async (req, res) => {
           }
         });
         
-        const ultimoHorarioMin = horarioFechamento - duracao;
-        
         const now = new Date();
         const nowBrt = new Date(now.getTime() - (3 * 60 * 60 * 1000));
         const hojeBrStr = nowBrt.toISOString().split('T')[0];
@@ -278,13 +297,28 @@ exports.api = functions.https.onRequest(async (req, res) => {
           currentMinutes = nowBrt.getUTCHours() * 60 + nowBrt.getUTCMinutes();
         }
         
+        const duracaoInt = parseInt(duracao) || 30;
+        
         const disponiveis = todosHorarios.filter(h => {
           const parts = h.split(':');
           const hMin = parseInt(parts[0]) * 60 + parseInt(parts[1]);
-          const hEnd = hMin + duracao;
+          const hEnd = hMin + duracaoInt;
           
           if (hMin <= currentMinutes) return false;
-          if (hMin > ultimoHorarioMin) return false;
+          
+          let dentroExpediente = false;
+          
+          if (hMin < inicioIntervalo) {
+            if (hEnd <= horarioFechamentoManha) {
+              dentroExpediente = true;
+            }
+          } else if (hMin >= inicioIntervalo) {
+            if (hMin < horarioFechamento && hEnd <= horarioFechamento) {
+              dentroExpediente = true;
+            }
+          }
+          
+          if (!dentroExpediente) return false;
           
           for (const exist of agendamentos) {
             if (!(hEnd <= exist.start || hMin >= exist.end)) {
@@ -532,9 +566,13 @@ exports.api = functions.https.onRequest(async (req, res) => {
       }
       
       case 'getCliente': {
+        const decodedToken = await verifyAuth(req);
         const uid = req.query.uid || req.body.uid;
         if (!uid) {
           return sendResponse(res, 400, { sucesso: false, erro: 'UID é obrigatório' });
+        }
+        if (decodedToken && decodedToken.uid !== uid) {
+          return sendResponse(res, 403, { sucesso: false, erro: 'Acesso negado' });
         }
         const clienteData = await readFirebase(`clientes/${uid}`);
         if (clienteData) {
@@ -544,9 +582,13 @@ exports.api = functions.https.onRequest(async (req, res) => {
       }
       
       case 'updateCliente': {
+        const decodedToken = await verifyAuth(req);
         const { uid, nome, telefone, email } = req.body;
         if (!uid) {
           return sendResponse(res, 400, { sucesso: false, erro: 'UID é obrigatório' });
+        }
+        if (decodedToken && decodedToken.uid !== uid) {
+          return sendResponse(res, 403, { sucesso: false, erro: 'Acesso negado' });
         }
         
         const updateData = {

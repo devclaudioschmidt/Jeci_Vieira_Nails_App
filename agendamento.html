@@ -251,7 +251,8 @@
         var selectedTime = null;
         var currentMonth = new Date().getMonth();
         var currentYear = new Date().getFullYear();
-        var clienteUid = '';
+        var clienteUid = localStorage.getItem('cliente_uid') || '';
+        var clienteNome = localStorage.getItem('cliente_nome') || 'Cliente';
         var clienteTelefone = '';
 
         function init() {
@@ -561,7 +562,8 @@
                         hora: selectedTime,
                         servico: selectedService.name,
                         telefone: clienteTelefone,
-                        duracao: selectedService.duration
+                        duracao: selectedService.duration,
+                        clienteNome: clienteNome
                     })
                 })
                 .then(function(r) { return r.json(); })

@@ -33,8 +33,8 @@
     },
     
     "bloqueios": {
-      ".read": "auth.uid === 'aHv29Uk8OtfOrmLM4gKXcGS3Rj93'",
-      ".write": "auth.uid === 'aHv29Uk8OtfOrmLM4gKXcGS3Rj93'"
+      ".read": true,
+      ".write": true
     }
   }
 }

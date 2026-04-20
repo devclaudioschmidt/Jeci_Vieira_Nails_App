@@ -648,7 +648,7 @@ exports.api = functions.https.onRequest(async (req, res) => {
       }
       
       case 'agendarCliente': {
-        const { uid, data, hora, servico, telefone, duracao } = req.body;
+        const { uid, data, hora, servico, telefone, duracao, clienteNome } = req.body;
         
         if (!uid || !data || !hora || !servico) {
           return sendResponse(res, 400, { sucesso: false, erro: 'Parâmetros incompletos' });
@@ -657,9 +657,14 @@ exports.api = functions.https.onRequest(async (req, res) => {
         const dataNormalized = normalizeDate(data);
         const horaNormalized = normalizeTime(hora);
         const duracaoInt = parseInt(duracao) || 30;
-        const clienteData = await readFirebase(`clientes/${uid}`);
-        const clienteNome = (clienteData && clienteData.nome) ? clienteData.nome : 'Cliente';
-        const clienteTelefoneDB = (clienteData && clienteData.telefone) ? clienteData.telefone : '';
+        let nomeCliente = clienteNome;
+        
+        if (!nomeCliente) {
+          const clienteData = await readFirebase(`clientes/${uid}`);
+          nomeCliente = (clienteData && clienteData.nome) ? clienteData.nome : 'Cliente';
+        }
+        
+        const clienteTelefoneDB = telefone || '';
         
         const agendamentos = await readFirebase('agendamentos') || {};
         
@@ -691,7 +696,7 @@ exports.api = functions.https.onRequest(async (req, res) => {
           data: data,
           hora: hora,
           servico: servico,
-          cliente: clienteNome,
+          cliente: nomeCliente,
           telefone: telefone || clienteTelefoneDB || '',
           clienteUid: uid,
           status: 'confirmado',

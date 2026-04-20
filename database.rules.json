@@ -1,0 +1,40 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+    
+    "salao": {
+      ".read": true,
+      ".write": "auth.uid === 'aHv29Uk8OtfOrmLM4gKXcGS3Rj93'"
+    },
+    
+    "servicos": {
+      ".read": true,
+      ".write": "auth.uid === 'aHv29Uk8OtfOrmLM4gKXcGS3Rj93'"
+    },
+    
+    "clientes": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    
+    "tokens": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    
+    "agendamentos": {
+      ".read": true,
+      ".write": true
+    },
+    
+    "bloqueios": {
+      ".read": "auth.uid === 'aHv29Uk8OtfOrmLM4gKXcGS3Rj93'",
+      ".write": "auth.uid === 'aHv29Uk8OtfOrmLM4gKXcGS3Rj93'"
+    }
+  }
+}

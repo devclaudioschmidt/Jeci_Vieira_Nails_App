@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4919a">
+    <meta name="description" content="Sistema de agendamento online para salão de manicure e podologia">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Jeci Nails">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23fdf8f8'/%3E%3Ccircle cx='50' cy='50' r='40' fill='%23f5d5d8' stroke='%23d4919a' stroke-width='2'/%3E%3Ccircle cx='50' cy='45' r='15' fill='%23d4919a' opacity='0.3'/%3E%3Cpath d='M50 25V75M35 50H65' stroke='%23d4919a' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='35' cy='50' r='4' fill='%23d4919a' opacity='0.5'/%3E%3Ccircle cx='65' cy='50' r='4' fill='%23d4919a' opacity='0.5'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23fdf8f8'/%3E%3Ccircle cx='90' cy='90' r='60' fill='%23f5d5d8' stroke='%23d4919a' stroke-width='3'/%3E%3Ccircle cx='90' cy='75' r='20' fill='%23d4919a' opacity='0.3'/%3E%3Cpath d='M90 55L90 110M78 75L102 75' stroke='%23d4919a' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='65' cy='85' r='6' fill='%23d4919a' opacity='0.5'/%3E%3Ccircle cx='115' cy='85' r='6' fill='%23d4919a' opacity='0.5'/%3E%3C/svg%3E">
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px)" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 375 667'%3E%3Crect width='375' height='667' fill='%23fdf8f8'/%3E%3Ccircle cx='187' cy='333' r='120' fill='%23f5d5d8' stroke='%23d4919a' stroke-width='4'/%3E%3Ccircle cx='187' cy='290' r='40' fill='%23d4919a' opacity='0.3'/%3E%3Cpath d='M187 150V400M147 250H227' stroke='%23d4919a' stroke-width='10' stroke-linecap='round'/%3E%3Ccircle cx='130' cy='300' r='12' fill='%23d4919a' opacity='0.5'/%3E%3Ccircle cx='244' cy='300' r='12' fill='%23d4919a' opacity='0.5'/%3E%3C/svg%3E">
+    <title>Jeci Vieira Nails | Salão de Manicure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        </style>
+</head>
+<body>
+    <div id="globalLoader" style="position: fixed; inset: 0; background: var(--bg-main); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; color: var(--primary-dark); font-family: 'Playfair Display', serif; font-size: 1.2rem;">Carregando os serviços...</p>
+    </div>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="25" cy="25" r="23" stroke="currentColor" stroke-width="2"/>
+                    <path d="M25 12C25 12 18 18 18 26C18 31 21 35 25 35C29 35 32 31 32 26C32 18 25 12 25 12Z" fill="currentColor" opacity="0.3"/>
+                    <path d="M25 18V30M22 24H28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div class="logo-text">
+                    <span class="brand">Jeci Vieira</span>
+                    <span class="tagline">Nails & Podologia</span>
+                </div>
+            </div>
+            <button class="menu-btn" onclick="toggleMenu()" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </header>
+
+        <main id="app">
+            <section class="hero">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                        </svg>
+                        Agende seu horário
+                    </div>
+                    <h1 class="hero-title">Destaque suas<br><span class="highlight">Unhas</span> com estilo</h1>
+                    <p class="hero-subtitle">Transformamos suas unhas em obras de arte. Agende agora e venha nos visitar!</p>
+                </div>
+                <div class="hero-visual">
+                    <div class="nail-art-circle">
+                        <div class="inner-circle"></div>
+                        <div class="floating-dot dot-1"></div>
+                        <div class="floating-dot dot-2"></div>
+                        <div class="floating-dot dot-3"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="step1" class="services-section">
+                <div class="section-header">
+                    <h2 class="section-title">Como posso lhe atender?</h2>
+                    <p class="section-subtitle">Escolha a área de serviço</p>
+                </div>
+                
+                <div class="category-grid">
+                </div>
+            </section>
+
+            <section id="step-manicure" class="services-section" style="display: none;">
+                <button class="back-btn" onclick="goBackToHome()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19L5 12L12 5"/>
+                    </svg>
+                    Voltar
+                </button>
+                
+                <div class="section-header">
+                    <h2 class="section-title">Carregando...</h2>
+                    <p class="section-subtitle">Aguarde</p>
+                </div>
+                
+                <div class="service-list"></div>
+            </section>
+
+            <section id="step-podologia" class="services-section" style="display: none;">
+                <button class="back-btn" onclick="goBackToHome()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19L5 12L12 5"/>
+                    </svg>
+                    Voltar
+                </button>
+                
+                <div class="section-header">
+                    <h2 class="section-title">Carregando...</h2>
+                    <p class="section-subtitle">Aguarde</p>
+                </div>
+                
+                <div class="service-list"></div>
+            </section>
+
+            <section id="step2" class="datetime-section" style="display: none;">
+                <button class="back-btn" onclick="goBack()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19L5 12L12 5"/>
+                    </svg>
+                    Voltar
+                </button>
+                
+                <div class="section-header">
+                    <h2 class="section-title">Quando você pode?</h2>
+                    <p class="section-subtitle">Escolha o melhor dia e horário</p>
+                </div>
+
+                <div class="selected-service-card">
+                    <div class="selected-service-info">
+                        <span class="selected-label">Serviço selecionado</span>
+                        <span class="selected-name" id="selectedServiceName">-</span>
+                    </div>
+                    <span class="selected-price" id="selectedServicePrice">-</span>
+                </div>
+
+                <div class="date-picker-wrapper">
+                    <div class="calendar">
+                        <div class="calendar-header">
+                            <button type="button" class="calendar-nav" onclick="changeMonth(-1)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M15 18L9 12L15 6"/>
+                                </svg>
+                            </button>
+                            <span class="calendar-month" id="calendarMonth"></span>
+                            <button type="button" class="calendar-nav" onclick="changeMonth(1)">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 18L15 12L9 6"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span>Dom</span>
+                            <span>Seg</span>
+                            <span>Ter</span>
+                            <span>Qua</span>
+                            <span>Qui</span>
+                            <span>Sex</span>
+                            <span>Sáb</span>
+                        </div>
+                        <div class="calendar-days" id="calendarDays"></div>
+                    </div>
+                </div>
+
+                <div class="time-section" id="timeSection" style="display: none;">
+                    <h3 class="time-title">Horários disponíveis</h3>
+                    <div id="timeLoading" class="time-loading" style="display: none;">
+                        <div class="spinner-small"></div>
+                        <span>Carregando horários disponíveis...</span>
+                    </div>
+                    <div id="timeGrid" class="time-grid"></div>
+                </div>
+            </section>
+
+            <section id="step3" class="confirm-section" style="display: none;">
+                <button class="back-btn" onclick="goBack()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19L5 12L12 5"/>
+                    </svg>
+                    Voltar
+                </button>
+
+                <div class="section-header">
+                    <h2 class="section-title">Confirme seu agendamento</h2>
+                    <p class="section-subtitle">Preencha seus dados para finalizar</p>
+                </div>
+
+                <form class="confirm-form" id="confirmForm">
+                    <div style="background: var(--primary-light); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <span style="font-weight: 500; color: var(--secondary);">Já tem conta?</span>
+                        </div>
+                        <a href="login.html" class="primary-btn" style="padding: 8px 16px; font-size: 0.85rem; text-decoration: none;">Fazer Login</a>
+                    </div>
+                    
+                    <p style="text-align: center; margin-bottom: 16px;">
+                        <a href="#" onclick="openRegisterModal(); return false;" style="color: var(--primary-dark); text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 16v-4M12 8h.01"/>
+                            </svg>
+                            Por que se cadastrar?
+                        </a>
+                    </p>
+
+                    <div class="form-group">
+                        <label for="clientName">Seu nome</label>
+                        <input type="text" id="clientName" placeholder="Digite seu nome completo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="clientPhone">WhatsApp</label>
+                        <input type="tel" id="clientPhone" placeholder="(11) 99999-9999" required>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-row">
+                            <span>Serviço</span>
+                            <span id="summaryService">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Data</span>
+                            <span id="summaryDate">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Horário</span>
+                            <span id="summaryTime">-</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total</span>
+                            <span id="summaryPrice">-</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="confirm-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z"/>
+                        </svg>
+                        Confirmar Agendamento
+                    </button>
+                </form>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="brand-name">Jeci Vieira Nails</span>
+                    <span class="brand-location">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 5.02944 7.02944 1 12 1C16.9706 1 21 5.02944 21 10Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        Joinville, SC
+                    </span>
+                </div>
+                <p class="footer-copy">© 2026 Jeci Vieira Nails. Todos os direitos reservados.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Menu Drawer -->
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+    <div class="menu-drawer" id="menuDrawer">
+        <div class="menu-header">
+            <div class="menu-logo">
+                <span class="brand">Jeci Vieira</span>
+                <span class="tagline">Nails & Podologia</span>
+            </div>
+            <button class="menu-close" onclick="toggleMenu()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6L18 18"/>
+                </svg>
+            </button>
+        </div>
+        
+        <nav class="menu-nav">
+            <a href="#" class="menu-item" onclick="openWhatsApp()">
+                <div class="menu-icon whatsapp">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                </div>
+                <div class="menu-content">
+                    <span class="menu-title">WhatsApp</span>
+                    <span class="menu-subtitle">Fale conosco diretamente</span>
+                </div>
+                <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18L15 12L9 6"/>
+                </svg>
+            </a>
+
+            <a href="javascript:void(0)" class="menu-item" onclick="showMenuSection('horarios')">
+                <div class="menu-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6V12L16 14"/>
+                    </svg>
+                </div>
+                <div class="menu-content">
+                    <span class="menu-title">Horário de Funcionamento</span>
+                    <span class="menu-subtitle">Seg a Sex: 08:00h-11:00h | 13:30h-21:00h | Sáb: 07:00h-12:00h | Dom e Feriados: fechado</span>
+                </div>
+                <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18L15 12L9 6"/>
+                </svg>
+            </a>
+
+            <a href="#" class="menu-item" onclick="openLocation()">
+                <div class="menu-icon location">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 5.02944 7.02944 1 12 1C16.9706 1 21 5.02944 21 10Z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                </div>
+                <div class="menu-content">
+                    <span class="menu-title">Localização</span>
+                    <span class="menu-subtitle">Veja no Google Maps</span>
+                </div>
+                <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18L15 12L9 6"/>
+                </svg>
+            </a>
+
+            <a href="#" class="menu-item" onclick="showMenuSection('politica')">
+                <div class="menu-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/>
+                        <path d="M14 2V8H20M16 13H8M16 17H8M10 9H8"/>
+                    </svg>
+                </div>
+                <div class="menu-content">
+                    <span class="menu-title">Política de Agendamento</span>
+                    <span class="menu-subtitle">Cancelamentos e regras</span>
+                </div>
+                <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18L15 12L9 6"/>
+                </svg>
+            </a>
+            <a href="login.html" class="menu-item admin-link">
+                <div class="menu-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div class="menu-content">
+                    <span class="menu-title">Login</span>
+                    <span class="menu-subtitle">Entrar ou criar conta</span>
+                </div>
+                <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18L15 12L9 6"/>
+                </svg>
+            </a>
+
+            <a href="login-admin.html" class="menu-item admin-link">
+                <div class="menu-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                </div>
+                <div class="menu-content">
+                    <span class="menu-title">Admin</span>
+                    <span class="menu-subtitle">Área administrativa</span>
+                </div>
+                <svg class="menu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18L15 12L9 6"/>
+                </svg>
+            </a>
+        </nav>
+
+        <div class="menu-footer">
+            <p>© 2026 Jeci Vieira Nails</p>
+        </div>
+    </div>
+
+    <!-- Menu Sections Modal -->
+    <div class="menu-section-modal" id="menuSectionModal">
+        <div class="menu-section-content">
+            <button class="menu-section-close" onclick="closeMenuSection()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19L5 12L12 5"/>
+                </svg>
+                Voltar
+            </button>
+            <div id="menuSectionBody"></div>
+        </div>
+    </div>
+
+    <div class="success-modal" id="successModal" style="display: none;">
+        <div class="modal-content">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18457 2.99721 7.13633 4.39828 5.49707C5.79935 3.85782 7.69279 2.71538 9.79619 2.24015C11.8996 1.76491 14.1003 1.98234 16.07 2.86"/>
+                    <path d="M22 4L12 14.01L9 11.01"/>
+                </svg>
+            </div>
+            <h3>Agendamento Enviado!</h3>
+            <p>Aguarde a confirmação pelo WhatsApp. Entraremos em contato em breve.</p>
+            <button onclick="closeModal()" class="modal-btn">Entendi</button>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div class="confirm-modal" id="confirmModal" style="display: none;">
+        <div class="modal-content">
+            <h3>Confirmar Agendamento</h3>
+            <div class="confirm-details" id="confirmDetails"></div>
+            <div class="confirm-buttons">
+                <button onclick="backToForm()" class="modal-btn-secondary">Voltar</button>
+                <button onclick="confirmAndSendWhatsApp()" class="modal-btn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="registerModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: var(--radius-md); max-width: 400px; width: 100%; padding: 24px; box-shadow: var(--shadow-lg);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--secondary);">Por que se cadastrar?</h2>
+                <button onclick="closeRegisterModal()" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-muted);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="width: 32px; height: 32px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong style="color: var(--secondary);">Histórico de agendamentos</strong>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">Veja todos os seus agendamentos anteriores</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="width: 32px; height: 32px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong style="color: var(--secondary);">Próximo agendamento</strong>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">Visualize seu próximo horário sempre em destaque</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="width: 32px; height: 32px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong style="color: var(--secondary);">Cancelar ou reagendar</strong>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">Gerencie seus horários facilmente</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: start;">
+                    <div style="width: 32px; height: 32px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-dark)" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <strong style="color: var(--secondary);">Contato direto</strong>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">Fale comigo diretamente pelo WhatsApp</p>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <a href="cadastro.html" class="primary-btn" style="flex: 1; text-align: center; text-decoration: none;">Cadastrar</a>
+                <button onclick="closeRegisterModal()" style="flex: 1; padding: 12px; background: white; border: 1px solid var(--primary-light); border-radius: var(--radius-sm); color: var(--text-muted); cursor: pointer;">Agora não</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="src/app.js"></script>
+</body>
+</html>

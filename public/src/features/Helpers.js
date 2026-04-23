@@ -1,3 +1,11 @@
+import { HistoryInstance as History } from './History.js';
+import { Components } from '../ui/Components.js';
+import { DOM, appData } from '../core/App.js';
+import { Formatters } from '../utils/Formatters.js';
+import { WHATSAPP_NUMBER } from '../config.js';
+import { Modals } from '../ui/Modals.js';
+import { Navigation } from './Navigation.js';
+
 const Reminder = {
     check() {
         const upcoming = History.getUpcoming();

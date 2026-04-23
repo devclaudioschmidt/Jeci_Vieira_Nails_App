@@ -177,9 +177,8 @@
                     <div class="spinner"></div>
                     <span>Carregando...</span>
                 </div>
-                <div id="lembretesList" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                <div id="lembretesList" style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;"></div>
                 <p id="noLembretesMsg" style="text-align: center; color: var(--text-muted); padding: 40px 20px; display: none;">Nenhum agendamento para amanhã.</p>
-            </div>
             </div>
             <div id="tab-servicos" class="admin-tab-content">
                 <div class="services-header">
@@ -318,13 +317,16 @@
             </div>
         </div>
     </div>
-    <script src="config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
     <script src="assets/push-notifications.js"></script>
-    <script>
-        function mascaraTelefone(input) {
+    <script type="module">
+        import { firebaseConfig, API_URL } from './src/config.js';
+        
+        window.firebaseConfig = firebaseConfig;
+        window.API_URL = API_URL;
+        window.mascaraTelefone = function(input) {
             let value = input.value.replace(/\D/g, '');
             if (value.length > 0) {
                 if (!value.startsWith('+')) {
@@ -346,7 +348,7 @@
             input.value = value;
         }
 
-        function mascaraInstagram(input) {
+        window.mascaraInstagram = function(input) {
             let value = input.value;
             if (!value.startsWith('@')) {
                 value = '@' + value.replace(/^@+/, '');
@@ -354,7 +356,7 @@
             input.value = value;
         }
 
-        function openAppointmentDetails(app) {
+        window.openAppointmentDetails = function(app) {
             const modal = document.getElementById('appointmentDetailsModal');
             const content = document.getElementById('appointmentDetailsContent');
             
@@ -478,7 +480,7 @@
             modal.style.display = 'flex';
         }
 
-        function closeAppointmentDetails() {
+        window.closeAppointmentDetails = function() {
             document.getElementById('appointmentDetailsModal').style.display = 'none';
         }
         
@@ -506,7 +508,7 @@
             }
         });
 
-        function logout() {
+        window.logout = function() {
             firebase.auth().signOut().then(() => {
                 localStorage.removeItem('admin_auth_token');
                 localStorage.removeItem('admin_email');
@@ -514,7 +516,7 @@
             });
         }
 
-        async function initApp() {
+        window.initApp = async function() {
             const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
             let adminCurrentMonth = new Date().getMonth();
             let adminCurrentYear = new Date().getFullYear();
@@ -558,7 +560,10 @@
                     
                     const tomorrow = new Date();
                     tomorrow.setDate(tomorrow.getDate() + 1);
-                    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+                    const yyyy = tomorrow.getFullYear();
+                    const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+                    const dd = String(tomorrow.getDate()).padStart(2, '0');
+                    const tomorrowStr = `${yyyy}-${mm}-${dd}`;
                     
                     const tomorrowAppts = appointments.filter(app => {
                         return app.data === tomorrowStr && (app.status === 'confirmado' || !app.status);
@@ -583,21 +588,38 @@
                         return a.hora.localeCompare(b.hora);
                     });
                     
+                    window.enviarWhatsApp = function(phone, msg) {
+                        if (!phone) return alert('Telefone não disponível para este cliente.');
+                        const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+                        window.open(url, '_blank');
+                    };
+
                     listEl.innerHTML = tomorrowAppts.map(app => {
-                        const dataFormatada = app.data.split('-').reverse().join('/');
-                        const mensagem = encodeURIComponent('Olá ' + app.cliente + '! Amanhã você tem agendamento às ' + app.hora + ' (' + app.servico + '). Não esqueça de vir! 😊');
-                        const phone = app.telefone ? app.telefone.replace(/\D/g, '') : '';
-                        const waLink = phone ? 'https://wa.me/' + phone + '?text=' + mensagem : '#';
+                        const nome = app.cliente || 'cliente';
+                        const servico = app.servico || 'atendimento';
+                        const hora = app.hora || '';
+                        const msgOriginal = `Olá ${nome}! Amanhã você tem agendamento às ${hora} (${servico}). Não esqueça de vir! 😊`;
+                        
+                        let phone = app.telefone ? String(app.telefone).replace(/\D/g, '') : '';
+                        if (phone && phone.length === 11 && !phone.startsWith('55')) {
+                            phone = '55' + phone;
+                        }
+                        
+                        const phoneDisplay = app.telefone || 'Não cadastrado';
+                        const isDisabled = !phone;
                         
                         return `
                             <div style="background: white; padding: 12px 16px; border-radius: 10px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 12px;">
                                 <div style="flex: 1;">
-                                    <div style="font-weight: 600; color: var(--secondary); font-size: 0.95rem;">${app.cliente}</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">${app.hora} - ${app.servico}</div>
+                                    <div style="font-weight: 600; color: var(--secondary); font-size: 0.95rem;">${nome}</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">${hora} - ${servico}</div>
+                                    <div style="font-size: 0.75rem; color: ${isDisabled ? '#ff6b6b' : 'var(--text-secondary)'}; margin-top: 2px;">
+                                        ${isDisabled ? '⚠️ Sem telefone' : '📱 ' + phoneDisplay}
+                                    </div>
                                 </div>
-                                <a href="${waLink}" target="_blank" style="padding: 8px 14px; font-size: 0.75rem; background: var(--primary); color: white; border-radius: 6px; text-decoration: none; white-space: nowrap; ${!phone ? 'opacity: 0.5; pointer-events: none;' : ''}">
+                                <button onclick="enviarWhatsApp('${phone}', '${msgOriginal.replace(/'/g, "\\'")}')" style="padding: 8px 14px; border: none; font-size: 0.75rem; background: var(--primary); color: white; border-radius: 6px; cursor: pointer; white-space: nowrap; ${isDisabled ? 'opacity: 0.4; cursor: not-allowed;' : ''}">
                                     Lembrete
-                                </a>
+                                </button>
                             </div>
                         `;
                     }).join('');

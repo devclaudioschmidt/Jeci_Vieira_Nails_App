@@ -1,3 +1,8 @@
+import { Formatters } from '../utils/Formatters.js';
+import { HistoryInstance as History } from '../features/History.js';
+import { Contact, HistoryManager, UI } from '../features/Helpers.js';
+import { Navigation } from '../features/Navigation.js';
+
 const Components = {
     categoryCard(category, index) {
         const delayClass = `delay-${index + 1}`;

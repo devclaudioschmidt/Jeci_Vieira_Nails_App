@@ -202,11 +202,10 @@
         <a href="index.html" class="back-to-site">← Agendar sem conta</a>
     </div>
 
-    <script src="config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script>
-        const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
+    <script type="module">
+        import { firebaseConfig, API_URL } from './src/config.js';
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();

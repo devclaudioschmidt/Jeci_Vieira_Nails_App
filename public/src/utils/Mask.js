@@ -1,3 +1,5 @@
+import { DOM } from '../core/App.js';
+
 const Mask = {
     init() {
         const phoneInput = DOM.get('clientPhone');

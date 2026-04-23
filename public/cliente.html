@@ -357,14 +357,14 @@
         </svg>
     </a>
 
-    <script src="config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
     <script src="assets/push-notifications.js"></script>
-    <script>
-        const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
+    <script type="module">
+        import { firebaseConfig, API_URL } from './src/config.js';
         
+        window.API_URL = API_URL;
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 

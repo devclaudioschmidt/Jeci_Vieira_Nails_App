@@ -1,3 +1,5 @@
+import { Mask } from '../utils/Mask.js';
+
 class History {
     constructor() {
         this._key = null;

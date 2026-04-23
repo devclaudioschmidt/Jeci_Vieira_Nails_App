@@ -1,7 +1,7 @@
 const { readFirebase, writeFirebase, deleteFirebase, generateId, normalizeDate, normalizeTime } = require('../utils/helpers');
 
 const HORARIOS_SEMANA = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
-const HORARIOS_SABADO = ['07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
+const HORARIOS_SABADO = ['07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30'];
 
 async function getServicos() {
     const data = await readFirebase('servicos');
@@ -44,7 +44,7 @@ async function getHorarios(dataQuery, duracao = 30) {
         horarioFechamento = 21 * 60;
     } else if (diaSemana === 6) {
         todosHorarios = HORARIOS_SABADO;
-        horarioFechamento = 12 * 60;
+        horarioFechamento = 11 * 60; // Sábados até as 11h
     } else {
         return { data: dataNormalized, horarios: [] };
     }
@@ -100,7 +100,7 @@ async function getHorarios(dataQuery, duracao = 30) {
         const hEnd = hMin + duracaoInt;
         
         if (hMin <= currentMinutes) return false;
-        if (hMin >= horarioFechamento) return false;
+        if (hEnd > horarioFechamento) return false;
         
         for (const exist of agendamentos) {
             if (!(hEnd <= exist.start || hMin >= exist.end)) {

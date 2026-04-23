@@ -1,3 +1,6 @@
+import { Api } from './ApiService.js';
+import { Mask } from '../utils/Mask.js';
+
 const appData = {
     categories: [
         { id: 'manicure', name: 'Manicure & Pedicure', description: 'Nails, gel, alongamento e spa dos pés', icon: 'nails' },
@@ -161,4 +164,4 @@ const SALON_LOCATION = {
     coordenadas: { lat: -26.2807517, lng: -48.884255 }
 };
 
-export { AppState, DOM, appData };
+export { App, AppState, DOM, appData };

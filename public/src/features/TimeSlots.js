@@ -1,3 +1,6 @@
+import { DOM, App } from '../core/App.js';
+import { Api } from '../core/ApiService.js';
+
 class TimeSlots {
     constructor() {
         this._onSelect = null;

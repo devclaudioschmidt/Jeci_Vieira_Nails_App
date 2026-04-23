@@ -1,3 +1,10 @@
+import { DOM, App, appData } from '../core/App.js';
+import { Components } from '../ui/Components.js';
+import { Reminder, Waitlist } from './Helpers.js';
+import { Formatters } from '../utils/Formatters.js';
+import { HistoryInstance as History } from './History.js';
+import { Modals } from '../ui/Modals.js';
+
 const Navigation = {
     _steps: ['step1', 'step-manicure', 'step-podologia', 'step2', 'step3'],
     _sectionContent: {},

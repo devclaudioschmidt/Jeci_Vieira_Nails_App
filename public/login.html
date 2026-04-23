@@ -209,11 +209,10 @@
         <a href="index.html" class="back-to-site">← Voltar para agendamento</a>
     </div>
 
-    <script src="config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script>
-        const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
+    <script type="module">
+        import { firebaseConfig, API_URL } from './src/config.js';
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
@@ -233,13 +232,19 @@
 
             try {
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const idToken = await userCredential.user.getIdToken();
+                const user = userCredential.user;
+                const idToken = await user.getIdToken();
                 
-                localStorage.setItem('cliente_uid', userCredential.user.uid);
+                // Buscar dados completos do perfil via API
+                const response = await fetch(`${API_URL}?action=getCliente&uid=${user.uid}`, {
+                    headers: { 'Authorization': `Bearer ${idToken}` }
+                });
+                const clientData = await response.json();
+                
+                localStorage.setItem('cliente_uid', user.uid);
                 localStorage.setItem('cliente_email', email);
-                
-                const nome = userCredential.user.displayName || '';
-                localStorage.setItem('cliente_nome', nome);
+                localStorage.setItem('cliente_nome', clientData.nome || user.displayName || '');
+                localStorage.setItem('cliente_telefone', clientData.telefone || '');
                 
                 window.location.href = 'cliente.html';
             } catch (error) {

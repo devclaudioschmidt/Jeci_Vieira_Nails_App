@@ -12,6 +12,19 @@ import { Modals } from './ui/Modals.js';
 import { App, AppState, DOM, appData } from './core/App.js';
 
 window.WHATSAPP_NUMBER = WHATSAPP_NUMBER;
+window.Navigation = Navigation;
+window.Components = Components;
+window.Modals = Modals;
+window.Api = Api;
+window.App = App;
+window.Calendar = Calendar;
+window.TimeSlots = TimeSlots;
+window.History = History;
+window.UI = UI;
+window.Contact = Contact;
+window.HistoryManager = HistoryManager;
+window.Formatters = Formatters;
+window.Mask = Mask;
 
 document.addEventListener('DOMContentLoaded', async function() {
     DOM.init();

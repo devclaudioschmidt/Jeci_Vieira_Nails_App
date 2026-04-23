@@ -1,4 +1,5 @@
 export const WHATSAPP_NUMBER = '5547992385132';
+export const API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
 
 export const firebaseConfig = {
     apiKey: 'AIzaSyCyvIn4WQ2bMmzkLOuiiCpftCGFjRMWef8',

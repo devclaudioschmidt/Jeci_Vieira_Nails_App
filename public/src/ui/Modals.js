@@ -1,3 +1,6 @@
+import { DOM } from '../core/App.js';
+import { Formatters } from '../utils/Formatters.js';
+
 const Modals = {
     show(modalId) {
         const modal = DOM.get(modalId);

@@ -221,10 +221,12 @@
         </svg>
     </a>
 
-    <script src="config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script>
+    <script type="module">
+        import { firebaseConfig, WHATSAPP_NUMBER, API_URL } from './src/config.js';
+        
+        window.API_URL = API_URL;
         firebase.initializeApp(firebaseConfig);
         var auth = firebase.auth();
         var storage = (function() {
@@ -237,7 +239,6 @@
             }
         })();
 
-        var API_URL = 'https://us-central1-app-jeci-vieira-nails.cloudfunctions.net/api';
         var appData = {
             categories: [
                 { id: 'manicure', name: 'Manicure & Pedicure', description: 'Nails, gel, alongamento e spa dos pes' },
@@ -263,6 +264,19 @@
                 }
                 clienteUid = storage.getItem('cliente_uid') || user.uid;
                 clienteTelefone = storage.getItem('cliente_telefone') || '';
+                
+                if (!clienteTelefone) {
+                    fetch(API_URL + '?action=getCliente&uid=' + clienteUid)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data && data.telefone) {
+                                clienteTelefone = data.telefone;
+                                storage.setItem('cliente_telefone', clienteTelefone);
+                            }
+                        })
+                        .catch(e => console.error('Erro ao buscar telefone:', e));
+                }
+
                 renderCategories();
                 loadData();
                 loadSalaoData();

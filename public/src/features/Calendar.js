@@ -1,3 +1,6 @@
+import { DOM, App } from '../core/App.js';
+import { Formatters } from '../utils/Formatters.js';
+
 class Calendar {
     constructor() {
         this._month = new Date().getMonth();

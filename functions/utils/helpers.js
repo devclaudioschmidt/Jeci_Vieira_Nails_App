@@ -11,8 +11,8 @@ function generateId() {
 
 function sendResponse(res, statusCode, data) {
     res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PATCH, DELETE');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.set('Content-Type', 'application/json');
     res.status(statusCode).send(JSON.stringify(data));
 }

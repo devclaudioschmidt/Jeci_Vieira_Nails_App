@@ -55,7 +55,7 @@ const Navigation = {
 
         DOM.get('selectedServiceName').textContent = service.name;
         DOM.get('selectedServicePrice').textContent = `R$ ${service.price}`;
-
+        
         this.hideAllSteps();
         DOM.show('step2');
         

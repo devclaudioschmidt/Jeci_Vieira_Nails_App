@@ -1,14 +1,16 @@
 const functions = require('firebase-functions');
+const cors = require('cors')({ origin: true });
 const { sendResponse } = require('./utils/helpers');
 const AppointmentService = require('./services/AppointmentService');
 const ClientService = require('./services/ClientService');
 
 const api = functions.https.onRequest(async (req, res) => {
-    if (req.method === 'OPTIONS') {
-        return sendResponse(res, 204, '');
-    }
+    return cors(req, res, async () => {
+        if (req.method === 'OPTIONS') {
+            return sendResponse(res, 204, '');
+        }
 
-    const action = req.query.action || req.body.action;
+        const action = req.query.action || req.body.action;
 
     try {
         switch (action) {
@@ -103,6 +105,7 @@ const api = functions.https.onRequest(async (req, res) => {
         console.error('Error:', error);
         return sendResponse(res, 500, { sucesso: false, erro: error.message });
     }
+    });
 });
 
 module.exports = { api };

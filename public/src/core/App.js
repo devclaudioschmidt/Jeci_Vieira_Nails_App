@@ -161,43 +161,4 @@ const SALON_LOCATION = {
     coordenadas: { lat: -26.2807517, lng: -48.884255 }
 };
 
-export const App = {
-    state: new AppState(),
-    initialized: false,
-
-    init() {
-        if (this.initialized) return;
-        this.initialized = true;
-
-        DOM.init();
-        Mask.init();
-
-        this.state.subscribe('*', (key, value) => {
-            console.log(`[State] ${key}:`, value);
-        });
-    },
-
-    async loadServices() {
-        try {
-            const data = await Api.getServicos();
-            if (Array.isArray(data) && data.length > 0) {
-                appData.services = data;
-            }
-        } catch (err) {
-            console.error('Falha ao carregar serviços:', err);
-        }
-    },
-
-    setLoading(loading) {
-        this.state.set('isLoading', loading);
-        const loader = DOM.get('globalLoader');
-        if (loader) {
-            loader.style.opacity = loading ? '1' : '0';
-            if (!loading) {
-                setTimeout(() => loader.style.display = 'none', 500);
-            }
-        }
-    }
-};
-
 export { AppState, DOM, appData };

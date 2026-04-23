@@ -93,14 +93,14 @@ async function handleConfirmAndSend() {
         if (result.sucesso) {
             History.add(summary.service, summary.date, summary.time, summary.price, summary.category);
 
-            const message = `Olá! Gostaria de confirmar meu agendamento:\n\n` +
-                `👤 Nome: ${name}\n` +
-                `📱 WhatsApp: ${phone}\n` +
-                `💅 Área: ${categoryText}\n` +
-                `✨ Serviço: ${summary.service}\n` +
-                `📅 Data: ${Formatters.date(summary.date)}\n` +
-                `🕐 Horário: ${summary.time}\n` +
-                `💰 Valor: ${Formatters.price(summary.price)}`;
+            const message = `Ola! Gostaria de confirmar meu agendamento:\n\n` +
+                `Nome: ${name}\n` +
+                `WhatsApp: ${phone}\n` +
+                `Area: ${categoryText}\n` +
+                `Servico: ${summary.service}\n` +
+                `Data: ${Formatters.date(summary.date)}\n` +
+                `Horario: ${summary.time}\n` +
+                `Valor: ${Formatters.price(summary.price)}`;
 
             const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
             const win = window.open(whatsappUrl, '_blank');

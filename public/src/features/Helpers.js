@@ -2,7 +2,7 @@ const Reminder = {
     check() {
         const upcoming = History.getUpcoming();
         if (!upcoming) return;
-
+        
         const banner = Components.reminderBanner(upcoming);
         document.body.insertAdjacentHTML('beforeend', banner);
     },
@@ -17,41 +17,41 @@ const Contact = {
     whatsapp(service, date, time) {
         const name = DOM.get('clientName')?.value || 'Cliente';
         const phone = DOM.get('clientPhone')?.value || '';
-
-        const message = `Olá! Tenho uma dúvida sobre meu agendamento:\n\n` +
-            `👤 Nome: ${name}\n` +
-            `📱 WhatsApp: ${phone}\n` +
-            `✨ Serviço: ${service}\n` +
-            `📅 Data: ${Formatters.date(date)}\n` +
-            `🕐 Horário: ${time}\n\n` +
-            `Gostaria de saber mais informações.`;
-
+        
+        const message = `Ola! Tenho uma duvida sobre meu agendamento:\n\n` +
+            `Nome: ${name}\n` +
+            `WhatsApp: ${phone}\n` +
+            `Servico: ${service}\n` +
+            `Data: ${Formatters.date(date)}\n` +
+            `Horario: ${time}\n\n` +
+            `Gostaria de saber mais informacoes.`;
+        
         this._openWhatsApp(message);
     },
 
     cancel(service, date, time) {
         const formattedDate = Formatters.date(date);
         
-        if (!confirm(`Deseja realmente cancelar o agendamento de ${service} no dia ${formattedDate} às ${time}?`)) {
+        if (!confirm(`Deseja realmente cancelar o agendamento de ${service} no dia ${formattedDate} as ${time}?`)) {
             return;
         }
         
         const name = DOM.get('clientName')?.value || 'Cliente';
         const phone = DOM.get('clientPhone')?.value || '';
-
-        const message = `Olá! Gostaria de CANCELAR meu agendamento:\n\n` +
-            `👤 Nome: ${name}\n` +
-            `📱 WhatsApp: ${phone}\n` +
-            `✨ Serviço: ${service}\n` +
-            `📅 Data: ${formattedDate}\n` +
-            `🕐 Horário: ${time}\n\n` +
+        
+        const message = `Ola! Gostaria de CANCELAR meu agendamento:\n\n` +
+            `Nome: ${name}\n` +
+            `WhatsApp: ${phone}\n` +
+            `Servico: ${service}\n` +
+            `Data: ${formattedDate}\n` +
+            `Horario: ${time}\n\n` +
             `Por favor, cancele meu agendamento. Obrigado(a)!`;
-
+        
         this._openWhatsApp(message);
     },
 
     info() {
-        const message = 'Olá! Gostaria de mais informações sobre os serviços.';
+        const message = 'Ola! Gostaria de mais informacoes sobre os servicos.';
         this._openWhatsApp(message);
     },
 
@@ -99,7 +99,7 @@ const Waitlist = {
 
         localStorage.setItem(this._key, JSON.stringify(waitlist));
 
-        alert('Você foi adicionado à lista de espera! Entraremos em contato quando houver disponibilidade.');
+        alert('Voce foi adicionado a lista de espera! Entraremos em contato quando houver disponibilidade.');
         Modals.closeSection();
     },
 

@@ -22,10 +22,10 @@ const Modals = {
             detailsEl.innerHTML = `
                 <p><span class="label">Nome:</span> <span class="value">${data.name}</span></p>
                 <p><span class="label">WhatsApp:</span> <span class="value">${data.phone}</span></p>
-                <p><span class="label">Área:</span> <span class="value">${data.category}</span></p>
-                <p><span class="label">Serviço:</span> <span class="value">${data.service}</span></p>
+                <p><span class="label">Area:</span> <span class="value">${data.category}</span></p>
+                <p><span class="label">Servico:</span> <span class="value">${data.service}</span></p>
                 <p><span class="label">Data:</span> <span class="value">${Formatters.date(data.date)}</span></p>
-                <p><span class="label">Horário:</span> <span class="value">${data.time}</span></p>
+                <p><span class="label">Horario:</span> <span class="value">${data.time}</span></p>
                 <p><span class="label">Valor:</span> <span class="value">R$ ${data.price}</span></p>
             `;
         }

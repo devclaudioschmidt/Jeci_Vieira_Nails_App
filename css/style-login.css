@@ -1,27 +1,43 @@
+/* ================================================
+   JEICI VIEIRA NAILS - TELA DE LOGIN
+   Estilos CSS com nomenclatura em português
+   ================================================ */
+
+/* ----------------------------------------
+   VARIÁVEIS CSS (CSS Custom Properties)
+   Cores, fontes e configurações reutilizáveis
+   ---------------------------------------- */
 :root {
-    --bg-body: #FFF9F6;
+    /* Cores do tema rose gold */
+    --cor-fundo-pagina: #FFF9F6;
     --rose-gold: #C98B8B;
-    --rose-gold-soft: #E8C4C4;
-    --glass-bg: rgba(255, 255, 255, 0.68);
-    --glass-border: rgba(255, 255, 255, 0.5);
-    --text-dark: #2D2D2D;
-    --text-muted: #6B6B6B;
-    --input-bg: rgba(255, 255, 255, 0.6);
-    --shadow-soft: 0 8px 32px rgba(201, 139, 139, 0.15);
-    --shadow-button: 0 4px 16px rgba(201, 139, 139, 0.3);
-    --login-bg-image: url('../data/img/login/img_login_01.png');
+    --rose-gold-claro: #E8C4C4;
+    --fundo-vidro: rgba(255, 255, 255, 0.68);
+    --borda-vidro: rgba(255, 255, 255, 0.5);
+    --cor-texto-escuro: #2D2D2D;
+    --cor-texto-suave: #6B6B6B;
+    --fundo-input: rgba(255, 255, 255, 0.6);
+    --sombra-suave: 0 8px 32px rgba(201, 139, 139, 0.15);
+    --sombra-botao: 0 4px 16px rgba(201, 139, 139, 0.3);
+    --imagem-fundo-login: url('../data/img/login/img_login_01.png');
 
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-body: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Fontes */
+    --fonte-titulo: 'Playfair Display', Georgia, serif;
+    --fonte-texto: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
 
-    --radius-card: 30px;
-    --radius-input: 16px;
-    --radius-button: 50px;
+    /* Raio das bordas (border-radius) */
+    --raio-card: 30px;
+    --raio-input: 16px;
+    --raio-botao: 50px;
 
-    --transition-fast: 0.2s ease;
-    --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Transições animadas */
+    --transicao-rapida: 0.2s ease;
+    --transicao-suave: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ----------------------------------------
+   RESET E CONFIGURAÇÕES GLOBAIS
+   ---------------------------------------- */
 *,
 *::before,
 *::after {
@@ -37,9 +53,13 @@ html {
     text-rendering: optimizeLegibility;
 }
 
+/* ----------------------------------------
+   CORPO DA PÁGINA (Body)
+   Container principal que centraliza o card
+   ---------------------------------------- */
 body {
-    font-family: var(--font-body);
-    background-color: var(--bg-body);
+    font-family: var(--fonte-texto);
+    background-color: var(--cor-fundo-pagina);
     min-height: 100vh;
     display: flex;
     align-items: flex-end;
@@ -48,6 +68,11 @@ body {
     background-attachment: fixed;
 }
 
+/* ----------------------------------------
+   IMAGEM DE FUNDO COM EFEITO FADE
+   Camada 'before' - exibe a imagem do login
+   com máscara de fade gradiente na parte inferior
+   ---------------------------------------- */
 body::before {
     content: '';
     position: fixed;
@@ -55,13 +80,18 @@ body::before {
     left: 0;
     width: 100%;
     height: 58%;
-    background: var(--login-bg-image) left top / auto 100% no-repeat;
+    background: var(--imagem-fundo-login) left top / auto 100% no-repeat;
     -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
     mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
     z-index: -1;
     pointer-events: none;
 }
 
+/* ----------------------------------------
+   OVERLAY ROSEGOLD
+   Camada 'after' - gradiente sutil rose gold
+   sobre a imagem de fundo
+   ---------------------------------------- */
 body::after {
     content: '';
     position: fixed;
@@ -78,7 +108,12 @@ body::after {
     pointer-events: none;
 }
 
-.login-container {
+/* ----------------------------------------
+   CONTAINER DO LOGIN
+   Container principal que envolve o card
+   Alinhado na parte inferior da tela
+   ---------------------------------------- */
+.containerLogin {
     width: 100%;
     max-width: 420px;
     display: flex;
@@ -86,135 +121,179 @@ body::after {
     justify-content: center;
 }
 
-.login-card {
+/* ----------------------------------------
+   CARD DE LOGIN
+   Card com efeito glassmorphism (vidro)
+   Contains todo o formulário de login
+   ---------------------------------------- */
+.cardLogin {
     width: calc(100% - 16px);
     margin: 0 8px 12px 8px;
-    background: var(--glass-bg);
+    background: var(--fundo-vidro);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-card);
+    border: 1px solid var(--borda-vidro);
+    border-radius: var(--raio-card);
     padding: 40px 32px 32px;
-    box-shadow: var(--shadow-soft);
-    animation: fadeInUp 0.6s var(--transition-smooth);
+    box-shadow: var(--sombra-suave);
+    animation: animacaoSubir 0.6s var(--transicao-suave);
 }
 
-@keyframes fadeInUp {
+/* Animação de entrada do card (fade in + subir) */
+@keyframes animacaoSubir {
     from {
         opacity: 0;
         transform: translateY(20px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-.logo-placeholder {
+/* ----------------------------------------
+   PLACEHOLDER DO LOGO
+   Container centralizado para a imagem
+   do logo da empresa
+   ---------------------------------------- */
+.placeholderLogo {
     margin: 0 auto 28px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.logo-placeholder img {
+/* Imagem do logo dentro do placeholder */
+.placeholderLogo img {
     width: 100%;
     max-width: 300px;
     height: auto;
     display: block;
 }
 
-.login-title {
-    font-family: var(--font-display);
+/* ----------------------------------------
+   TÍTULO PRINCIPAL
+   "Bem-vindo!" - texto de boas-vindas
+   ---------------------------------------- */
+.tituloLogin {
+    font-family: var(--fonte-titulo);
     font-size: 2rem;
     font-weight: 600;
-    color: var(--text-dark);
+    color: var(--cor-texto-escuro);
     text-align: center;
     margin-bottom: 8px;
 }
 
-.login-subtitle {
-    font-family: var(--font-body);
+/* ----------------------------------------
+   SUBTÍTULO
+   Texto descritivo abaixo do título
+   ---------------------------------------- */
+.subtituloLogin {
+    font-family: var(--fonte-texto);
     font-size: 0.875rem;
     font-weight: 400;
-    color: var(--text-muted);
+    color: var(--cor-texto-suave);
     text-align: center;
     margin-bottom: 36px;
 }
 
-.formulario-login {
+/* ----------------------------------------
+   FORMULÁRIO DE LOGIN
+   Container do formulário com campos
+   email e senha
+   ---------------------------------------- */
+.formularioLogin {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-.campo-formulario {
+/* ----------------------------------------
+   CAMPO DE FORMULÁRIO
+   Container individual de cada campo
+   (label + input)
+   ---------------------------------------- */
+.campoFormulario {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.campo-formulario label {
-    font-family: var(--font-body);
+/* Label do campo (E-mail / Senha) */
+.campoFormulario label {
+    font-family: var(--fonte-texto);
     font-size: 0.8125rem;
     font-weight: 500;
-    color: var(--text-dark);
+    color: var(--cor-texto-escuro);
     letter-spacing: 0.02em;
 }
 
-.campo-formulario input {
+/* Input do campo de formulário */
+.campoFormulario input {
     width: 100%;
     padding: 16px 20px;
-    font-family: var(--font-body);
+    font-family: var(--fonte-texto);
     font-size: 1rem;
     font-weight: 400;
-    color: var(--text-dark);
-    background: var(--input-bg);
+    color: var(--cor-texto-escuro);
+    background: var(--fundo-input);
     border: 1px solid rgba(201, 139, 139, 0.2);
-    border-radius: var(--radius-input);
+    border-radius: var(--raio-input);
     outline: none;
-    transition: var(--transition-fast);
+    transition: var(--transicao-rapida);
 }
 
-.campo-formulario input::placeholder {
-    color: var(--text-muted);
+/* Placeholder (texto de exemplo dentro do input) */
+.campoFormulario input::placeholder {
+    color: var(--cor-texto-suave);
     opacity: 0.6;
 }
 
-.campo-formulario input:focus {
+/* Estado de foco (quando o campo está selecionado) */
+.campoFormulario input:focus {
     border-color: var(--rose-gold);
     box-shadow: 0 0 0 3px rgba(201, 139, 139, 0.1);
 }
 
-.botao-entrar {
+/* ----------------------------------------
+   BOTÃO ENTRAR
+   Botão principal para submitting o formulário
+   ---------------------------------------- */
+.botaoEntrar {
     width: 100%;
     padding: 18px 32px;
     margin-top: 8px;
-    font-family: var(--font-body);
+    font-family: var(--fonte-texto);
     font-size: 1rem;
     font-weight: 600;
     color: #FFFFFF;
-    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--rose-gold-soft) 100%);
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--rose-gold-claro) 100%);
     border: none;
-    border-radius: var(--radius-button);
+    border-radius: var(--raio-botao);
     cursor: pointer;
-    box-shadow: var(--shadow-button);
-    transition: var(--transition-smooth);
+    box-shadow: var(--sombra-botao);
+    transition: var(--transicao-suave);
     -webkit-tap-highlight-color: transparent;
 }
 
-.botao-entrar:hover {
+/* Estado hover (passagem do mouse sobre o botão) */
+.botaoEntrar:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(201, 139, 139, 0.4);
 }
 
-.botao-entrar:active {
+/* Estado active (botão sendo clicado) */
+.botaoEntrar:active {
     transform: scale(0.97);
     box-shadow: 0 2px 8px rgba(201, 139, 139, 0.3);
 }
 
-.links-login {
+/* ----------------------------------------
+   LINKS DO LOGIN
+   Container dos links "Esqueci a senha"
+   e "Criar conta"
+   ---------------------------------------- */
+.linksLogin {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -223,53 +302,64 @@ body::after {
     border-top: 1px solid rgba(201, 139, 139, 0.15);
 }
 
-.links-login a {
-    font-family: var(--font-body);
+/* Estilos globais para todos os links */
+.linksLogin a {
+    font-family: var(--fonte-texto);
     font-size: 0.875rem;
     font-weight: 500;
     text-decoration: none;
-    transition: var(--transition-fast);
+    transition: var(--transicao-rapida);
 }
 
-.link-esqueci {
-    color: var(--text-muted);
+/* Link "Esqueci a senha" */
+.linkEsqueciSenha {
+    color: var(--cor-texto-suave);
 }
 
-.link-esqueci:hover {
+.linkEsqueciSenha:hover {
     color: var(--rose-gold);
 }
 
-.link-criar {
+/* Link "Criar conta" */
+.linkCriarConta {
     color: var(--rose-gold);
 }
 
-.link-criar:hover {
-    color: var(--rose-gold-soft);
+.linkCriarConta:hover {
+    color: var(--rose-gold-claro);
     text-decoration: underline;
 }
 
+/* ----------------------------------------
+   RESPONSIVIDADE - TELAS PEQUENAS
+   Ajustes para dispositivos com até 380px
+   ---------------------------------------- */
 @media (max-width: 380px) {
-    .login-card {
+    .cardLogin {
         padding: 40px 24px 32px;
     }
 
-    .login-title {
+    .tituloLogin {
         font-size: 1.75rem;
     }
 
-    .links-login {
+    .linksLogin {
         flex-direction: column;
         gap: 12px;
         text-align: center;
     }
 }
 
+/* ----------------------------------------
+   RESPONSIVIDADE - TELAS MÉDIAS
+   Ajustes para dispositivos com 768px ou mais
+   ---------------------------------------- */
 @media (min-width: 768px) {
-    .login-card {
+    .cardLogin {
         max-width: 440px;
     }
 
-    .login-title {
+    .tituloLogin {
         font-size: 2.25rem;
     }
 }

@@ -2,55 +2,87 @@
 <html lang="pt-BR">
 
 <head>
+    <!-- Meta tags básicas -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jeci Vieira Nails - Login</title>
+    
+    <!-- Meta tags para PWA (Progressive Web App) - Ícone na tela inicial mobile -->
     <meta name="theme-color" content="#C98B8B">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Jeci Vieira Nails">
     <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Favicon e ícone para PWA -->
     <link rel="icon" type="image/svg+xml" href="data/img/favicon.svg">
     <link rel="apple-touch-icon" href="data/img/favicon.svg">
+    
+    <!-- Pré-conexão com Google Fonts para melhor performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Importação das fontes Montserrat e Playfair Display -->
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap">
+    
+    <!-- Arquivo de estilos CSS -->
     <link rel="stylesheet" href="css/style-login.css">
 </head>
 
+<!-- ================================================
+     CORPO DA PÁGINA
+     Container principal da tela de login
+     ================================================ -->
 <body>
-    <main class="login-container">
-        <div class="login-card">
-            <div class="logo-placeholder">
-                <img src="data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Logo Jeci Vieira Nails" class="logo-image">
+    <!-- Container principal do login -->
+    <main class="containerLogin">
+        
+        <!-- Card de login com efeito glassmorphism -->
+        <div class="cardLogin">
+            
+            <!-- Placeholder centralizado para o logo -->
+            <div class="placeholderLogo">
+                <img src="data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Logo Jeci Vieira Nails" class="imagemLogo">
             </div>
 
-            <h1 class="login-title">Bem-vindo!</h1>
-            <p class="login-subtitle">Entre com sua conta para continuar</p>
+            <!-- Título principal de boas-vindas -->
+            <h1 class="tituloLogin">Bem-vindo!</h1>
+            
+            <!-- Subtítulo descritivo -->
+            <p class="subtituloLogin">Entre com sua conta para continuar</p>
 
-            <form class="formulario-login" action="#" method="POST">
-                <div class="campo-formulario">
-                    <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" placeholder="seu@email.com" required
+            <!-- Formulário de login -->
+            <form class="formularioLogin" action="#" method="POST">
+                
+                <!-- Campo: E-mail -->
+                <div class="campoFormulario">
+                    <label for="campoEmail">E-mail</label>
+                    <input type="email" id="campoEmail" name="email" placeholder="seu@email.com" required
                         autocomplete="email">
                 </div>
 
-                <div class="campo-formulario">
-                    <label for="senha">Senha</label>
-                    <input type="password" id="senha" name="senha" placeholder="••••••••" required
+                <!-- Campo: Senha -->
+                <div class="campoFormulario">
+                    <label for="campoSenha">Senha</label>
+                    <input type="password" id="campoSenha" name="senha" placeholder="••••••••" required
                         autocomplete="current-password">
                 </div>
 
-                <button type="submit" class="botao-entrar">Entrar</button>
+                <!-- Botão de entrada -->
+                <button type="submit" class="botaoEntrar">Entrar</button>
             </form>
 
-            <div class="links-login">
-                <a href="#" class="link-esqueci">Esqueci a senha</a>
-                <a href="#" class="link-criar">Criar conta</a>
+            <!-- Links auxiliares do login -->
+            <div class="linksLogin">
+                <a href="#" class="linkEsqueciSenha">Esqueci a senha</a>
+                <a href="#" class="linkCriarConta">Criar conta</a>
             </div>
         </div>
     </main>
+    
+    <!-- Script JavaScript para seleção aleatória da imagem de fundo -->
+    <script src="assets/js/login.js"></script>
 </body>
-<script src="assets/js/login.js"></script>
+
 </html>

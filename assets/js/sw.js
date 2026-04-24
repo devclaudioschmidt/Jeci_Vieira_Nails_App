@@ -8,7 +8,6 @@
    Nome e versão do cache para controle de updates
    ---------------------------------------- */
 const nomeCache = 'jeci-nails-cache-v1';
-const versaoCache = 'v1';
 
 /* ----------------------------------------
    LISTA DE ARQUIVOS PARA CACHE
@@ -16,16 +15,16 @@ const versaoCache = 'v1';
    para funcionar offline
    ---------------------------------------- */
 const listaArquivosCache = [
-    '/Jeci_Vieira_Nails_App/',
-    '/Jeci_Vieira_Nails_App/index.html',
-    '/Jeci_Vieira_Nails_App/css/style-login.css',
-    '/Jeci_Vieira_Nails_App/assets/js/login.js',
-    '/Jeci_Vieira_Nails_App/data/img/favicon.svg',
-    '/Jeci_Vieira_Nails_App/data/img/Logo_JeciVieira_NailsDesigner.svg',
-    '/Jeci_Vieira_Nails_App/data/img/login/img_login_01.png',
-    '/Jeci_Vieira_Nails_App/data/img/login/img_login_02.png',
-    '/Jeci_Vieira_Nails_App/data/img/icons/icon-192x192.svg',
-    '/Jeci_Vieira_Nails_App/data/img/icons/icon-512x512.svg'
+    './',
+    './index.html',
+    './css/style-login.css',
+    './assets/js/login.js',
+    './data/img/favicon.svg',
+    './data/img/Logo_JeciVieira_NailsDesigner.svg',
+    './data/img/login/img_login_01.png',
+    './data/img/login/img_login_02.png',
+    './data/img/icons/icon-192x192.svg',
+    './data/img/icons/icon-512x512.svg'
 ];
 
 /* ----------------------------------------

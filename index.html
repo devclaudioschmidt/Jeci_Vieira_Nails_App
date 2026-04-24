@@ -91,7 +91,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/Jeci_Vieira_Nails_App/assets/js/sw.js')
+                navigator.serviceWorker.register('assets/js/sw.js')
                     .then((registro) => {
                         console.log('[PWA] Service Worker registrado com sucesso:', registro.scope);
                     })

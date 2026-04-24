@@ -9,8 +9,8 @@
    disponíveis para o fundo da tela de login
    ---------------------------------------- */
 const listaDeImagens = [
-    '/Jeci_Vieira_Nails_App/data/img/login/img_login_01.png',
-    '/Jeci_Vieira_Nails_App/data/img/login/img_login_02.png'
+    '../data/img/login/img_login_01.png',
+    '../data/img/login/img_login_02.png'
 ];
 
 /* ----------------------------------------

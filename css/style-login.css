@@ -19,7 +19,7 @@
     --fundo-input: rgba(255, 255, 255, 0.6);
     --sombra-suave: 0 8px 32px rgba(201, 139, 139, 0.15);
     --sombra-botao: 0 4px 16px rgba(201, 139, 139, 0.3);
-    --imagem-fundo-login: url('/Jeci_Vieira_Nails_App/data/img/login/img_login_01.png');
+    --imagem-fundo-login: url('../data/img/login/img_login_01.png');
 
     /* Fontes */
     --fonte-titulo: 'Playfair Display', Georgia, serif;

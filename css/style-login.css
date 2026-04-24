@@ -14,7 +14,7 @@
     --font-display: 'Playfair Display', Georgia, serif;
     --font-body: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
 
-    --radius-card: 45px;
+    --radius-card: 30px;
     --radius-input: 16px;
     --radius-button: 50px;
 
@@ -94,7 +94,7 @@ body::after {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-card);
-    padding: 48px 32px 40px;
+    padding: 40px 32px 32px;
     box-shadow: var(--shadow-soft);
     animation: fadeInUp 0.6s var(--transition-smooth);
 }

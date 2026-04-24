@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="roseGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E8C4C4"/>
+      <stop offset="50%" style="stop-color:#C98B8B"/>
+      <stop offset="100%" style="stop-color:#A34E4A"/>
+    </linearGradient>
+    <linearGradient id="roseGoldShine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5E6E6"/>
+      <stop offset="30%" style="stop-color:#E8C4C4"/>
+      <stop offset="70%" style="stop-color:#D4A5A5"/>
+      <stop offset="100%" style="stop-color:#C98B8B"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="96" cy="96" r="90" fill="url(#roseGold)"/>
+  
+  <!-- Nail shape - elegant stiletto style -->
+  <path d="M96 35 
+           C120 35 143 52 150 75
+           C157 98 152 127 143 150
+           C137 170 127 176 116 174
+           C109 173 107 169 109 161
+           C113 146 111 120 105 97
+           C100 83 96 67 96 52
+           C96 67 92 83 87 97
+           C81 120 79 146 83 161
+           C85 169 83 173 76 174
+           C65 176 55 170 49 150
+           C40 127 35 98 42 75
+           C49 52 72 35 96 35Z" 
+        fill="url(#roseGoldShine)"/>
+  
+  <!-- Nail shine highlight -->
+  <ellipse cx="86" cy="75" rx="11" ry="22" fill="rgba(255,255,255,0.3)" transform="rotate(-15, 86, 75)"/>
+  
+  <!-- Decorative curve at the base -->
+  <path d="M75 157 Q96 148 117 157" stroke="rgba(163,78,74,0.4)" stroke-width="2" fill="none"/>
+</svg>

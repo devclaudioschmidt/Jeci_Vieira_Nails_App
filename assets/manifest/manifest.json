@@ -1,0 +1,66 @@
+/* ================================================
+   JEICI VIEIRA NAILS - ARQUIVO MANIFEST PWA
+   Configuração do Progressive Web App
+   Define como o app aparece na tela inicial
+   ================================================ */
+
+/* ----------------------------------------
+   METADADOS DO APLICATIVO
+   Informações básicas do PWA
+   ---------------------------------------- */
+{
+  "name": "Jeci Vieira Nails",
+  "short_name": "Jeci Nails",
+  "description": "Aplicativo de agendamento e gestão para salão de unhas Jeci Vieira Nails",
+  "start_url": "/index.html",
+  "scope": "/",
+  "lang": "pt-BR",
+
+  /* ----------------------------------------
+     CONFIGURAÇÃO DE EXIBIÇÃO
+     Define como o app será exibido
+     standalone = sem barra do navegador
+     ---------------------------------------- */
+  "display": "standalone",
+  "orientation": "portrait",
+  "dir": "ltr",
+
+  /* ----------------------------------------
+     CORES DO TEMA
+     Cores usadas na tela inicial e splash
+     ---------------------------------------- */
+  "background_color": "#FFF9F6",
+  "theme_color": "#C98B8B",
+
+  /* ----------------------------------------
+     ÍCONES DO APLICATIVO
+     Imagens usadas como ícone na tela inicial
+     Necessário pelo menos 192x192 e 512x512
+     ---------------------------------------- */
+  "icons": [
+    {
+      "src": "data/img/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data/img/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+
+  /* ----------------------------------------
+     CATEGORIAS DO APLICATIVO
+     Classificação do app para商店
+     ---------------------------------------- */
+  "categories": ["business", "lifestyle", "beauty"],
+  
+  /* ----------------------------------------
+     CAPACIDADES DO DISPOSITIVO
+     Indica se o app funciona offline
+     ---------------------------------------- */
+  "prefer_related_applications": false
+}

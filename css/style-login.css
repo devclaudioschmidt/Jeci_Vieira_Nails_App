@@ -9,19 +9,21 @@
     --input-bg: rgba(255, 255, 255, 0.6);
     --shadow-soft: 0 8px 32px rgba(201, 139, 139, 0.15);
     --shadow-button: 0 4px 16px rgba(201, 139, 139, 0.3);
-    
+
     --font-display: 'Playfair Display', Georgia, serif;
     --font-body: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
-    
+
     --radius-card: 45px;
     --radius-input: 16px;
     --radius-button: 50px;
-    
+
     --transition-fast: 0.2s ease;
     --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -42,7 +44,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 24px 16px;
-    background-image: 
+    background-image:
         radial-gradient(ellipse at 20% 80%, rgba(229, 178, 153, 0.2) 0%, transparent 50%),
         radial-gradient(ellipse at 80% 20%, rgba(201, 139, 139, 0.15) 0%, transparent 50%);
 }
@@ -72,6 +74,7 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -79,22 +82,17 @@ body {
 }
 
 .logo-placeholder {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 24px;
+    margin: 0 auto 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--rose-gold);
-    border-radius: 50%;
 }
 
-.logo-text {
-    font-family: var(--font-display);
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: var(--rose-gold);
-    letter-spacing: 0.1em;
+.logo-placeholder img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    display: block;
 }
 
 .login-title {
@@ -224,11 +222,11 @@ body {
     .login-card {
         padding: 40px 24px 32px;
     }
-    
+
     .login-title {
         font-size: 1.75rem;
     }
-    
+
     .links-login {
         flex-direction: column;
         gap: 12px;
@@ -240,7 +238,7 @@ body {
     .login-card {
         max-width: 440px;
     }
-    
+
     .login-title {
         font-size: 2.25rem;
     }

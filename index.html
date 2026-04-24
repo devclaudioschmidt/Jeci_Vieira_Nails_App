@@ -1,49 +1,38 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jeci Vieira Nails - Login</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap">
     <link rel="stylesheet" href="css/style-login.css">
 </head>
+
 <body>
     <main class="login-container">
         <div class="login-card">
-            <!-- AREA RESERVADA PARA LOGO -->
-            <!-- Substitua o comentario acima pela tag <img> quando o logo estiver disponivel -->
             <div class="logo-placeholder">
-                <span class="logo-text">JVN</span>
+                <img src="data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Logo Jeci Vieira Nails" class="logo-image">
             </div>
 
-            <h1 class="login-title">Bem-vinda</h1>
+            <h1 class="login-title">Bem-vindo!</h1>
             <p class="login-subtitle">Entre com sua conta para continuar</p>
 
             <form class="formulario-login" action="#" method="POST">
                 <div class="campo-formulario">
                     <label for="email">E-mail</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        placeholder="seu@email.com" 
-                        required 
-                        autocomplete="email"
-                    >
+                    <input type="email" id="email" name="email" placeholder="seu@email.com" required
+                        autocomplete="email">
                 </div>
 
                 <div class="campo-formulario">
                     <label for="senha">Senha</label>
-                    <input 
-                        type="password" 
-                        id="senha" 
-                        name="senha" 
-                        placeholder="••••••••" 
-                        required 
-                        autocomplete="current-password"
-                    >
+                    <input type="password" id="senha" name="senha" placeholder="••••••••" required
+                        autocomplete="current-password">
                 </div>
 
                 <button type="submit" class="botao-entrar">Entrar</button>
@@ -56,4 +45,5 @@
         </div>
     </main>
 </body>
+
 </html>

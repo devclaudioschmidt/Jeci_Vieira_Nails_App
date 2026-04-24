@@ -10,11 +10,10 @@
    ---------------------------------------- */
 const listaDeImagens = [
     '../data/img/login/img_login_01.png',
-    '../data/img/login/img_login_02.png',
-    '../data/img/login/img_login_03.png'
+    '../data/img/login/img_login_02.png'
 ];
 
-/* ----------------------------------------
+/* ---------------------------------------- 
    SELEÇÃO ALEATÓRIA DA IMAGEM
    Gera um índice aleatório baseado no tamanho
    da lista de imagens e define como imagem

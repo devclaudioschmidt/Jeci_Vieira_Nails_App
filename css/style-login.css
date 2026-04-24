@@ -2,13 +2,14 @@
     --bg-body: #FFF9F6;
     --rose-gold: #C98B8B;
     --rose-gold-soft: #E8C4C4;
-    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-bg: rgba(255, 255, 255, 0.68);
     --glass-border: rgba(255, 255, 255, 0.5);
     --text-dark: #2D2D2D;
     --text-muted: #6B6B6B;
     --input-bg: rgba(255, 255, 255, 0.6);
     --shadow-soft: 0 8px 32px rgba(201, 139, 139, 0.15);
     --shadow-button: 0 4px 16px rgba(201, 139, 139, 0.3);
+    --login-bg-image: url('../data/img/login/img_login_01.png');
 
     --font-display: 'Playfair Display', Georgia, serif;
     --font-body: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -41,24 +42,53 @@ body {
     background-color: var(--bg-body);
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
-    padding: 24px 16px;
-    background-image:
-        radial-gradient(ellipse at 20% 80%, rgba(229, 178, 153, 0.2) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgba(201, 139, 139, 0.15) 0%, transparent 50%);
+    padding: 24px 16px 16px 16px;
+    background-attachment: fixed;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 58%;
+    background: var(--login-bg-image) left top / auto 100% no-repeat;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        linear-gradient(to bottom, 
+            rgba(201, 139, 139, 0.08) 0%, 
+            transparent 25%
+        );
+    z-index: -2;
+    pointer-events: none;
 }
 
 .login-container {
     width: 100%;
     max-width: 420px;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
 }
 
 .login-card {
-    width: 95%;
+    width: calc(100% - 16px);
+    margin: 0 8px 12px 8px;
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);

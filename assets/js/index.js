@@ -26,14 +26,14 @@ function mostrarMensagem(texto, tipo) {
 
 /* ----------------------------------------
    CRIAR ELEMENTO DE FEEDBACK
-   Cria elemento para mostrar mensagens
+   Cria elemento para mostrar mensagens ( overlay )
    ---------------------------------------- */
 function criarElementoFeedback() {
     const div = document.createElement('div');
     div.id = 'mensagemFeedback';
     div.className = 'mensagemFeedback';
     div.style.display = 'none';
-    document.querySelector('.containerLogin').appendChild(div);
+    document.body.appendChild(div);
 }
 
 /* ----------------------------------------

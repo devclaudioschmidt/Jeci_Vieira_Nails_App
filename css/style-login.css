@@ -450,31 +450,58 @@ body::after {
 
 /* ----------------------------------------
    MENSAGENS DE FEEDBACK
-   Estilos para mensagens de sucesso e erro
+   Estilos para mensagens de sucesso e erro (overlay no topo)
    ---------------------------------------- */
 .mensagemFeedback {
-    width: 100%;
-    max-width: 420px;
-    margin: 0 8px 12px 8px;
-    padding: 16px 20px;
+    /* Posicionamento no topo (como notificação) */
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    
+    /* Aparência glassmorphism */
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    padding: 16px 24px;
+    box-shadow: 0 8px 32px rgba(201, 139, 139, 0.15);
+    
+    /* Texto */
     font-family: var(--fonte-texto);
     font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: var(--raio-input);
+    font-weight: 600;
     text-align: center;
-    animation: animacaoSubir 0.3s ease;
+    max-width: 360px;
+    width: calc(100% - 32px);
+    
+    /* Animação: desce do topo */
+    animation: descerNotificacao 0.4s ease;
+}
+
+@keyframes descerNotificacao {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
 .mensagemFeedback.sucesso {
-    background: rgba(76, 175, 80, 0.15);
-    color: #2e7d32;
-    border: 1px solid rgba(76, 175, 80, 0.3);
+    background: rgba(76, 175, 80, 0.92);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .mensagemFeedback.erro {
-    background: rgba(244, 67, 54, 0.15);
-    color: #c62828;
-    border: 1px solid rgba(244, 67, 54, 0.3);
+    background: rgba(244, 67, 54, 0.92);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Estado desabilitado do botão */

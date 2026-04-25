@@ -7,9 +7,9 @@
          ================================================ -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeci Vieira Nails - Login</title>
+    <title>Criar Conta - Jeci Vieira Nails</title>
     
-    <!-- Meta tags para PWA (Progressive Web App) -->
+    <!-- Meta tags para PWA -->
     <meta name="theme-color" content="#C98B8B">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,11 +17,11 @@
     <meta name="mobile-web-app-capable" content="yes">
     
     <!-- Favicon e ícone para PWA -->
-    <link rel="icon" type="image/svg+xml" href="data/img/favicon.svg">
-    <link rel="apple-touch-icon" href="data/img/icons/icon-192x192.png">
+    <link rel="icon" type="image/svg+xml" href="../data/img/favicon.svg">
+    <link rel="apple-touch-icon" href="../data/img/icons/icon-192x192.png">
     
     <!-- Arquivo Manifest PWA -->
-    <link rel="manifest" href="assets/manifest/manifest.json">
+    <link rel="manifest" href="../assets/manifest/manifest.json">
     
     <!-- Pré-conexão com Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,31 +32,33 @@
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap">
     
     <!-- Estilos CSS -->
-    <link rel="stylesheet" href="css/style-login.css">
+    <link rel="stylesheet" href="../css/style-login.css">
 </head>
 
 <!-- ================================================
      CORPO DA PÁGINA
      ================================================ -->
 <body>
-    <!-- Container principal do login -->
     <main class="containerLogin">
-        
-        <!-- Card com efeito glassmorphism -->
         <div class="cardLogin">
-            
             <!-- Logo da empresa -->
             <div class="placeholderLogo">
-                <img src="data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Logo Jeci Vieira Nails" class="imagemLogo">
+                <img src="../data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Logo Jeci Vieira Nails" class="imagemLogo">
             </div>
 
             <!-- Título e subtítulo -->
-            <h1 class="tituloLogin">Bem-vindo!</h1>
-            <p class="subtituloLogin">Entre com sua conta para continuar</p>
+            <h1 class="tituloLogin">Criar Conta</h1>
+            <p class="subtituloLogin">Preencha seus dados para se cadastrar</p>
 
-            <!-- Formulário de login -->
-            <form class="formularioLogin" action="#" method="POST">
-                
+            <!-- Formulário de cadastro -->
+            <form class="formularioLogin" id="formCadastro">
+                <!-- Campo: Nome completo -->
+                <div class="campoFormulario">
+                    <label for="campoNome">Nome Completo</label>
+                    <input type="text" id="campoNome" name="nome" placeholder="Seu nome completo" required
+                        autocomplete="name">
+                </div>
+
                 <!-- Campo: E-mail -->
                 <div class="campoFormulario">
                     <label for="campoEmail">E-mail</label>
@@ -68,17 +70,23 @@
                 <div class="campoFormulario">
                     <label for="campoSenha">Senha</label>
                     <input type="password" id="campoSenha" name="senha" placeholder="••••••••" required
-                        autocomplete="current-password">
+                        autocomplete="new-password">
                 </div>
 
-                <!-- Botão de entrada -->
-                <button type="submit" class="botaoEntrar">Entrar</button>
+                <!-- Campo: Confirmar senha -->
+                <div class="campoFormulario">
+                    <label for="campoConfirmarSenha">Confirmar Senha</label>
+                    <input type="password" id="campoConfirmarSenha" name="confirmarSenha" placeholder="••••••••" required
+                        autocomplete="new-password">
+                </div>
+
+                <!-- Botão de cadastro -->
+                <button type="submit" class="botaoEntrar">Cadastrar</button>
             </form>
 
-            <!-- Links auxiliares -->
+            <!-- Link para login -->
             <div class="linksLogin">
-                <a href="#" class="linkEsqueciSenha">Esqueci a senha</a>
-                <a href="pages/cadastro.html" class="linkCriarConta">Criar conta</a>
+                <a href="../index.html" class="linkCriarConta"> Já tem conta? Entrar</a>
             </div>
         </div>
     </main>
@@ -88,27 +96,26 @@
     
     <!-- ================================================
          SCRIPTS DO FIREBASE
-         Biblioteca Firebase (compatibilidade com navegadores)
          ================================================ -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
     <!-- Configuração e funções de autenticação -->
-    <script src="assets/js/firebase-config.js"></script>
-    <script src="assets/js/auth.js"></script>
+    <script src="../assets/js/firebase-config.js"></script>
+    <script src="../assets/js/auth.js"></script>
     
     <!-- ================================================
          SCRIPTS DO APLICATIVO
          ================================================ -->
     <!-- Seleciona imagem de background aleatória -->
-    <script src="assets/js/login.js"></script>
-    
-    <!-- Lógica da página de login (formulário, validação, redirect) -->
-    <script src="assets/js/index.js"></script>
+    <script src="../assets/js/login.js"></script>
     
     <!-- Registro do Service Worker para funcionamento offline (PWA) -->
-    <script src="assets/js/sw-register.js"></script>
+    <script src="../assets/js/sw-register.js"></script>
+    
+    <!-- Lógica da página de cadastro (validação e envio) -->
+    <script src="../assets/js/cadastro.js"></script>
 </body>
 
 </html>

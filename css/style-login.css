@@ -447,3 +447,38 @@ body::after {
     cursor: pointer;
     padding: 4px;
 }
+
+/* ----------------------------------------
+   MENSAGENS DE FEEDBACK
+   Estilos para mensagens de sucesso e erro
+   ---------------------------------------- */
+.mensagemFeedback {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 8px 12px 8px;
+    padding: 16px 20px;
+    font-family: var(--fonte-texto);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: var(--raio-input);
+    text-align: center;
+    animation: animacaoSubir 0.3s ease;
+}
+
+.mensagemFeedback.sucesso {
+    background: rgba(76, 175, 80, 0.15);
+    color: #2e7d32;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.mensagemFeedback.erro {
+    background: rgba(244, 67, 54, 0.15);
+    color: #c62828;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+/* Estado desabilitado do botão */
+.botaoEntrar:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}

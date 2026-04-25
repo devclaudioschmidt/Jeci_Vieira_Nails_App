@@ -1,0 +1,88 @@
+/* ================================================
+   JEICI VIEIRA NAILS - ESTILOS DO DASHBOARD
+   Estilos CSS para página do cliente logado
+   ================================================ */
+
+/* ----------------------------------------
+  -body - Container principal centralizado
+   ---------------------------------------- */
+.dashboard-body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background-color: var(--cor-fundo-pagina);
+}
+
+/* ----------------------------------------
+   CARD DA PÁGINA PROTEGIDA
+   Card com efecto glassmorphism
+   ---------------------------------------- */
+.cardDashboard {
+    text-align: center;
+    padding: 40px 24px;
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 30px;
+    box-shadow: 0 8px 32px rgba(201, 139, 139, 0.15);
+    max-width: 400px;
+    width: 100%;
+}
+
+/* ----------------------------------------
+   NOME DO USUÁRIO
+   Título de boas-vindas
+   ---------------------------------------- */
+.nomeUsuario {
+    font-family: var(--fonte-titulo);
+    font-size: 1.75rem;
+    color: #B76E79;
+    margin-bottom: 16px;
+}
+
+/* ----------------------------------------
+   MENSAGEM DE BOAS-VINDAS
+   Subtítulo explicativo
+   ---------------------------------------- */
+.mensagemWelcome {
+    font-family: var(--fonte-texto);
+    font-size: 1rem;
+    color: #2D2D2D;
+    margin-bottom: 32px;
+}
+
+/* ----------------------------------------
+   BOTÃO SAIR
+   Botão para encerrar sessão
+   ---------------------------------------- */
+.botaoSair {
+    padding: 14px 28px;
+    font-family: var(--fonte-texto);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #FFFFFF;
+    background: linear-gradient(135deg, #B76E79 0%, #E8C4C4 100%);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(201, 139, 139, 0.3);
+    transition: 0.3s ease;
+}
+
+.botaoSair:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(201, 139, 139, 0.4);
+}
+
+/* ----------------------------------------
+   MENSAGEM DE CARREGAMENTO
+   Texto shown while verifica sessão
+   ---------------------------------------- */
+.mensagemCarregando {
+    font-family: var(--fonte-texto);
+    font-size: 1rem;
+    color: #6B6B6B;
+}

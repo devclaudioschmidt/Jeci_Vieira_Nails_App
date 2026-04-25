@@ -7,9 +7,9 @@
          ================================================ -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeci Vieira Nails - Login</title>
+    <title>Recuperar Senha - Jeci Vieira Nails</title>
     
-    <!-- Meta tags para PWA (Progressive Web App) -->
+    <!-- Meta tags para PWA -->
     <meta name="theme-color" content="#C98B8B">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,11 +17,11 @@
     <meta name="mobile-web-app-capable" content="yes">
     
     <!-- Favicon e ícone para PWA -->
-    <link rel="icon" type="image/svg+xml" href="data/img/favicon.svg">
-    <link rel="apple-touch-icon" href="data/img/icons/icon-192x192.png">
+    <link rel="icon" type="image/svg+xml" href="../data/img/favicon.svg">
+    <link rel="apple-touch-icon" href="../data/img/icons/icon-192x192.png">
     
     <!-- Arquivo Manifest PWA -->
-    <link rel="manifest" href="assets/manifest/manifest.json">
+    <link rel="manifest" href="../assets/manifest/manifest.json">
     
     <!-- Pré-conexão com Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,30 +32,30 @@
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap">
     
     <!-- Estilos CSS -->
-    <link rel="stylesheet" href="css/style-login.css">
+    <link rel="stylesheet" href="../css/style-login.css">
 </head>
 
 <!-- ================================================
      CORPO DA PÁGINA
      ================================================ -->
 <body>
-    <!-- Container principal do login -->
+    <!-- Container principal -->
     <main class="containerLogin">
         
-        <!-- Card com efeito glassmorphism -->
+        <!-- Card de recuperação -->
         <div class="cardLogin">
             
             <!-- Logo da empresa -->
             <div class="placeholderLogo">
-                <img src="data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Logo Jeci Vieira Nails" class="imagemLogo">
+                <img src="../data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Logo Jeci Vieira Nails" class="imagemLogo">
             </div>
 
             <!-- Título e subtítulo -->
-            <h1 class="tituloLogin">Bem-vindo!</h1>
-            <p class="subtituloLogin">Entre com sua conta para continuar</p>
+            <h1 class="tituloLogin">Recuperar Senha</h1>
+            <p class="subtituloLogin">Digite seu email para receber o link de redefinição de senha.</p>
 
-            <!-- Formulário de login -->
-            <form class="formularioLogin" action="#" method="POST">
+            <!-- Formulário de recuperação -->
+            <form class="formularioLogin" id="formEsqueciSenha">
                 
                 <!-- Campo: E-mail -->
                 <div class="campoFormulario">
@@ -64,21 +64,13 @@
                         autocomplete="email">
                 </div>
 
-                <!-- Campo: Senha -->
-                <div class="campoFormulario">
-                    <label for="campoSenha">Senha</label>
-                    <input type="password" id="campoSenha" name="senha" placeholder="••••••••" required
-                        autocomplete="current-password">
-                </div>
-
-                <!-- Botão de entrada -->
-                <button type="submit" class="botaoEntrar">Entrar</button>
+                <!-- Botão de envio -->
+                <button type="submit" class="botaoEntrar">Enviar Link</button>
             </form>
 
-            <!-- Links auxiliares -->
+            <!-- Link para voltar ao login -->
             <div class="linksLogin">
-                <a href="pages/esqueci-senha.html" class="linkEsqueciSenha">Esqueci a senha</a>
-                <a href="pages/cadastro.html" class="linkCriarConta">Criar conta</a>
+                <a href="../index.html" class="linkCriarConta">← Voltar ao Login</a>
             </div>
         </div>
     </main>
@@ -88,27 +80,25 @@
     
     <!-- ================================================
          SCRIPTS DO FIREBASE
-         Biblioteca Firebase (compatibilidade com navegadores)
          ================================================ -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
-    <!-- Configuração e funções de autenticação -->
-    <script src="assets/js/firebase-config.js"></script>
-    <script src="assets/js/auth.js"></script>
+    <!-- Configuração do Firebase -->
+    <script src="../assets/js/firebase-config.js"></script>
     
     <!-- ================================================
          SCRIPTS DO APLICATIVO
          ================================================ -->
     <!-- Seleciona imagem de background aleatória -->
-    <script src="assets/js/login.js"></script>
-    
-    <!-- Lógica da página de login (formulário, validação, redirect) -->
-    <script src="assets/js/index.js"></script>
+    <script src="../assets/js/login.js"></script>
     
     <!-- Registro do Service Worker para funcionamento offline (PWA) -->
-    <script src="assets/js/sw-register.js"></script>
+    <script src="../assets/js/sw-register.js"></script>
+    
+    <!-- Lógica da página de recuperação de senha -->
+    <script src="../assets/js/esqueci-senha.js"></script>
 </body>
 
 </html>

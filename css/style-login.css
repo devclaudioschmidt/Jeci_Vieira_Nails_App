@@ -363,3 +363,87 @@ body::after {
         font-size: 2.25rem;
     }
 }
+
+/* ----------------------------------------
+   BANNER DE INSTALAÇÃO PWA
+   Estilos para o prompt de instalação
+   ---------------------------------------- */
+.bannerPWA {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: var(--fundo-vidro);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--borda-vidro);
+    padding: 16px;
+    z-index: 1000;
+    box-shadow: var(--sombra-suave);
+    animation: descerBanner 0.5s ease;
+}
+
+@keyframes descerBanner {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+}
+
+.conteudoBannerPWA {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 600px;
+    margin: 0 auto;
+    gap: 16px;
+}
+
+.textosBannerPWA {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.textosBannerPWA strong {
+    font-family: var(--fonte-texto);
+    font-size: 0.95rem;
+    color: var(--cor-texto-escuro);
+}
+
+.textosBannerPWA span {
+    font-family: var(--fonte-texto);
+    font-size: 0.8rem;
+    color: var(--cor-texto-suave);
+}
+
+.botoesBannerPWA {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.botaoInstalarPWA {
+    padding: 8px 16px;
+    font-family: var(--fonte-texto);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #FFF;
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--rose-gold-claro) 100%);
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(201, 139, 139, 0.3);
+    transition: var(--transicao-rapida);
+}
+
+.botaoInstalarPWA:active {
+    transform: scale(0.95);
+}
+
+.botaoFecharPWA {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--cor-texto-suave);
+    cursor: pointer;
+    padding: 4px;
+}

@@ -70,6 +70,7 @@
     cursor: pointer;
     box-shadow: 0 4px 16px rgba(201, 139, 139, 0.3);
     transition: 0.3s ease;
+    margin: 8px 4px;
 }
 
 .botaoSair:hover {

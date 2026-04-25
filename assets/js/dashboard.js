@@ -68,9 +68,15 @@ function exibirDashboard(dados) {
         <div class="cardDashboard">
             <h1 class="nomeUsuario">Olá, ${dados.nome}!</h1>
             <p class="mensagemWelcome">Você acessou a página do cliente.</p>
+            <button class="botaoSair" id="btnPerfil">Meu Perfil</button>
             <button class="botaoSair" id="btnSair">Sair</button>
         </div>
     `;
+    
+    // Adiciona evento ao botão Perfil
+    document.getElementById('btnPerfil').addEventListener('click', () => {
+        window.location.href = 'perfil.html';
+    });
     
     // Adiciona evento ao botão sair
     document.getElementById('btnSair').addEventListener('click', async () => {

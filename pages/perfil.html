@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <!-- ================================================
+         META TAGS E CONFIGURAÇÕES
+         ================================================ -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Jeci Vieira Nails</title>
+    
+    <!-- Meta tags para PWA -->
+    <meta name="theme-color" content="#C98B8B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Jeci Vieira Nails">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Favicon e ícone para PWA -->
+    <link rel="icon" type="image/svg+xml" href="../data/img/favicon.svg">
+    <link rel="apple-touch-icon" href="../data/img/icons/icon-192x192.png">
+    
+    <!-- Arquivo Manifest PWA -->
+    <link rel="manifest" href="../assets/manifest/manifest.json">
+    
+    <!-- Pré-conexão com Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Fontes: Montserrat e Playfair Display -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap">
+    
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="../css/style-login.css">
+</head>
+
+<!-- ================================================
+     CORPO DA PÁGINA
+     ================================================ -->
+<body>
+    <!-- Container principal -->
+    <main class="containerLogin">
+        
+        <!-- Card de perfil -->
+        <div class="cardLogin">
+            
+            <!-- Título -->
+            <h1 class="tituloLogin">Meu Perfil</h1>
+            <p class="subtituloLogin">Atualize seus dados de contato</p>
+
+            <!-- Status de carregamento -->
+            <p class="mensagemCarregando" id="status">Carregando dados...</p>
+
+            <!-- Formulário de perfil -->
+            <form class="formularioLogin" id="formPerfil">
+                
+                <!-- Campo: Nome (apenas leitura) -->
+                <div class="campoFormulario">
+                    <label for="campoNome">Nome Completo</label>
+                    <input type="text" id="campoNome" name="nome" placeholder="Seu nome completo" 
+                        autocomplete="name" readonly style="opacity: 0.7;">
+                </div>
+
+                <!-- Campo: Email (apenas leitura) -->
+                <div class="campoFormulario">
+                    <label for="campoEmail">E-mail</label>
+                    <input type="email" id="campoEmail" name="email" placeholder="seu@email.com" 
+                        autocomplete="email" readonly style="opacity: 0.7;">
+                </div>
+
+                <!-- Campo: Telefone -->
+                <div class="campoFormulario">
+                    <label for="campoTelefone">Telefone</label>
+                    <input type="tel" id="campoTelefone" name="telefone" placeholder="(11) 99999-9999" 
+                        autocomplete="tel">
+                </div>
+
+                <!-- Campo: Data de Nascimento -->
+                <div class="campoFormulario">
+                    <label for="campoDataNascimento">Data de Nascimento</label>
+                    <input type="text" id="campoDataNascimento" name="dataNascimento" placeholder="DD/MM/AAAA" 
+                        autocomplete="bday">
+                </div>
+
+                <!-- Botão de salvar -->
+                <button type="submit" class="botaoEntrar">Salvar</button>
+            </form>
+
+            <!-- Link para voltar ao dashboard -->
+            <div class="linksLogin">
+                <a href="dashboard.html" class="linkEsqueciSenha">← Voltar ao Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Elemento para mensagens de feedback -->
+    <div id="mensagemFeedback" class="mensagemFeedback" style="display: none;"></div>
+    
+    <!-- ================================================
+         SCRIPTS DO FIREBASE
+         ================================================ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Configuração do Firebase -->
+    <script src="../assets/js/firebase-config.js"></script>
+    
+    <!-- ================================================
+         SCRIPTS DO APLICATIVO
+         ================================================ -->
+    <!-- Lógica da página de perfil -->
+    <script src="../assets/js/perfil.js"></script>
+</body>
+
+</html>

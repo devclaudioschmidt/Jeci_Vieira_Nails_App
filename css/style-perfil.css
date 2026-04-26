@@ -1,0 +1,287 @@
+/* ================================================
+   JEICI VIEIRA NAILS - ESTILOS DO PERFIL
+   ================================================ */
+
+:root {
+    --cor-fundo-pagina: #FFF9F6;
+    --rose-gold: #C98B8B;
+    --rose-gold-claro: #E8C4C4;
+    --rose-gold-escuro: #A35E5E;
+    --cor-texto-escuro: #2D2D2D;
+    --cor-texto-suave: #6B6B6B;
+    --fundo-vidro: rgba(255, 255, 255, 0.75);
+    --borda-vidro: rgba(255, 255, 255, 0.5);
+    --sombra-card: 0 8px 32px rgba(201, 139, 139, 0.15);
+    --fonte-titulo: 'Playfair Display', Georgia, serif;
+    --fonte-texto: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --raio-card: 24px;
+    --raio-botao: 50px;
+    --transicao: 0.3s ease;
+    --rosa-delicado: #F8E8E8;
+    --coral: #FFB6A3;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ================================================
+   BODY
+   ================================================ */
+body {
+    font-family: var(--fonte-texto);
+    background-color: var(--cor-fundo-pagina);
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(232, 196, 196, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(255, 182, 163, 0.1) 0%, transparent 40%),
+        var(--cor-fundo-pagina);
+}
+
+/* ================================================
+   HEADER FIXO
+   ================================================ */
+.header-perfil {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 232, 232, 0.85) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(232, 196, 196, 0.4);
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(201, 139, 139, 0.12);
+}
+
+.logo-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.logo-header img {
+    width: 40px;
+    height: 40px;
+    filter: drop-shadow(0 2px 4px rgba(201, 139, 139, 0.3));
+}
+
+.texto-logo {
+    font-family: var(--fonte-titulo);
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--rose-gold-escuro) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.botao-voltar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: 1px solid rgba(201, 139, 139, 0.3);
+    border-radius: 50%;
+    font-size: 1.2rem;
+    color: var(--rose-gold);
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transicao);
+}
+
+.botao-voltar:hover {
+    background: var(--rose-gold-claro);
+}
+
+/* ================================================
+   CONTAINER PRINCIPAL
+   ================================================ */
+.container-perfil {
+    padding: 90px 16px 24px 16px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* ================================================
+   TÍTULO DA PÁGINA
+   ================================================ */
+.titulo-pagina {
+    font-family: var(--fonte-titulo);
+    font-size: 1.5rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--rose-gold-escuro) 0%, var(--rose-gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.subtitulo-pagina {
+    font-family: var(--fonte-texto);
+    font-size: 0.9rem;
+    color: var(--cor-texto-suave);
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+/* ================================================
+   CARD DE PERFIL
+   ================================================ */
+.card-perfil {
+    background: linear-gradient(145deg, #fff 0%, var(--rosa-delicado) 100%);
+    border: 1px solid rgba(232, 196, 196, 0.4);
+    border-radius: var(--raio-card);
+    padding: 24px;
+    box-shadow: var(--sombra-card);
+}
+
+.titulo-card {
+    font-family: var(--fonte-titulo);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(232, 196, 196, 0.2);
+}
+
+/* ================================================
+   CAMPOS DO FORMULÁRIO
+   ================================================ */
+.campo-formulario-perfil {
+    margin-bottom: 18px;
+}
+
+.campo-formulario-perfil:last-of-type {
+    margin-bottom: 0;
+}
+
+.label-campo-perfil {
+    display: block;
+    font-family: var(--fonte-texto);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 8px;
+}
+
+.input-campo-perfil {
+    width: 100%;
+    padding: 14px 16px;
+    font-family: var(--fonte-texto);
+    font-size: 0.95rem;
+    color: var(--cor-texto-escuro);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(201, 139, 139, 0.2);
+    border-radius: 12px;
+    outline: none;
+    transition: var(--transicao);
+}
+
+.input-campo-perfil:focus {
+    border-color: var(--rose-gold);
+    box-shadow: 0 0 0 3px rgba(201, 139, 139, 0.1);
+}
+
+.input-campo-perfil::placeholder {
+    color: var(--cor-texto-suave);
+    opacity: 0.6;
+}
+
+.input-campo-perfil.somente-leitura {
+    background: rgba(232, 196, 196, 0.15);
+    color: var(--cor-texto-suave);
+    cursor: not-allowed;
+}
+
+/* ================================================
+   BOTÕES
+   ================================================ */
+.botao-salvar-perfil {
+    width: 100%;
+    padding: 18px;
+    margin-top: 24px;
+    font-family: var(--fonte-texto);
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
+    border: none;
+    border-radius: var(--raio-botao);
+    cursor: pointer;
+    transition: var(--transicao);
+    box-shadow: 0 4px 16px rgba(201, 139, 139, 0.3);
+}
+
+.botao-salvar-perfil:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(201, 139, 139, 0.4);
+}
+
+.botao-salvar-perfil:active {
+    transform: scale(0.98);
+}
+
+/* ================================================
+   LINKS
+   ================================================ */
+.link-voltar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(232, 196, 196, 0.2);
+}
+
+.link-voltar a {
+    font-family: var(--fonte-texto);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--rose-gold);
+    text-decoration: none;
+    transition: var(--transicao);
+}
+
+.link-voltar a:hover {
+    color: var(--rose-gold-escuro);
+    text-decoration: underline;
+}
+
+/* ================================================
+   MENSAGEM DE CARREGAMENTO
+   ================================================ */
+.mensagemCarregando {
+    font-family: var(--fonte-texto);
+    font-size: 1rem;
+    color: var(--cor-texto-suave);
+    text-align: center;
+    padding: 40px;
+}
+
+/* ================================================
+   RESPONSIVIDADE
+   ================================================ */
+@media (min-width: 480px) {
+    .container-perfil {
+        padding: 90px 32px 32px 32px;
+    }
+}

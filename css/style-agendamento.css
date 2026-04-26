@@ -1,0 +1,614 @@
+/* ================================================
+   JEICI VIEIRA NAILS - ESTILOS DE AGENDAMENTO
+   ================================================ */
+
+:root {
+    --cor-fundo-pagina: #FFF9F6;
+    --rose-gold: #C98B8B;
+    --rose-gold-claro: #E8C4C4;
+    --rose-gold-escuro: #A35E5E;
+    --cor-texto-escuro: #2D2D2D;
+    --cor-texto-suave: #6B6B6B;
+    --fundo-vidro: rgba(255, 255, 255, 0.75);
+    --borda-vidro: rgba(255, 255, 255, 0.5);
+    --sombra-card: 0 8px 32px rgba(201, 139, 139, 0.15);
+    --fonte-titulo: 'Playfair Display', Georgia, serif;
+    --fonte-texto: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --raio-card: 24px;
+    --raio-botao: 50px;
+    --transicao: 0.3s ease;
+    --rosa-delicado: #F8E8E8;
+    --coral: #FFB6A3;
+    --sucesso: #4CAF50;
+    --erro: #F44336;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ================================================
+   BODY
+   ================================================ */
+body {
+    font-family: var(--fonte-texto);
+    background-color: var(--cor-fundo-pagina);
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(232, 196, 196, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(255, 182, 163, 0.1) 0%, transparent 40%),
+        var(--cor-fundo-pagina);
+}
+
+/* ================================================
+   HEADER
+   ================================================ */
+.header-agendamento {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 232, 232, 0.85) 100%);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(232, 196, 196, 0.4);
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(201, 139, 139, 0.12);
+}
+
+.logo-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.logo-header img {
+    width: 40px;
+    height: 40px;
+}
+
+.texto-logo {
+    font-family: var(--fonte-titulo);
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--rose-gold-escuro) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.botao-voltar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: 1px solid rgba(201, 139, 139, 0.3);
+    border-radius: 50%;
+    font-size: 1.2rem;
+    color: var(--rose-gold);
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transicao);
+}
+
+.botao-voltar:hover {
+    background: var(--rose-gold-claro);
+}
+
+/* ================================================
+   CONTAINER PRINCIPAL
+   ================================================ */
+.container-agendamento {
+    padding: 90px 16px 24px 16px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* ================================================
+   TÍTULO DA PÁGINA
+   ================================================ */
+.titulo-pagina {
+    font-family: var(--fonte-titulo);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.subtitulo-pagina {
+    font-family: var(--fonte-texto);
+    font-size: 0.9rem;
+    color: var(--cor-texto-suave);
+    margin-top: -20px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+/* ================================================
+   PASSOS DO AGENDAMENTO
+   ================================================ */
+.passos-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.passo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--fundo-vidro);
+    border-radius: 20px;
+    border: 1px solid var(--borda-vidro);
+}
+
+.passo.ativo {
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
+    border-color: var(--rose-gold);
+    color: #fff;
+}
+
+.passo .numero-passo {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(201, 139, 139, 0.2);
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.passo.ativo .numero-passo {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.passo .texto-passo {
+    font-family: var(--fonte-texto);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* ================================================
+   SEÇÕES
+   ================================================ */
+.secao-agendamento {
+    display: none;
+}
+
+.secao-agendamento.ativa {
+    display: block;
+    animation: aparecerSecao 0.4s ease;
+}
+
+@keyframes aparecerSecao {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.titulo-secao {
+    font-family: var(--fonte-titulo);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icone-secao {
+    font-size: 1.3rem;
+}
+
+/* ================================================
+   SELEÇÃO DE SERVIÇO
+   ================================================ */
+.grid-servicos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.card-servico-opcao {
+    background: linear-gradient(145deg, #fff 0%, var(--rosa-delicado) 100%);
+    border: 2px solid rgba(232, 196, 196, 0.4);
+    border-radius: 16px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transicao);
+}
+
+.card-servico-opcao:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(201, 139, 139, 0.15);
+}
+
+.card-servico-opcao.selecionado {
+    border-color: var(--rose-gold);
+    background: linear-gradient(145deg, var(--rose-gold-claro) 0%, var(--rosa-delicado) 100%);
+    box-shadow: 0 4px 16px rgba(201, 139, 139, 0.25);
+}
+
+.icone-servico-opcao {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.nome-servico-opcao {
+    font-family: var(--fonte-texto);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 4px;
+}
+
+.preco-servico-opcao {
+    font-family: var(--fonte-texto);
+    font-size: 0.85rem;
+    color: var(--rose-gold);
+    font-weight: 600;
+}
+
+.duracao-servico-opcao {
+    font-family: var(--fonte-texto);
+    font-size: 0.75rem;
+    color: var(--cor-texto-suave);
+    margin-top: 4px;
+}
+
+/* ================================================
+   CALENDÁRIO
+   ================================================ */
+.calendario-opcoes {
+    background: linear-gradient(145deg, #fff 0%, var(--rosa-delicado) 100%);
+    border: 1px solid rgba(232, 196, 196, 0.4);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.calendario-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.botao-nav-calendario {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid rgba(201, 139, 139, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transicao);
+    font-size: 0.9rem;
+    color: var(--rose-gold);
+}
+
+.botao-nav-calendario:hover {
+    background: var(--rose-gold-claro);
+}
+
+.mes-calendario {
+    font-family: var(--fonte-titulo);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+}
+
+.dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.dias-semana span {
+    font-family: var(--fonte-texto);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+    text-align: center;
+}
+
+.dias-calendario {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.dia-cal, .dia-vazio {
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--fonte-texto);
+    font-size: 0.85rem;
+    color: var(--cor-texto-escuro);
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transicao);
+}
+
+.dia-vazio {
+    cursor: default;
+}
+
+.dia-cal:hover:not(.indisponivel) {
+    background: var(--rose-gold-claro);
+}
+
+.dia-cal.selecionado {
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
+    color: #fff;
+}
+
+.dia-cal.indisponivel {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.dia-cal.bloqueado {
+    color: #999;
+    text-decoration: line-through;
+    cursor: not-allowed;
+}
+
+/* ================================================
+   HORÁRIOS
+   ================================================ */
+.grid-horarios {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.card-horario {
+    padding: 14px 10px;
+    background: linear-gradient(145deg, #fff 0%, var(--rosa-delicado) 100%);
+    border: 2px solid rgba(232, 196, 196, 0.4);
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transicao);
+}
+
+.card-horario:hover {
+    border-color: var(--rose-gold-claro);
+}
+
+.card-horario.selecionado {
+    border-color: var(--rose-gold);
+    background: linear-gradient(145deg, var(--rose-gold-claro) 0%, var(--rosa-delicado) 100%);
+    box-shadow: 0 4px 12px rgba(201, 139, 139, 0.2);
+}
+
+.card-horario.indisponivel {
+    background: #f5f5f5;
+    border-color: #eee;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.horario-texto {
+    font-family: var(--fonte-texto);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+}
+
+.card-horario.indisponivel .horario-texto {
+    color: #999;
+    text-decoration: line-through;
+}
+
+.servico-selecionado-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    background: linear-gradient(145deg, var(--rose-gold-claro) 0%, var(--rosa-delicado) 100%);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.icone-info-servico {
+    font-size: 1.5rem;
+}
+
+.texto-info-servico {
+    font-family: var(--fonte-texto);
+    font-size: 0.85rem;
+    color: var(--cor-texto-escuro);
+}
+
+.texto-info-servico strong {
+    display: block;
+    font-weight: 600;
+}
+
+/* ================================================
+   CONFIRMAÇÃO
+   ================================================ */
+.card-confirmacao {
+    background: linear-gradient(145deg, #fff 0%, var(--rosa-delicado) 100%);
+    border: 1px solid rgba(232, 196, 196, 0.4);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.linha-confirmacao {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(232, 196, 196, 0.2);
+}
+
+.linha-confirmacao:last-child {
+    border-bottom: none;
+}
+
+.label-confirmacao {
+    font-family: var(--fonte-texto);
+    font-size: 0.85rem;
+    color: var(--cor-texto-suave);
+}
+
+.valor-confirmacao {
+    font-family: var(--fonte-texto);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+    text-align: right;
+}
+
+.total-valor {
+    font-size: 1.1rem;
+    color: var(--rose-gold);
+}
+
+/* ================================================
+   CAMPOS DE INPUT
+   ================================================ */
+.campo-input {
+    margin-bottom: 16px;
+}
+
+.campo-input label {
+    display: block;
+    font-family: var(--fonte-texto);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 8px;
+}
+
+.campo-input textarea,
+.campo-input input {
+    width: 100%;
+    padding: 14px 16px;
+    font-family: var(--fonte-texto);
+    font-size: 0.95rem;
+    color: var(--cor-texto-escuro);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(201, 139, 139, 0.2);
+    border-radius: 12px;
+    outline: none;
+    transition: var(--transicao);
+    resize: vertical;
+}
+
+.campo-input textarea:focus,
+.campo-input input:focus {
+    border-color: var(--rose-gold);
+    box-shadow: 0 0 0 3px rgba(201, 139, 139, 0.1);
+}
+
+/* ================================================
+   BOTÕES
+   ================================================ */
+.botao-proximo {
+    width: 100%;
+    padding: 18px;
+    font-family: var(--fonte-texto);
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
+    border: none;
+    border-radius: var(--raio-botao);
+    cursor: pointer;
+    transition: var(--transicao);
+    box-shadow: 0 4px 16px rgba(201, 139, 139, 0.3);
+}
+
+.botao-proximo:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(201, 139, 139, 0.4);
+}
+
+.botao-proximo:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.botao-voltar-passo {
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    font-family: var(--fonte-texto);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+    background: transparent;
+    border: 1px solid rgba(201, 139, 139, 0.3);
+    border-radius: var(--raio-botao);
+    cursor: pointer;
+    transition: var(--transicao);
+}
+
+.botao-voltar-passo:hover {
+    background: rgba(201, 139, 139, 0.1);
+}
+
+/* ================================================
+   MENSAGEM DE CARREGAMENTO
+   ================================================ */
+.mensagemCarregando {
+    font-family: var(--fonte-texto);
+    font-size: 1rem;
+    color: var(--cor-texto-suave);
+    text-align: center;
+}
+
+.cardDashboard {
+    text-align: center;
+    padding: 40px 24px;
+    background: var(--fundo-vidro);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--borda-vidro);
+    border-radius: 30px;
+    max-width: 400px;
+    margin: 100px auto;
+}
+
+/* ================================================
+   RESPONSIVIDADE
+   ================================================ */
+@media (min-width: 480px) {
+    .container-agendamento {
+        padding: 90px 32px 32px 32px;
+    }
+}

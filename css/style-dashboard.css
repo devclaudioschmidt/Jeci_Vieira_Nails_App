@@ -4,78 +4,642 @@
    ================================================ */
 
 /* ----------------------------------------
-  -body - Container principal centralizado
+   VARIÁVEIS CSS
+   Cores, fontes e configurações
+   ---------------------------------------- */
+:root {
+    --cor-fundo-pagina: #FFF9F6;
+    --rose-gold: #C98B8B;
+    --rose-gold-claro: #E8C4C4;
+    --rose-gold-escuro: #A35E5E;
+    --cor-texto-escuro: #2D2D2D;
+    --cor-texto-suave: #6B6B6B;
+    --fundo-vidro: rgba(255, 255, 255, 0.75);
+    --borda-vidro: rgba(255, 255, 255, 0.5);
+    --sombra-card: 0 8px 32px rgba(201, 139, 139, 0.15);
+    --fonte-titulo: 'Playfair Display', Georgia, serif;
+    --fonte-texto: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --raio-card: 24px;
+    --raio-botao: 50px;
+    --transicao: 0.3s ease;
+    
+    /* Cores femininas adicionais */
+    --rosa-delicado: #F8E8E8;
+    --rosa-choque: #FF69B4;
+    --dourado-metálico: #D4AF37;
+    --coral: #FFB6A3;
+}
+
+/* ----------------------------------------
+   RESET
+   ---------------------------------------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ----------------------------------------
+   BODY
+   Container principal
    ---------------------------------------- */
 .dashboard-body {
     min-height: 100vh;
+    background-color: var(--cor-fundo-pagina);
+    padding: 0 0 80px 0;
+    font-family: var(--fonte-texto);
+    /* Decoração feminina sutil */
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(232, 196, 196, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(255, 182, 163, 0.1) 0%, transparent 40%),
+        var(--cor-fundo-pagina);
+}
+
+/* ----------------------------------------
+   HEADER FIXO
+   Cabeçalho com logo e menu hamburger
+   ---------------------------------------- */
+.header-dashboard {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 24px 16px;
-    background-color: var(--cor-fundo-pagina);
-}
-
-/* ----------------------------------------
-   CARD DA PÁGINA PROTEGIDA
-   Card com efecto glassmorphism
-   ---------------------------------------- */
-.cardDashboard {
-    text-align: center;
-    padding: 40px 24px;
-    background: rgba(255, 255, 255, 0.68);
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 232, 232, 0.85) 100%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 30px;
-    box-shadow: 0 8px 32px rgba(201, 139, 139, 0.15);
-    max-width: 400px;
+    border-bottom: 1px solid rgba(232, 196, 196, 0.4);
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(201, 139, 139, 0.12);
+}
+
+.logo-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-header img {
+    width: 40px;
+    height: 40px;
+    /* Efeito de brilho sutil */
+    filter: drop-shadow(0 2px 4px rgba(201, 139, 139, 0.3));
+}
+
+.texto-logo {
+    font-family: var(--fonte-titulo);
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--rose-gold-escuro) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.botao-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 28px;
+    height: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.linha-menu {
     width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--rose-gold) 0%, var(--coral) 100%);
+    border-radius: 2px;
+    transition: var(--transicao);
+}
+
+.botao-menu:active .linha-menu {
+    transform: scale(0.95);
 }
 
 /* ----------------------------------------
-   NOME DO USUÁRIO
-   Título de boas-vindas
+   CONTAINER PRINCIPAL
+   Área de conteúdo abaixo do header
    ---------------------------------------- */
-.nomeUsuario {
+.container-dashboard {
+    padding: 90px 16px 24px 16px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* ----------------------------------------
+   BOAS-VINDAS
+   Saudação ao cliente
+   ---------------------------------------- */
+.boas-vindas {
+    margin-bottom: 24px;
+    text-align: center;
+    padding: 20px;
+}
+
+.titulo-boas-vindas {
     font-family: var(--fonte-titulo);
-    font-size: 1.75rem;
-    color: #B76E79;
+    font-size: 1.85rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--rose-gold-escuro) 0%, var(--rose-gold) 50%, var(--dourado-metálico) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 4px;
+}
+
+.subtitulo-boas-vindas {
+    font-family: var(--fonte-texto);
+    font-size: 0.9rem;
+    color: var(--cor-texto-suave);
+}
+
+/* ----------------------------------------
+   CARD PRÓXIMO AGENDAMENTO
+   Card destacado do próximo serviço
+   ---------------------------------------- */
+.card-proximo {
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
+    border-radius: var(--raio-card);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 24px rgba(201, 139, 139, 0.35);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-proximo::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -20%;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.card-proximo::after {
+    content: '✨';
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    opacity: 0.8;
+}
+
+.rotulo-proximo {
+    font-family: var(--fonte-texto);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.9;
+    margin-bottom: 8px;
+}
+
+.servico-proximo {
+    font-family: var(--fonte-titulo);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.detalhes-proximo {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.detalhe-proximo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--fonte-texto);
+    font-size: 0.9rem;
+    opacity: 0.95;
+}
+
+.icone-detalhe {
+    font-size: 1rem;
+}
+
+.botao-agendar-agora {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 12px 24px;
+    font-family: var(--fonte-texto);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--rose-gold);
+    background: #fff;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: var(--transicao);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.botao-agendar-agora:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-proximo-vazio {
+    background: linear-gradient(135deg, var(--fundo-vidro) 0%, var(--rosa-delicado) 100%);
+    border: 2px dashed rgba(201, 139, 139, 0.3);
+    border-radius: var(--raio-card);
+    padding: 28px 24px;
+    margin-bottom: 24px;
+    text-align: center;
+    position: relative;
+}
+
+.card-proximo-vazio::before {
+    content: '💅';
+    display: block;
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    opacity: 0.8;
+}
+
+.texto-proximo-vazio {
+    font-family: var(--fonte-texto);
+    font-size: 0.95rem;
+    color: var(--cor-texto-suave);
     margin-bottom: 16px;
 }
 
 /* ----------------------------------------
-   MENSAGEM DE BOAS-VINDAS
-   Subtítulo explicativo
+   SEÇÃO DE SERVIÇOS
+   Grid de serviços disponíveis
    ---------------------------------------- */
-.mensagemWelcome {
-    font-family: var(--fonte-texto);
-    font-size: 1rem;
-    color: #2D2D2D;
-    margin-bottom: 32px;
+.secao-servicos {
+    margin-bottom: 24px;
 }
 
-/* ----------------------------------------
-   BOTÃO SAIR
-   Botão para encerrar sessão
-   ---------------------------------------- */
-.botaoSair {
-    padding: 14px 28px;
+.titulo-secao {
+    font-family: var(--fonte-titulo);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 16px;
+    position: relative;
+    display: inline-block;
+}
+
+.titulo-secao::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--rose-gold) 0%, var(--coral) 100%);
+    border-radius: 2px;
+}
+
+.grid-servicos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.card-servico {
+    background: linear-gradient(145deg, #fff 0%, var(--rosa-delicado) 100%);
+    border: 1px solid rgba(232, 196, 196, 0.4);
+    border-radius: 20px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transicao);
+    box-shadow: 0 4px 16px rgba(201, 139, 139, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.card-servico::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--rose-gold) 0%, var(--coral) 100%);
+    opacity: 0;
+    transition: var(--transicao);
+}
+
+.card-servico:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(201, 139, 139, 0.2);
+}
+
+.card-servico:hover::before {
+    opacity: 1;
+}
+
+.card-servico:active {
+    transform: scale(0.97);
+}
+
+.icone-servico {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.nome-servico {
     font-family: var(--fonte-texto);
     font-size: 0.9rem;
     font-weight: 600;
-    color: #FFFFFF;
-    background: linear-gradient(135deg, #B76E79 0%, #E8C4C4 100%);
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(201, 139, 139, 0.3);
-    transition: 0.3s ease;
-    margin: 8px 4px;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 6px;
 }
 
-.botaoSair:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(201, 139, 139, 0.4);
+.preco-servico {
+    font-family: var(--fonte-texto);
+    font-size: 0.85rem;
+    color: var(--rose-gold);
+    font-weight: 600;
+}
+
+.botao-ver-todos {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin-top: 16px;
+    font-family: var(--fonte-texto);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--rose-gold);
+    background: transparent;
+    border: 1px solid rgba(201, 139, 139, 0.3);
+    border-radius: var(--raio-botao);
+    cursor: pointer;
+    transition: var(--transicao);
+}
+
+.botao-ver-todos:hover {
+    background: rgba(201, 139, 139, 0.1);
+}
+
+.botao-ver-todos:active {
+    background: rgba(201, 139, 139, 0.2);
+}
+
+/* ----------------------------------------
+   ÁREA DE AVISOS
+   Mensagens do administrador
+   ---------------------------------------- */
+.secao-avisos {
+    margin-bottom: 24px;
+}
+
+.banner-aviso {
+    background: linear-gradient(135deg, #fff 0%, var(--rosa-delicado) 100%);
+    border-left: 4px solid var(--rose-gold);
+    border-radius: var(--raio-card);
+    padding: 18px;
+    display: none;
+    box-shadow: 0 4px 16px rgba(201, 139, 139, 0.12);
+}
+
+.banner-aviso.visivel {
+    display: block;
+    animation: aparecerAviso 0.4s ease;
+}
+
+@keyframes aparecerAviso {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.rotulo-aviso {
+    font-family: var(--fonte-texto);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--rose-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+}
+
+.texto-aviso {
+    font-family: var(--fonte-texto);
+    font-size: 0.9rem;
+    color: var(--cor-texto-escuro);
+    line-height: 1.6;
+}
+
+/* ----------------------------------------
+   INFORMAÇÕES ADICIONAIS
+   Seção de dados úteis
+   ---------------------------------------- */
+.secao-info {
+    background: linear-gradient(145deg, #fff 0%, rgba(248, 232, 232, 0.5) 100%);
+    border: 1px solid rgba(232, 196, 196, 0.3);
+    border-radius: var(--raio-card);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.titulo-info {
+    font-family: var(--fonte-titulo);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 20px;
+    position: relative;
+    display: inline-block;
+}
+
+.titulo-info::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--rose-gold) 0%, var(--coral) 100%);
+    border-radius: 2px;
+}
+
+.lista-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.icone-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 12px rgba(201, 139, 139, 0.3);
+}
+
+.texto-info {
+    font-family: var(--fonte-texto);
+    font-size: 0.85rem;
+    color: var(--cor-texto-escuro);
+}
+
+/* ----------------------------------------
+   MENU HAMBURGER (OVERLAY)
+   Menu lateral com navegação
+   ---------------------------------------- */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(201, 139, 139, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 200;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transicao);
+}
+
+.menu-overlay.aberto {
+    opacity: 1;
+    visibility: visible;
+}
+
+.menu-hamburger {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 300px;
+    max-width: 85%;
+    height: 100%;
+    background: linear-gradient(180deg, #fff 0%, var(--rosa-delicado) 100%);
+    z-index: 201;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -8px 0 30px rgba(201, 139, 139, 0.2);
+}
+
+.menu-hamburger.aberto {
+    transform: translateX(0);
+}
+
+.cabecalho-menu {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 20px;
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
+}
+
+.titulo-menu {
+    font-family: var(--fonte-titulo);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.botao-fechar-menu {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    font-size: 1.2rem;
+    color: #fff;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 50%;
+    transition: var(--transicao);
+}
+
+.botao-fechar-menu:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.lista-menu {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.item-menu {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 14px;
+    font-family: var(--fonte-texto);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--cor-texto-escuro);
+    text-decoration: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: var(--transicao);
+    margin-bottom: 4px;
+}
+
+.item-menu:hover {
+    background: rgba(201, 139, 139, 0.1);
+}
+
+.item-menu:active {
+    background: rgba(201, 139, 139, 0.2);
+    transform: scale(0.98);
+}
+
+.icone-menu {
+    font-size: 1.2rem;
+}
+
+.item-menu.sair {
+    color: #D32F2F;
+    margin-top: auto;
+    border-top: 1px solid rgba(201, 139, 139, 0.2);
+    border-radius: 14px 14px 0 0;
+}
+
+.item-menu.sair:hover {
+    background: rgba(211, 47, 47, 0.08);
+}
+
+.item-menu.sair .icone-menu {
+    color: #D32F2F;
 }
 
 /* ----------------------------------------
@@ -85,5 +649,23 @@
 .mensagemCarregando {
     font-family: var(--fonte-texto);
     font-size: 1rem;
-    color: #6B6B6B;
+    color: var(--cor-texto-suave);
+    text-align: center;
+}
+
+/* ----------------------------------------
+   RESPONSIVIDADE
+   ---------------------------------------- */
+@media (min-width: 480px) {
+    .container-dashboard {
+        padding: 90px 32px 32px 32px;
+    }
+    
+    .card-proximo {
+        padding: 28px;
+    }
+    
+    .grid-servicos {
+        gap: 18px;
+    }
 }

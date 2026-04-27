@@ -596,3 +596,13 @@ async function confirmarAgendamento() {
     // Redirecionar para dashboard
     window.location.href = 'dashboard.html';
 }
+
+/* ================================================
+   INICIALIZAÇÃO AUTOMÁTICA
+   Inicia quando o DOM estiver pronto
+   ================================================ */
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializarAgendamento);
+} else {
+    inicializarAgendamento();
+}

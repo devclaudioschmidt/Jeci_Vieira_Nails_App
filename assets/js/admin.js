@@ -817,6 +817,10 @@ function renderizarListaClientes() {
             renderizarListaClientes();
         });
     }
+    
+    document.querySelectorAll('.card-cliente .botao-icon').forEach(btn => {
+        btn.addEventListener('click', () => abrirModalCliente(btn.dataset.id));
+    });
 }
 
 /* ================================================
@@ -1004,6 +1008,61 @@ function abrirModalServico(servico = null) {
 }
 
 /* ================================================
+   ABRIR MODAL DE CLIENTE
+   ================================================ */
+function abrirModalCliente(id) {
+    const cliente = clientes.find(c => c.id === id);
+    if (!cliente) return;
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'modal-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 300;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    `;
+    
+    const dataCadastro = cliente.dataCadastro ? new Date(cliente.dataCadastro).toLocaleDateString('pt-BR') : 'Não informada';
+    
+    overlay.innerHTML = `
+        <div class="formulario" style="width: 100%; max-width: 400px; margin: 0;">
+            <h2 class="titulo-secao">Dados do Cliente</h2>
+            <div style="margin-top: 20px;">
+                <p style="margin-bottom: 15px;"><strong>Nome:</strong> ${cliente.nome || 'Não informado'}</p>
+                <p style="margin-bottom: 15px;"><strong>Email:</strong> ${cliente.email || 'Não informado'}</p>
+                <p style="margin-bottom: 15px;"><strong>Telefone:</strong> ${cliente.telefone || 'Não informado'}</p>
+                <p style="margin-bottom: 15px;"><strong>CPF:</strong> ${cliente.cpf || 'Não informado'}</p>
+                <p style="margin-bottom: 15px;"><strong>Data de Nascimento:</strong> ${cliente.dataNascimento || 'Não informada'}</p>
+                <p style="margin-bottom: 15px;"><strong>Cadastro em:</strong> ${dataCadastro}</p>
+            </div>
+            <button type="button" class="botao botao-secundario" id="btn-fechar-modal" style="margin-top: 20px; width: 100%;">
+                Fechar
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    document.getElementById('btn-fechar-modal').addEventListener('click', () => {
+        overlay.remove();
+    });
+    
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            overlay.remove();
+        }
+    });
+}
+
+/* ================================================
    EDITAR SERVIÇO
    ================================================ */
 function editarServico(id) {
@@ -1160,4 +1219,14 @@ async function salvarAviso() {
         console.error('[DEBUG] Erro ao salvar:', erro);
         alert('Erro ao salvar aviso. Tente novamente.');
     }
+}
+
+/* ================================================
+   INICIALIZAÇÃO AUTOMÁTICA
+   Inicia quando o DOM estiver pronto
+   ================================================ */
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializarAdmin);
+} else {
+    inicializarAdmin();
 }

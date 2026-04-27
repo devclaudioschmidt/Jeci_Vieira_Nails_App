@@ -1055,6 +1055,22 @@ input:checked + .slider-switch:before {
     background: rgba(211, 47, 47, 0.08);
 }
 
+.badge-notificacao {
+    background: #FF4B4B;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    box-shadow: 0 2px 5px rgba(255, 75, 75, 0.4);
+}
+
 .item-menu.ativo {
     background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
     color: #fff;

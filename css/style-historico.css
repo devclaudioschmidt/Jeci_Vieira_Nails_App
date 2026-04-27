@@ -1,0 +1,199 @@
+:root {
+    --rose-gold: #C98B8B;
+    --rose-gold-claro: #E8C4C4;
+    --rose-gold-escuro: #A66D6D;
+    --coral: #E58C8C;
+    --rosa-delicado: #FFF5F5;
+    --fundo-vidro: rgba(255, 255, 255, 0.85);
+    --borda-vidro: rgba(201, 139, 139, 0.25);
+    --cor-texto-escuro: #4A3A3A;
+    --cor-texto-suave: #8C7A7A;
+    --fonte-titulo: 'Playfair Display', serif;
+    --fonte-texto: 'Outfit', sans-serif;
+    --raio-card: 24px;
+    --raio-botao: 16px;
+    --transicao: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--fonte-texto);
+    background: radial-gradient(circle at top right, #FFF1F1, #FFFFFF 50%, #F9F0F0 100%);
+    color: var(--cor-texto-escuro);
+    min-height: 100vh;
+}
+
+.header-historico {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    background: var(--fundo-vidro);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--borda-vidro);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.logo-header img {
+    width: 32px;
+}
+
+.texto-logo {
+    font-family: var(--fonte-titulo);
+    font-size: 1.2rem;
+    color: var(--rose-gold-escuro);
+}
+
+.botao-voltar {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--rose-gold-claro);
+    color: var(--rose-gold-escuro);
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: var(--transicao);
+}
+
+.container-historico {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 32px 20px 100px 20px;
+}
+
+.titulo-pagina {
+    font-family: var(--fonte-titulo);
+    font-size: 2.2rem;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 8px;
+}
+
+.subtitulo-pagina {
+    font-size: 1rem;
+    color: var(--cor-texto-suave);
+    margin-bottom: 32px;
+}
+
+.secao-historico {
+    margin-bottom: 40px;
+}
+
+.titulo-secao {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--rose-gold-escuro);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.lista-agendamentos {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.card-agendamento {
+    background: white;
+    padding: 20px;
+    border-radius: var(--raio-card);
+    border: 1px solid var(--borda-vidro);
+    box-shadow: 0 4px 15px rgba(201, 139, 139, 0.05);
+    transition: var(--transicao);
+}
+
+.card-agendamento.passado {
+    opacity: 0.7;
+    background: #FAFAFA;
+}
+
+.card-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.servico-nome {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-pendente { background: #FFF3E0; color: #E65100; }
+.status-confirmado { background: #E8F5E9; color: #2E7D32; }
+.status-cancelado { background: #FFEBEE; color: #C62828; }
+
+.card-detalhes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.detalhe-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--cor-texto-suave);
+}
+
+.btn-novo-agendamento {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 300px;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
+    color: white;
+    text-decoration: none;
+    text-align: center;
+    border-radius: var(--raio-botao);
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(229, 140, 140, 0.4);
+    transition: var(--transicao);
+    z-index: 101;
+}
+
+.btn-novo-agendamento:hover {
+    transform: translateX(-50%) translateY(-3px);
+    box-shadow: 0 15px 30px rgba(229, 140, 140, 0.5);
+}
+
+.sem-agendamentos {
+    text-align: center;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px dashed var(--borda-vidro);
+    border-radius: var(--raio-card);
+    color: var(--cor-texto-suave);
+    font-style: italic;
+}

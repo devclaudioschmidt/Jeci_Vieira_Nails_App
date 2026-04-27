@@ -171,20 +171,26 @@ async function carregarDadosFirestore() {
         try {
             const agendamentosSnap = await firebase.firestore()
                 .collection('agendamentos')
-                .orderBy('data')
-                .orderBy('horario')
                 .get();
             
             agendamentos = agendamentosSnap.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
+
+            // Ordenar localmente para evitar obrigatoriedade de Índice Composto
+            agendamentos.sort((a, b) => {
+                if (a.data === b.data) {
+                    return a.horario.localeCompare(b.horario);
+                }
+                return a.data.localeCompare(b.data);
+            });
             
             // Criar lista de dias com agendamentos
             diasComAgendamentos = [...new Set(agendamentos.map(a => a.data))];
             console.log('[DEBUG] Agendamentos carregados:', agendamentos.length);
         } catch (e) {
-            console.log('[DEBUG] Nenhum agendamento ainda');
+            console.error('[DEBUG] Erro ao carregar agendamentos:', e);
             agendamentos = [];
             diasComAgendamentos = [];
         }
@@ -220,6 +226,7 @@ function exibirAdmin(dados) {
     inicializarEventos();
     inicializarCalendario();
     renderizarCalendario();
+    renderizarSolicitacoes();
     renderizarListaServicos();
     renderizarConfiguracoes();
     renderizarAviso();
@@ -256,6 +263,14 @@ function criarEstruturaAdmin(dados) {
             <!-- Área de conteúdo (exibe a seção selecionada) -->
             <main class="conteudo-admin" id="conteudo-admin">
                 
+                <!-- Seção Solicitações -->
+                <section class="secao" id="secao-solicitacoes">
+                    <h2 class="titulo-secao">Solicitações Pendentes</h2>
+                    <div class="lista-agendamentos" id="lista-solicitacoes">
+                        <!-- Solicitações serão renderizadas aqui -->
+                    </div>
+                </section>
+
                 <!-- Seção Agenda (padrão) -->
                 <section class="secao ativa" id="secao-agenda">
                     <h2 class="titulo-secao">Agenda do Dia</h2>
@@ -465,6 +480,11 @@ function criarEstruturaAdmin(dados) {
                 <div class="menu-secao">
                     <span class="titulo-secao-menu">Navegação</span>
                 </div>
+                <a href="#" class="item-menu" data-nav="solicitacoes">
+                    <span class="icone-menu">🔔</span>
+                    <span>Solicitações</span>
+                    <span class="badge-notificacao" id="badge-solicitacoes" style="display:none;">0</span>
+                </a>
                 <a href="#" class="item-menu ativo" data-nav="agenda">
                     <span class="icone-menu">📅</span>
                     <span>Agenda</span>
@@ -711,12 +731,16 @@ function renderizarAgendamentosDia(dataStr) {
         const statusClass = agend.status === 'confirmado' ? 'confirmado' : 
                         agend.status === 'cancelado' ? 'cancelado' : 'pendente';
         
+        const clienteObj = clientes.find(c => c.id === agend.userId);
+        const nomeCliente = clienteObj ? clienteObj.nome : (agend.clienteNome || 'Cliente Desconhecido');
+        const nomeServico = agend.servico || agend.servicoNome || 'Serviço';
+        
         html += `
             <div class="card-agendamento" data-id="${agend.id}">
                 <div class="horario-agendamento">${agend.horario}</div>
                 <div class="info-agendamento">
-                    <p class="nome-cliente-agend">${agend.clienteNome}</p>
-                    <p class="servico-agend">${agend.servicoNome}</p>
+                    <p class="nome-cliente-agend">${nomeCliente}</p>
+                    <p class="servico-agend">${nomeServico}</p>
                 </div>
                 <div class="status-agendamento ${statusClass}">
                     ${agend.status === 'confirmado' ? '✓' : agend.status === 'cancelado' ? '✕' : '⏳'}
@@ -762,6 +786,7 @@ async function confirmarAgendamento(id) {
         // Re-renderizar
         const dataStr = `${dataSelecionada.getFullYear()}-${String(dataSelecionada.getMonth() + 1).padStart(2, '0')}-${String(dataSelecionada.getDate()).padStart(2, '0')}`;
         renderizarAgendamentosDia(dataStr);
+        renderizarSolicitacoes();
         
     } catch (erro) {
         console.error('[DEBUG] Erro ao confirmar:', erro);
@@ -791,10 +816,90 @@ async function cancelarAgendamento(id) {
         // Re-renderizar
         const dataStr = `${dataSelecionada.getFullYear()}-${String(dataSelecionada.getMonth() + 1).padStart(2, '0')}-${String(dataSelecionada.getDate()).padStart(2, '0')}`;
         renderizarAgendamentosDia(dataStr);
+        renderizarSolicitacoes();
         
     } catch (erro) {
         console.error('[DEBUG] Erro ao cancelar:', erro);
     }
+}
+
+/* ================================================
+   RENDERIZAR SOLICITAÇÕES
+   ================================================ */
+function renderizarSolicitacoes() {
+    const container = document.getElementById('lista-solicitacoes');
+    const badge = document.getElementById('badge-solicitacoes');
+    if (!container) return;
+    
+    // Status pode estar ausente em agendamentos muito antigos, mas novos tem 'pendente'
+    const solicitacoes = agendamentos.filter(a => a.status === 'pendente' || !a.status);
+    
+    // Atualizar Badge
+    if (badge) {
+        if (solicitacoes.length > 0) {
+            badge.textContent = solicitacoes.length;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    
+    if (solicitacoes.length === 0) {
+        container.innerHTML = `
+            <div class="estado-vazio">
+                <span class="icone-vazio">🔔</span>
+                <p class="texto-vazio">Nenhuma solicitação pendente.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Ordenar do mais antigo para o mais novo
+    solicitacoes.sort((a, b) => {
+        if (a.data === b.data) {
+            return a.horario.localeCompare(b.horario);
+        }
+        return a.data.localeCompare(b.data);
+    });
+    
+    let html = '';
+    solicitacoes.forEach(agend => {
+        const clienteObj = clientes.find(c => c.id === agend.userId);
+        const nomeCliente = clienteObj ? clienteObj.nome : (agend.clienteNome || 'Cliente Desconhecido');
+        const nomeServico = agend.servico || agend.servicoNome || 'Serviço';
+        
+        const [ano, mes, dia] = agend.data.split('-');
+        const dataFormatada = `${dia}/${mes}/${ano}`;
+        
+        html += `
+            <div class="card-agendamento" data-id="${agend.id}">
+                <div class="horario-agendamento">
+                    <div style="font-size:0.75rem; color:#6B6B6B; margin-bottom:2px;">${dataFormatada}</div>
+                    <div>${agend.horario}</div>
+                </div>
+                <div class="info-agendamento">
+                    <p class="nome-cliente-agend">${nomeCliente}</p>
+                    <p class="servico-agend">${nomeServico}</p>
+                </div>
+                <div class="status-agendamento pendente">⏳</div>
+                <div class="botoes-agendamento">
+                    <button class="botao-icon confirmar" data-id="${agend.id}" title="Confirmar">✓</button>
+                    <button class="botao-icon cancelar" data-id="${agend.id}" title="Cancelar">✕</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    
+    // Adicionar eventos aos botões recém criados
+    container.querySelectorAll('.botao-icon.confirmar').forEach(btn => {
+        btn.addEventListener('click', () => confirmarAgendamento(btn.dataset.id));
+    });
+    
+    container.querySelectorAll('.botao-icon.cancelar').forEach(btn => {
+        btn.addEventListener('click', () => cancelarAgendamento(btn.dataset.id));
+    });
 }
 
 /* ================================================

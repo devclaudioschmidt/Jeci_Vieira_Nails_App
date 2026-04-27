@@ -132,7 +132,7 @@ async function carregarProximoAgendamento(uid) {
             const agendamentos = snap.docs.map(doc => doc.data());
             
             // Filtrar apenas datas futuras ou hoje
-            const futuros = agendamentos.filter(a => a.data >= hoje);
+            const futuros = agendamentos.filter(a => a.data >= hoje && a.status !== 'cancelado');
             
             if (futuros.length > 0) {
                 // Ordenar por data e horário para pegar o mais próximo
@@ -286,13 +286,9 @@ function criarEstruturaDashboard(dados) {
                     <span class="icone-menu">📅</span>
                     <span>Agendar Serviço</span>
                 </a>
-                <a href="#" class="item-menu" id="menu-agendamentos">
+                <a href="historico.html" class="item-menu" id="menu-agendamentos">
                     <span class="icone-menu">📋</span>
                     <span>Meus Agendamentos</span>
-                </a>
-                <a href="#" class="item-menu" id="menu-historico">
-                    <span class="icone-menu">📜</span>
-                    <span>Histórico</span>
                 </a>
                 <a href="perfil.html" class="item-menu" id="menu-perfil">
                     <span class="icone-menu">👤</span>

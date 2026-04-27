@@ -426,9 +426,9 @@ function renderizarHorarios() {
     }
     
     // Gerar horários
-    const config = dadosMock.configuracoes;
-    const horariosOcupados = dadosMock.agendamentos
-        .filter(a => a.data === dataSelecionada.str)
+    const config = dadosSistema.configuracoes;
+    const horariosOcupados = dadosSistema.agendamentos
+        .filter(a => a.data === dataSelecionada.str && a.status !== 'cancelado')
         .map(a => a.horario);
     
     const horarios = gerarHorarios(dataSelecionada.str, servicoSelecionado.duracao, config, horariosOcupados);
@@ -574,7 +574,9 @@ async function confirmarAgendamento() {
         duracao: servicoSelecionado.duracao,
         data: dataSelecionada.str,
         horario: horarioSelecionado,
-        observacoes: observacoes
+        observacoes: observacoes,
+        status: 'pendente',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
     console.log('[DEBUG] Agendamento:', dados);

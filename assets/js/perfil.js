@@ -13,8 +13,7 @@ const estruturaPerfilHTML = `
     <!-- Header fixo -->
     <header class="header-perfil">
         <a href="dashboard.html" class="logo-header">
-            <img src="../data/img/favicon.svg" alt="Jeci Nails">
-            <span class="texto-logo">Jeci Nails</span>
+            <img src="../data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Jeci Vieira Nails" class="imagem-logo-topo">
         </a>
         <a href="dashboard.html" class="botao-voltar">←</a>
     </header>

@@ -4,58 +4,12 @@
    ================================================ */
 
 /* ================================================
-   DADOS MOCK (Serão substituídos pelo backend)
+   DADOS MOCK / ESTADO GLOBAL
    ================================================ */
 const dadosMock = {
-    /* Dados do usuário logado */
-    usuario: {
-        nome: "Cliente",
-        uid: "mock-uid-123"
-    },
-    
-    /* Próximo agendamento do cliente */
     proximoAgendamento: null,
-    
-    /* Serviços disponíveis (serão lidos do Firestore) */
-    servicos: [
-        {
-            id: "servico-01",
-            nome: "Manicure",
-            descricao: "Esmaltação e cuidado das unhas",
-            preco: 50,
-            duracao: 60,
-            icone: "💅"
-        },
-        {
-            id: "servico-02",
-            nome: "Pedicure",
-            descricao: "Tratamento completo dos pés",
-            preco: 45,
-            duracao: 60,
-            icone: "🦶"
-        },
-        {
-            id: "servico-03",
-            nome: "Unhas Decoradas",
-            descricao: "Arte personalizada nas unhas",
-            preco: 120,
-            duracao: 90,
-            icone: "✨"
-        },
-        {
-            id: "servico-04",
-           Nome: "Spa dos Pés",
-            descricao: "Relaxamento e hidratação",
-            preco: 80,
-            duracao: 45,
-            icone: "🌸"
-        }
-    ],
-    
-    /* Aviso do administrador (será configurado no painel admin) */
+    servicos: [],
     aviso: null,
-    
-    /* Configurações do salão (serão configuradas no admin) */
     configuracoes: {
         segundaAbertura: '09:00',
         segundaIntervaloInicio: '12:00',
@@ -76,12 +30,10 @@ const dadosMock = {
 function inicializarDashboard() {
     const status = document.getElementById('status');
     
-    /* Usa onAuthStateChanged para esperar Firebase iniciar */
     firebase.auth().onAuthStateChanged(async (usuario) => {
         console.log('[DEBUG] Estado auth alterado, usuário:', usuario);
         
         try {
-            /* Verifica se há usuário logado */
             if (!usuario) {
                 status.textContent = 'Usuário não está logado. Redirecionando...';
                 setTimeout(() => {
@@ -92,11 +44,8 @@ function inicializarDashboard() {
             
             /* Buscar dados do usuário no Firestore */
             const doc = await firebase.firestore().collection('usuarios').doc(usuario.uid).get();
-            const dados = doc.data();
+            let dados = doc.data();
             
-            console.log('[DEBUG] Dados do usuário:', dados);
-            
-            /* Se não houver dados, usa valores padrão */
             if (!dados) {
                 dados = { nome: 'Cliente' };
             }
@@ -109,16 +58,113 @@ function inicializarDashboard() {
                 }, 1000);
                 return;
             }
+
+            /* BUSCA DADOS REAIS DO BANCO */
+            status.textContent = 'Carregando configurações...';
+            await carregarDadosGlobais();
+            
+            status.textContent = 'Buscando seus agendamentos...';
+            await carregarProximoAgendamento(usuario.uid);
             
             /* Exibe dashboard com dados reais */
             await exibirDashboard(dados);
             
         } catch (erro) {
-            console.error('[DEBUG] Erro:', erro);
-            /* Em caso de erro, usa dados padrão para não bloquear */
+            console.error('[DEBUG] Erro na inicialização:', erro);
             await exibirDashboard({ nome: 'Cliente' });
         }
     });
+}
+
+/* ================================================
+   BUSCAR DADOS DO FIRESTORE (AVISOS, CONFIGS, SERVIÇOS)
+   ================================================ */
+async function carregarDadosGlobais() {
+    try {
+        // 1. Carregar Aviso Ativo
+        const avisoSnap = await firebase.firestore().collection('avisos')
+            .where('ativo', '==', true)
+            .limit(1)
+            .get();
+        
+        if (!avisoSnap.empty) {
+            dadosMock.aviso = avisoSnap.docs[0].data().mensagem;
+        } else {
+            dadosMock.aviso = null;
+        }
+
+        // 2. Carregar Configurações do Salão
+        const configSnap = await firebase.firestore().collection('configuracoes').doc('salao').get();
+        if (configSnap.exists) {
+            dadosMock.configuracoes = { ...dadosMock.configuracoes, ...configSnap.data() };
+        }
+
+        // 3. Carregar Serviços Ativos
+        const servicosSnap = await firebase.firestore().collection('servicos')
+            .where('ativo', '==', true)
+            .get();
+        
+        if (!servicosSnap.empty) {
+            dadosMock.servicos = servicosSnap.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        }
+
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao carregar dados globais:', erro);
+    }
+}
+
+/* ================================================
+   BUSCAR PRÓXIMO AGENDAMENTO DO CLIENTE
+   ================================================ */
+async function carregarProximoAgendamento(uid) {
+    try {
+        const hoje = new Date().toISOString().split('T')[0];
+        
+        const snap = await firebase.firestore().collection('agendamentos')
+            .where('clienteId', '==', uid)
+            .where('status', 'in', ['pendente', 'confirmado'])
+            .get();
+            
+        if (!snap.empty) {
+            const agendamentos = snap.docs.map(doc => doc.data());
+            
+            // Filtrar apenas datas futuras ou hoje
+            const futuros = agendamentos.filter(a => a.data >= hoje);
+            
+            if (futuros.length > 0) {
+                // Ordenar por data e horário para pegar o mais próximo
+                const proximo = futuros.sort((a, b) => 
+                    a.data.localeCompare(b.data) || a.horario.localeCompare(b.horario)
+                )[0];
+                
+                dadosMock.proximoAgendamento = {
+                    servico: proximo.servicoNome,
+                    data: formatarDataBR(proximo.data),
+                    horario: proximo.horario
+                };
+            } else {
+                dadosMock.proximoAgendamento = null;
+            }
+        } else {
+            dadosMock.proximoAgendamento = null;
+        }
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao carregar agendamento:', erro);
+        dadosMock.proximoAgendamento = null;
+    }
+}
+
+/* ================================================
+   UTILITÁRIO: FORMATAR DATA PARA BR
+   ================================================ */
+function formatarDataBR(dataStr) {
+    if (!dataStr) return '';
+    const parts = dataStr.split('-');
+    if (parts.length !== 3) return dataStr;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
 /* ================================================
@@ -156,10 +202,6 @@ function getSaudacao() {
    ================================================ */
 function criarEstruturaDashboard(dados) {
     return `
-        <!-- ================================================
-             STRUTURA DA DASHBOARD
-             ================================================ -->
-        
         <!-- Header fixo -->
         <header class="header-dashboard">
             <div class="logo-header">
@@ -305,10 +347,15 @@ function criarCardProximoAgendamento() {
 
 /* ================================================
    CRIAR GRID DE SERVIÇOS
-   Gera oHTML dos cards de serviços
+   Gera o HTML dos cards de serviços
    ================================================ */
 function criarGridServicos() {
     const servicos = dadosMock.servicos;
+    
+    if (servicos.length === 0) {
+        return '<p class="texto-vazio" style="text-align: center; padding: 20px;">Nenhum serviço disponível no momento.</p>';
+    }
+
     let html = '<div class="grid-servicos">';
     
     servicos.forEach(servico => {
@@ -354,23 +401,26 @@ function inicializarMenuHamburger() {
     const overlay = document.getElementById('menu-overlay');
     const menu = document.getElementById('menu-hamburger');
     
-    /* Abre o menu */
-    botaoMenu.addEventListener('click', () => {
-        menu.classList.add('aberto');
-        overlay.classList.add('aberto');
-    });
+    if (botaoMenu) {
+        botaoMenu.addEventListener('click', () => {
+            menu.classList.add('aberto');
+            overlay.classList.add('aberto');
+        });
+    }
     
-    /* Fecha o menu ao clicar no overlay */
-    overlay.addEventListener('click', () => {
-        menu.classList.remove('aberto');
-        overlay.classList.remove('aberto');
-    });
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            menu.classList.remove('aberto');
+            overlay.classList.remove('aberto');
+        });
+    }
     
-    /* Fecha o menu ao clicar no botão fechar */
-    botaoFechar.addEventListener('click', () => {
-        menu.classList.remove('aberto');
-        overlay.classList.remove('aberto');
-    });
+    if (botaoFechar) {
+        botaoFechar.addEventListener('click', () => {
+            menu.classList.remove('aberto');
+            overlay.classList.remove('aberto');
+        });
+    }
 }
 
 /* ================================================
@@ -378,7 +428,6 @@ function inicializarMenuHamburger() {
    Configura cliques dos botões
    ================================================ */
 function inicializarEventosDashboard() {
-    /* Botão Agendar agora */
     const btnAgendarAgora = document.getElementById('btn-agendar-agora');
     if (btnAgendarAgora) {
         btnAgendarAgora.addEventListener('click', () => {
@@ -386,7 +435,6 @@ function inicializarEventosDashboard() {
         });
     }
     
-    /* Menu Agendar */
     const menuAgendar = document.getElementById('menu-agendar');
     if (menuAgendar) {
         menuAgendar.addEventListener('click', (e) => {
@@ -394,36 +442,36 @@ function inicializarEventosDashboard() {
             window.location.href = 'agendamento.html';
         });
     }
+
+    const menuPerfil = document.getElementById('menu-perfil');
+    if (menuPerfil) {
+        menuPerfil.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'perfil.html';
+        });
+    }
     
-    /* Menu Sair */
     const menuSair = document.getElementById('menu-sair');
     if (menuSair) {
         menuSair.addEventListener('click', async (e) => {
             e.preventDefault();
-            console.log('[DEBUG] Fazendo logout...');
-            
-            /* BACKEND IGNORADO - Simulação de logout */
-            /* Quando ofirebaseestiverready, descomentar: */
-            // await firebase.auth().signOut();
-            
+            await firebase.auth().signOut();
             window.location.href = '../index.html';
         });
     }
     
-    /* Cards de serviços (clique para agendar) */
     const cardsServico = document.querySelectorAll('.card-servico');
     cardsServico.forEach(card => {
         card.addEventListener('click', () => {
             const servicoId = card.dataset.id;
             console.log('[DEBUG] Selecionar serviço:', servicoId);
-            // Futuro: redirecionar para agendamento com serviço selecionado
+            window.location.href = `agendamento.html?servico=${servicoId}`;
         });
     });
 }
 
 // ============================================
 // INICIALIZAÇÃO AUTOMÁTICA
-// Inicia quando o DOM estiver pronto
 // ============================================
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', inicializarDashboard);

@@ -1219,18 +1219,28 @@ async function salvarConfiguracoes() {
    SALVAR AVISO
    ================================================ */
 async function salvarAviso() {
+    const btn = document.getElementById('btn-salvar-aviso');
     const mensagem = document.getElementById('aviso-texto').value.trim();
     const ativo = document.getElementById('aviso-ativo').checked;
     
-    if (!mensagem) {
-        alert('Por favor, digite uma mensagem.');
+    if (!mensagem && ativo) {
+        alert('Por favor, digite uma mensagem para ativar o aviso.');
         return;
     }
     
     try {
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Salvando...';
+        }
+
         if (!ativo) {
+            // Se desativou, podemos apenas marcar como inativo ou excluir
             if (avisoAtivo && avisoAtivo.id) {
-                await firebase.firestore().collection('avisos').doc(avisoAtivo.id).delete();
+                await firebase.firestore().collection('avisos').doc(avisoAtivo.id).update({
+                    ativo: false,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
             }
         } else {
             const dados = {
@@ -1248,13 +1258,16 @@ async function salvarAviso() {
         }
         
         await carregarDadosFirestore();
-        
-        alert('Aviso salvo com sucesso!');
-        console.log('[DEBUG] Aviso salvo');
+        alert('Aviso atualizado com sucesso!');
         
     } catch (erro) {
-        console.error('[DEBUG] Erro ao salvar:', erro);
+        console.error('[DEBUG] Erro ao salvar aviso:', erro);
         alert('Erro ao salvar aviso. Tente novamente.');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Salvar Mensagem';
+        }
     }
 }
 

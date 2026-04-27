@@ -73,10 +73,10 @@ body {
     text-decoration: none;
 }
 
-.logo-header img {
-    width: 40px;
-    height: 40px;
-    filter: drop-shadow(0 2px 4px rgba(201, 139, 139, 0.3));
+.logo-header img, .imagem-logo-topo {
+    height: 45px;
+    width: auto;
+    object-fit: contain;
 }
 
 .texto-logo {

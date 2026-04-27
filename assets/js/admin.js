@@ -4,6 +4,22 @@
    ================================================ */
 
 /* ================================================
+   SAUDAÇÃO POR PERÍODO
+   Retorna bom dia/boa tarde/boa noite conforme horário
+   ================================================ */
+function getSaudacao() {
+    const hora = new Date().getHours();
+    
+    if (hora >= 5 && hora < 12) {
+        return 'Bom dia';
+    } else if (hora >= 12 && hora < 18) {
+        return 'Boa tarde';
+    } else {
+        return 'Boa noite';
+    }
+}
+
+/* ================================================
    VARIÁVEIS GLOBAIS
    ================================================ */
 let dadosAdmin = {};
@@ -218,8 +234,7 @@ function criarEstruturaAdmin(dados) {
         <!-- Header fixo -->
         <header class="header-admin">
             <div class="logo-header">
-                <img src="../data/img/favicon.svg" alt="Jeci Vieira Nails">
-                <span class="texto-logo">Jeci Nails</span>
+                <img src="../data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Jeci Vieira Nails" class="imagem-logo-topo">
             </div>
             <button class="botao-menu" id="btn-menu" aria-label="Abrir menu">
                 <span class="linha-menu"></span>
@@ -234,7 +249,7 @@ function criarEstruturaAdmin(dados) {
             <!-- Boas-vindas -->
             <section class="boas-vindas-admin">
                 <span class="badge-admin">ADMINISTRADOR</span>
-                <h1 class="titulo-boas-vindas">Olá, ${dados.nome}!</h1>
+                <h1 class="titulo-boas-vindas">${getSaudacao()}, ${dados.nome}!</h1>
                 <p class="subtitulo-boas-vindas">Gerencie os dados do salão</p>
 </section>
             
@@ -412,6 +427,28 @@ function criarEstruturaAdmin(dados) {
             </section>
             
         </main>
+        
+        <!-- Rodapé com informações em card -->
+        <footer class="rodape">
+            <div class="card-rodape">
+                <span class="titulo-card-rodape">Dados do Salão</span>
+                <div class="card-rodape-linha">
+                    <span class="icone-rodape">📍</span>
+                    <span>${configuracoes.endereco || 'Endereço não informado'}</span>
+                </div>
+                <div class="card-rodape-linha">
+                    <span class="icone-rodape">📞</span>
+                    <span>${configuracoes.telefone || 'Telefone não informado'}</span>
+                </div>
+                <div class="card-rodape-divisor"></div>
+                <div class="card-rodape-horarios">
+                    <span class="titulo-rodape">Horários de Funcionamento</span>
+                    <span>Seg à Sex: ${configuracoes.segundaAbertura || '09:00'} - ${configuracoes.segundaIntervaloInicio || '12:00'} / ${configuracoes.segundaIntervaloFim || '13:00'} - ${configuracoes.segundaFechamento || '19:00'}</span>
+                    <span>Sábado: ${configuracoes.sabadoAbertura || '09:00'} - ${configuracoes.sabadoFechamento || '17:00'}</span>
+                    <span>Domingo e Feriados: ${configuracoes.domingoFechado ? 'Fechado' : 'Aberto'}</span>
+                </div>
+            </div>
+        </footer>
         
         <!-- Overlay do menu -->
         <div class="menu-overlay" id="menu-overlay"></div>

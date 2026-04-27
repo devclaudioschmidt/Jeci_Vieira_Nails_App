@@ -73,10 +73,10 @@ body {
     gap: 10px;
 }
 
-.logo-header img {
-    width: 40px;
-    height: 40px;
-    filter: drop-shadow(0 2px 4px rgba(201, 139, 139, 0.3));
+.logo-header img, .imagem-logo-topo {
+    height: 45px;
+    width: auto;
+    object-fit: contain;
 }
 
 .texto-logo {
@@ -135,7 +135,7 @@ body {
 
 .titulo-boas-vindas {
     font-family: var(--fonte-titulo);
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     font-weight: 600;
     background: linear-gradient(135deg, var(--rose-gold-escuro) 0%, var(--rose-gold) 100%);
     -webkit-background-clip: text;
@@ -1118,4 +1118,117 @@ input:checked + .slider-switch:before {
     .container-admin {
         padding: 90px 32px 32px 32px;
     }
+}
+
+/* ================================================
+   RODAPÉ
+   ================================================ */
+.rodape {
+    background: var(--cor-fundo-card);
+    padding: 20px 24px;
+    margin-top: auto;
+    border-top: 1px solid var(--cor-borda);
+}
+
+.rodape-endereco,
+.rodape-telefone {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--cor-texto);
+    margin-bottom: 6px;
+}
+
+.rodape-horarios {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--cor-texto-escuro);
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--cor-borda);
+}
+
+.icone-rodape {
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.titulo-rodape {
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--rose-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+/* ================================================
+   RODAPÉ COM CARD
+   ================================================ */
+.rodape {
+    padding: 24px;
+    margin-top: auto;
+}
+
+.card-rodape {
+    background: var(--cor-fundo-card);
+    border-radius: var(--raio-card);
+    padding: 24px;
+    box-shadow: var(--sombra-card);
+    border: 1px solid var(--cor-borda);
+}
+
+.titulo-card-rodape {
+    display: block;
+    font-family: var(--fonte-texto);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--rose-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+.card-rodape-linha {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--fonte-texto);
+    font-size: 0.85rem;
+    color: var(--cor-texto);
+    margin-bottom: 12px;
+}
+
+.card-rodape-divisor {
+    height: 1px;
+    background: var(--cor-borda);
+    margin: 16px 0;
+}
+
+.card-rodape-horarios {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: var(--fonte-texto);
+    font-size: 0.8rem;
+    color: var(--cor-texto-escuro);
+}
+
+.icone-rodape {
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.titulo-rodape {
+    font-weight: 600;
+    font-size: 0.7rem;
+    color: var(--rose-gold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
 }

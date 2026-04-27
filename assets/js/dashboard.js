@@ -80,11 +80,8 @@ function inicializarDashboard() {
     firebase.auth().onAuthStateChanged(async (usuario) => {
         console.log('[DEBUG] Estado auth alterado, usuário:', usuario);
         
-        /* BACKEND IGNORADO - Usando dados mock temporariamente */
-        /* Quando o backend estiverready, descomentar a lógica abaixo */
-        
-        /*
         try {
+            /* Verifica se há usuário logado */
             if (!usuario) {
                 status.textContent = 'Usuário não está logado. Redirecionando...';
                 setTimeout(() => {
@@ -93,14 +90,18 @@ function inicializarDashboard() {
                 return;
             }
             
+            /* Buscar dados do usuário no Firestore */
             const doc = await firebase.firestore().collection('usuarios').doc(usuario.uid).get();
             const dados = doc.data();
             
+            console.log('[DEBUG] Dados do usuário:', dados);
+            
+            /* Se não houver dados, usa valores padrão */
             if (!dados) {
-                status.textContent = 'Dados do usuário não encontrados.';
-                return;
+                dados = { nome: 'Cliente' };
             }
             
+            /* Redireciona se for admin */
             if (dados.role === 'admin') {
                 status.textContent = 'Redirecionando para área admin...';
                 setTimeout(() => {
@@ -109,18 +110,14 @@ function inicializarDashboard() {
                 return;
             }
             
-            // Exibe dashboard com dados reais
+            /* Exibe dashboard com dados reais */
             await exibirDashboard(dados);
             
         } catch (erro) {
             console.error('[DEBUG] Erro:', erro);
-            status.textContent = 'Erro ao carregar: ' + erro.message;
+            /* Em caso de erro, usa dados padrão para não bloquear */
+            await exibirDashboard({ nome: 'Cliente' });
         }
-        */
-       
-        /* Usando dados mock para desenvolvimento frontend */
-        const dadosCliente = dadosMock.usuario;
-        await exibirDashboard(dadosCliente);
     });
 }
 
@@ -138,6 +135,22 @@ async function exibirDashboard(dados) {
 }
 
 /* ================================================
+   SAUDAÇÃO POR PERÍODO
+   Retorna boa manhã/tarde/noite conforme horário
+   ================================================ */
+function getSaudacao() {
+    const hora = new Date().getHours();
+    
+    if (hora >= 5 && hora < 12) {
+        return 'Bom dia';
+    } else if (hora >= 12 && hora < 18) {
+        return 'Boa tarde';
+    } else {
+        return 'Boa noite';
+    }
+}
+
+/* ================================================
    CRIAR ESTRUTURA HTML DA DASHBOARD
    Gera todo o HTML da página
    ================================================ */
@@ -150,8 +163,7 @@ function criarEstruturaDashboard(dados) {
         <!-- Header fixo -->
         <header class="header-dashboard">
             <div class="logo-header">
-                <img src="../data/img/favicon.svg" alt="Jeci Vieira Nails">
-                <span class="texto-logo">Jeci Nails</span>
+                <img src="../data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Jeci Vieira Nails" class="imagem-logo-topo">
             </div>
             <button class="botao-menu" id="btn-menu" aria-label="Abrir menu">
                 <span class="linha-menu"></span>
@@ -165,7 +177,7 @@ function criarEstruturaDashboard(dados) {
             
             <!-- Boas-vindas -->
             <section class="boas-vindas">
-                <h1 class="titulo-boas-vindas">Olá, ${dados.nome}!</h1>
+                <h1 class="titulo-boas-vindas">${getSaudacao()}, ${dados.nome}!</h1>
                 <p class="subtitulo-boas-vindas">Pronto para um momento de beleza?</p>
             </section>
             
@@ -188,39 +200,27 @@ function criarEstruturaDashboard(dados) {
                 ${criarBannerAviso()}
             </section>
             
-            <!-- Informações Adicionais -->
-            <section class="secao-info">
-                <h2 class="titulo-info">Informações</h2>
-                <div class="lista-info">
-                    <div class="item-info">
-                        <span class="icone-info">📍</span>
-                        <span class="texto-info">${dadosMock.configuracoes.endereco}</span>
+            <!-- Rodapé com informações em card -->
+            <footer class="rodape">
+                <div class="card-rodape">
+                    <span class="titulo-card-rodape">Dados do Salão</span>
+                    <div class="card-rodape-linha">
+                        <span class="icone-rodape">📍</span>
+                        <span>${dadosMock.configuracoes.endereco || 'Endereço não informado'}</span>
                     </div>
-                    <div class="item-info">
-                        <span class="icone-info">📞</span>
-                        <span class="texto-info">${dadosMock.configuracoes.telefone}</span>
+                    <div class="card-rodape-linha">
+                        <span class="icone-rodape">📞</span>
+                        <span>${dadosMock.configuracoes.telefone || 'Telefone não informado'}</span>
                     </div>
-                    <div class="item-info">
-                        <span class="icone-info">📅</span>
-                        <span class="texto-info">
-                            ${dadosMock.configuracoes.domingoFechado ? 'Domingo: Fechado' : 
-                            `Domingo: ${dadosMock.configuracoes.domingoAbertura || ''} às ${dadosMock.configuracoes.domingoFechamento || ''}`}
-                        </span>
-                    </div>
-                    <div class="item-info">
-                        <span class="icone-info">🕐</span>
-                        <span class="texto-info">
-                            Seg à Sex: ${dadosMock.configuracoes.segundaAbertura} às ${dadosMock.configuracoes.segundaIntervaloInicio} / ${dadosMock.configuracoes.segundaIntervaloFim} às ${dadosMock.configuracoes.segundaFechamento}
-                        </span>
-                    </div>
-                    <div class="item-info">
-                        <span class="icone-info">🕐</span>
-                        <span class="texto-info">
-                            Sábado: ${dadosMock.configuracoes.sabadoAbertura} às ${dadosMock.configuracoes.sabadoFechamento}
-                        </span>
+                    <div class="card-rodape-divisor"></div>
+                    <div class="card-rodape-horarios">
+                        <span class="titulo-rodape">Horários de Funcionamento</span>
+                        <span>Seg à Sex: ${dadosMock.configuracoes.segundaAbertura || '09:00'} - ${dadosMock.configuracoes.segundaIntervaloInicio || '12:00'} / ${dadosMock.configuracoes.segundaIntervaloFim || '13:00'} - ${dadosMock.configuracoes.segundaFechamento || '19:00'}</span>
+                        <span>Sábado: ${dadosMock.configuracoes.sabadoAbertura || '09:00'} - ${dadosMock.configuracoes.sabadoFechamento || '17:00'}</span>
+                        <span>Domingo e Feriados: ${dadosMock.configuracoes.domingoFechado ? 'Fechado' : 'Aberto'}</span>
                     </div>
                 </div>
-            </section>
+            </footer>
             
         </main>
         

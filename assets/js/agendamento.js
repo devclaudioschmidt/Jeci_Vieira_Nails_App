@@ -576,7 +576,7 @@ function gerarHorarios(dataStr, duracao, config, horariosOcupados = []) {
             indisponivel: indisponivel
         });
         
-        minInicio += (duracao + config.tempoEntreAgendamentos);
+        minInicio += 30;
     }
     
     return horarios;

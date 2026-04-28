@@ -1369,7 +1369,10 @@ async function salvarConfiguracoes() {
         domingoFechado: document.getElementById('config-domingo-fechado').checked,
         telefone: document.getElementById('config-telefone').value,
         endereco: document.getElementById('config-endereco').value,
-        tempoEntreAgendamentos: parseInt(document.getElementById('config-tempo').value) || 15,
+        tempoEntreAgendamentos: (() => {
+            const valor = parseInt(document.getElementById('config-tempo').value);
+            return isNaN(valor) ? 15 : valor;
+        })(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     

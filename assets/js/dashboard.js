@@ -117,14 +117,14 @@ async function carregarDadosGlobais() {
 }
 
 /* ================================================
-   BUSCAR PRÓXIMO AGENDAMENTO DO CLIENTE
-   ================================================ */
+    BUSCAR PRÓXIMO AGENDAMENTO DO CLIENTE
+    ================================================ */
 async function carregarProximoAgendamento(uid) {
     try {
         const hoje = new Date().toISOString().split('T')[0];
         
         const snap = await firebase.firestore().collection('agendamentos')
-            .where('clienteId', '==', uid)
+            .where('userId', '==', uid)
             .where('status', 'in', ['pendente', 'confirmado'])
             .get();
             

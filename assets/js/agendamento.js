@@ -401,7 +401,6 @@ function renderizarCalendario() {
     }
     
     const hoje = new Date();
-    const config = dadosMock.configuracoes;
     
     // Dias do mês
     for (let dia = 1; dia <= diasNoMes; dia++) {
@@ -419,7 +418,7 @@ function renderizarCalendario() {
         }
         
         // Domingo
-        if (diaSemana === 0 && config.domingoFechado) {
+        if (diaSemana === 0 && configuracoes.domingoFechado) {
             bloqueado = true;
         }
         
@@ -430,7 +429,7 @@ function renderizarCalendario() {
             <span class="dia-cal ${indisponivel ? 'indisponivel' : ''} ${bloqueado ? 'bloqueado' : ''}" 
                   data-data="${dataStr}" 
                   data-dia="${dia}"
-                  ${(isSabado && !config.sabadoAbertura) ? 'data-bloqueado="sabado"' : ''}>
+                  ${(isSabado && !configuracoes.sabadoAbertura) ? 'data-bloqueado="sabado"' : ''}>
                 ${dia}
             </span>
         `;

@@ -581,18 +581,33 @@ async function confirmarAgendamento() {
     
     console.log('[DEBUG] Agendamento:', dados);
     
-    // BACKEND IGNORADO - mock de salvamento
-    /* try {
-        await firebase.firestore().collection('agendamentos').add({
+    // SALVAR AGENDAMENTO NO FIRESTORE
+    try {
+        const usuario = firebase.auth().currentUser;
+        if (!usuario) {
+            throw new Error('Usuário não autenticado');
+        }
+
+        // Dados com desnormalização (regras-firestore.md)
+        const agendamentoDoc = {
             ...dados,
+            userId: usuario.uid,
+            clienteNome: usuario.displayName || usuario.email || 'Cliente',
+            servicoNome: dados.servico,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        };
+
+        await firebase.firestore().collection('agendamentos').add(agendamentoDoc);
+        
+        console.log('[DEBUG] Agendamento salvo com sucesso');
     } catch (erro) {
-        console.error('[DEBUG] Erro:', erro);
-    } */
-    
-    // Simular sucesso
-    alert(`Agendamento confirmado!\n\n${servicoSelecionado.nome}\n${formatarData(dataSelecionada.str)} às ${horarioSelecionado}\n\nR$ ${servicoSelecionado.preco}\n\nEm breve você receberá a confirmação.`);
+        console.error('[DEBUG] Erro ao salvar agendamento:', erro);
+        alert('Erro ao salvar agendamento. Tente novamente.');
+        return;
+    }
+
+    // Exibir confirmação
+    alert(`Agendamento confirmado!\n\n${servicoSelecionado.nome}\n${formatarData(dataSelecionada.str)} às ${horarioSelecionado}\n\nR$ ${servicoSelecionado.preco}`);
     
     // Redirecionar para dashboard
     window.location.href = 'dashboard.html';

@@ -1,41 +1,32 @@
 /* ================================================
-   JEICI VIEIRA NAILS - LÓGICA DE AGENDAMENTO
-   Frontend com dados mock
-   ================================================ */
+    JEICI VIEIRA NAILS - LÓGICA DE AGENDAMENTO
+    Frontend com dados do Firestore
+    ================================================ */
 
 /* ================================================
-   VARIÁVEIS GLOBAIS
-   ================================================ */
+    VARIÁVEIS GLOBAIS
+    ================================================ */
 let servicoSelecionado = null;
 let dataSelecionada = null;
 let horarioSelecionado = null;
-letStepAtual = 1;
+let passoAtual = 1;
 let dataCalendario = new Date();
 
 /* ================================================
-   DADOS MOCK
-   ================================================ */
-const dadosMock = {
-    servicos: [
-        { id: 1, nome: "Manicure", preco: 50, duracao: 60, icone: "💅" },
-        { id: 2, nome: "Pedicure", preco: 45, duracao: 60, icone: "🦶" },
-        { id: 3, nome: "Unhas Decoradas", preco: 120, duracao: 90, icone: "✨" },
-        { id: 4, nome: "Spa dos Pés", preco: 80, duracao: 45, icone: "🌸" }
-    ],
-    configuracoes: {
-        segundaAbertura: "09:00",
-        segundaIntervaloInicio: "12:00",
-        segundaIntervaloFim: "13:00",
-        segundaFechamento: "19:00",
-        sabadoAbertura: "09:00",
-        sabadoFechamento: "17:00",
-        domingoFechado: true,
-        tempoEntreAgendamentos: 15
-    },
-    agendamentos: [
-        { data: "2025-04-26", horario: "14:00" }
-    ]
+    DADOS DO FIRESTORE
+    ================================================ */
+let servicosAtivos = [];
+let configuracoes = {
+    segundaAbertura: "09:00",
+    segundaIntervaloInicio: "12:00",
+    segundaIntervaloFim: "13:00",
+    segundaFechamento: "19:00",
+    sabadoAbertura: "09:00",
+    sabadoFechamento: "17:00",
+    domingoFechado: true,
+    tempoEntreAgendamentos: 15
 };
+let agendamentosDia = [];
 
 const nomesMeses = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -45,8 +36,53 @@ const nomesMeses = [
 const nomesDias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 /* ================================================
-   INICIALIZAÇÃO
-   ================================================ */
+    CARREGAR DADOS DO FIRESTORE
+    ================================================ */
+async function carregarDadosAgendamento() {
+    try {
+        const [servicosSnap, configSnap] = await Promise.all([
+            firebase.firestore().collection('servicos').where('ativo', '==', true).get(),
+            firebase.firestore().collection('configuracoes').doc('salao').get()
+        ]);
+
+        servicosAtivos = servicosSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        if (configSnap.exists) {
+            configuracoes = { ...configuracoes, ...configSnap.data() };
+        }
+
+        console.log('[DEBUG] Serviços carregados:', servicosAtivos.length);
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao carregar dados:', erro);
+        servicosAtivos = [];
+    }
+}
+
+/* ================================================
+    BUSCAR AGENDAMENTOS DO DIA
+    ================================================ */
+async function buscarAgendamentosDia(dataStr) {
+    try {
+        const snap = await firebase.firestore()
+            .collection('agendamentos')
+            .where('data', '==', dataStr)
+            .where('status', 'in', ['pendente', 'confirmado'])
+            .get();
+
+        agendamentosDia = snap.docs.map(doc => doc.data().horario);
+        console.log('[DEBUG] Agendamentos do dia:', agendamentosDia.length);
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao buscar agendamentos:', erro);
+        agendamentosDia = [];
+    }
+}
+
+/* ================================================
+    INICIALIZAÇÃO
+    ================================================ */
 function inicializarAgendamento() {
     const status = document.getElementById('status');
     
@@ -59,6 +95,15 @@ function inicializarAgendamento() {
                 setTimeout(() => {
                     window.location.href = '../index.html';
                 }, 1500);
+                return;
+            }
+            
+            // Carregar serviços e configurações do Firestore
+            status.textContent = 'Carregando serviços...';
+            await carregarDadosAgendamento();
+            
+            if (servicosAtivos.length === 0) {
+                status.textContent = 'Nenhum serviço disponível no momento.';
                 return;
             }
             
@@ -209,8 +254,8 @@ function criarEstruturaAgendamento(usuario) {
 }
 
 /* ================================================
-   INICIALIZAR EVENTOS
-   ================================================ */
+    INICIALIZAR EVENTOS
+    ================================================ */
 function inicializarEventos() {
     // Navegação do calendário
     document.getElementById('btn-mes-anterior').addEventListener('click', () => {
@@ -225,7 +270,9 @@ function inicializarEventos() {
     
     // Botões de navegação
     document.getElementById('btn-passo-1').addEventListener('click', () => irParaPasso(2));
-    document.getElementById('btn-passo-2').addEventListener('click', () => irParaPasso(3));
+    document.getElementById('btn-passo-2').addEventListener('click', async () => {
+        await irParaPasso(3);
+    });
     document.getElementById('btn-passo-3').addEventListener('click', () => irParaPasso(4));
     
     document.getElementById('btn-voltar-2').addEventListener('click', () => irParaPasso(1));
@@ -240,9 +287,9 @@ function inicializarEventos() {
 }
 
 /* ================================================
-   IR PARA PASSO
-   ================================================ */
-function irParaPasso(passo) {
+    IR PARA PASSO
+    ================================================ */
+async function irParaPasso(passo) {
     // Validar antes de avançar
     if (passo > 1 && passo <= 3) {
         if (passo === 2 && !servicoSelecionado) {
@@ -260,7 +307,7 @@ function irParaPasso(passo) {
     }
     
     if (passo === 3) {
-        renderizarHorarios();
+        await renderizarHorarios();
     }
     
     if (passo === 4) {
@@ -289,20 +336,25 @@ function irParaPasso(passo) {
 }
 
 /* ================================================
-   RENDERIZAR SERVIÇOS
-   ================================================ */
+    RENDERIZAR SERVIÇOS
+    ================================================ */
 function renderizarServicos() {
     const container = document.getElementById('grid-servicos');
     if (!container) return;
     
+    if (servicosAtivos.length === 0) {
+        container.innerHTML = '<p class="texto-vazio">Nenhum serviço disponível.</p>';
+        return;
+    }
+    
     let html = '';
-    dadosMock.servicos.forEach(servico => {
+    servicosAtivos.forEach(servico => {
         html += `
             <div class="card-servico-opcao" data-id="${servico.id}">
-                <span class="icone-servico-opcao">${servico.icone}</span>
+                <span class="icone-servico-opcao">${servico.icone || '💅'}</span>
                 <p class="nome-servico-opcao">${servico.nome}</p>
                 <p class="preco-servico-opcao">R$ ${servico.preco}</p>
-                <p class="duracao-servico-opcao">${servico.duracao} min</p>
+                <p class="duracao-servico-opcao">${servico.duracao || 60} min</p>
             </div>
         `;
     });
@@ -315,7 +367,7 @@ function renderizarServicos() {
             document.querySelectorAll('.card-servico-opcao').forEach(c => c.classList.remove('selecionado'));
             card.classList.add('selecionado');
             
-            servicoSelecionado = dadosMock.servicos.find(s => s.id == card.dataset.id);
+            servicoSelecionado = servicosAtivos.find(s => s.id === card.dataset.id);
             
             document.getElementById('btn-passo-1').disabled = false;
         });
@@ -407,9 +459,9 @@ function renderizarCalendario() {
 }
 
 /* ================================================
-   RENDERIZAR HORÁRIOS
-   ================================================ */
-function renderizarHorarios() {
+    RENDERIZAR HORÁRIOS
+    ================================================ */
+async function renderizarHorarios() {
     const container = document.getElementById('grid-horarios');
     const infoContainer = document.getElementById('info-servico-selecionado');
     if (!container) return;
@@ -417,21 +469,28 @@ function renderizarHorarios() {
     // Info do serviço
     if (infoContainer) {
         infoContainer.innerHTML = `
-            <span class="icone-info-servico">${servicoSelecionado.icone}</span>
+            <span class="icone-info-servico">${servicoSelecionado.icone || '💅'}</span>
             <div class="texto-info-servico">
                 <strong>${servicoSelecionado.nome}</strong>
-                R$ ${servicoSelecionado.preco} • ${servicoSelecionado.duracao} min
+                R$ ${servicoSelecionado.preco} • ${servicoSelecionado.duracao || 60} min
             </div>
         `;
     }
     
-    // Gerar horários
-    const config = dadosSistema.configuracoes;
-    const horariosOcupados = dadosSistema.agendamentos
-        .filter(a => a.data === dataSelecionada.str && a.status !== 'cancelado')
-        .map(a => a.horario);
+    // Buscar agendamentos do dia
+    await buscarAgendamentosDia(dataSelecionada.str);
     
-    const horarios = gerarHorarios(dataSelecionada.str, servicoSelecionado.duracao, config, horariosOcupados);
+    const horarios = gerarHorarios(
+        dataSelecionada.str, 
+        servicoSelecionado.duracao || 60, 
+        configuracoes, 
+        agendamentosDia
+    );
+    
+    if (horarios.length === 0) {
+        container.innerHTML = '<p class="texto-vazio">Nenhum horário disponíveis para esta data.</p>';
+        return;
+    }
     
     let html = '';
     horarios.forEach(h => {
@@ -462,9 +521,9 @@ function renderizarHorarios() {
 }
 
 /* ================================================
-   GERAR HORÁRIOS
-   ================================================ */
-function gerarHorarios(dataStr, duracao, config, ocupados) {
+    GERAR HORÁRIOS
+    ================================================ */
+function gerarHorarios(dataStr, duracao, config, horariosOcupados = []) {
     const horarios = [];
     
     // Determinar horário de funcionamento
@@ -502,7 +561,7 @@ function gerarHorarios(dataStr, duracao, config, ocupados) {
         const horarioStr = `${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
         
         let indisponivel = false;
-        if (ocupados.includes(horarioStr)) {
+        if (horariosOcupados.includes(horarioStr)) {
             indisponivel = true;
         }
         

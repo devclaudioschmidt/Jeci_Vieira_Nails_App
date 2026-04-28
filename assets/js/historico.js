@@ -95,37 +95,37 @@ function renderizarTela(futuros, passados) {
 
 function gerarHtmlCards(agendamentos, classeTipo, mensagemVazio) {
     if (agendamentos.length === 0) {
-        return \`<div class="sem-agendamentos">\${mensagemVazio}</div>\`;
+        return `<div class="sem-agendamentos">${mensagemVazio}</div>`;
     }
 
     return agendamentos.map(ag => {
         const statusStr = ag.status || 'pendente';
-        const badgeClass = \`status-\${statusStr}\`;
+        const badgeClass = `status-${statusStr}`;
         const badgeTexto = statusStr === 'confirmado' ? 'Confirmado' :
                            statusStr === 'cancelado' ? 'Cancelado' : 'Pendente';
                            
-        return \`
-        <div class="card-agendamento \${classeTipo}">
+        return `
+        <div class="card-agendamento ${classeTipo}">
             <div class="card-topo">
-                <span class="servico-nome">\${ag.servico}</span>
-                <span class="status-badge \${badgeClass}">\${badgeTexto}</span>
+                <span class="servico-nome">${ag.servico}</span>
+                <span class="status-badge ${badgeClass}">${badgeTexto}</span>
             </div>
             <div class="card-detalhes">
                 <div class="detalhe-item">
                     <span>📅</span>
-                    <span>\${formatarData(ag.data)}</span>
+                    <span>${formatarData(ag.data)}</span>
                 </div>
                 <div class="detalhe-item">
                     <span>🕐</span>
-                    <span>\${ag.horario} (\${ag.duracao} min)</span>
+                    <span>${ag.horario} (${ag.duracao} min)</span>
                 </div>
                 <div class="detalhe-item">
                     <span>💰</span>
-                    <span>R$ \${parseFloat(ag.preco).toFixed(2).replace('.', ',')}</span>
+                    <span>R$ ${parseFloat(ag.preco).toFixed(2).replace('.', ',')}</span>
                 </div>
             </div>
         </div>
-        \`;
+        `;
     }).join('');
 }
 

@@ -1025,6 +1025,9 @@ function inicializarMascaraTelefone() {
         }
         
         e.target.value = valor;
+        
+        // Atualiza rodapé em tempo real
+        atualizarRodapeTempoReal();
     });
     
     inputTelefone.addEventListener('blur', (e) => {
@@ -1033,6 +1036,23 @@ function inicializarMascaraTelefone() {
             e.target.value = '';
         }
     });
+}
+
+/* ================================================
+    ATUALIZAR RODAPÉ EM TEMPO REAL
+    ================================================ */
+function atualizarRodapeTempoReal() {
+    const campoTelefone = document.getElementById('config-telefone');
+    const campoEndereco = document.getElementById('config-endereco');
+    const telefoneRodape = document.querySelector('.rodape .card-rodape-linha:nth-child(2) span:last-child');
+    const enderecoRodape = document.querySelector('.rodape .card-rodape-linha:first-child span:last-child');
+    
+    if (telefoneRodape && campoTelefone) {
+        telefoneRodape.textContent = campoTelefone.value || 'Telefone não informado';
+    }
+    if (enderecoRodape && campoEndereco) {
+        enderecoRodape.textContent = campoEndereco.value || 'Endereço não informado';
+    }
 }
 
 /* ================================================
@@ -1049,6 +1069,12 @@ function inicializarEventos() {
     });
     
     inicializarMascaraTelefone();
+    
+    // Atualizar rodapé ao digitar no endereço
+    const campoEndereco = document.getElementById('config-endereco');
+    if (campoEndereco) {
+        campoEndereco.addEventListener('input', atualizarRodapeTempoReal);
+    }
     
     document.getElementById('btn-novo-servico').addEventListener('click', () => abrirModalServico());
     document.getElementById('btn-salvar-config').addEventListener('click', () => salvarConfiguracoes());

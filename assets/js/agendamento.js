@@ -554,17 +554,21 @@ function gerarHorarios(dataStr, duracao, config, horariosOcupados = []) {
     let minIntFim = intFim ? intFim.split(':').map(Number).reduce((a, b) => a * 60 + b) : null;
     
     // Gerar horários
-    while (minInicio + duracao <= minFim) {
+    const tempoEntre = config.tempoEntreAgendamentos || 0;
+    while (minInicio + duracao + tempoEntre <= minFim) {
         const hora = Math.floor(minInicio / 60);
         const min = minInicio % 60;
         const horarioStr = `${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+        
+        // Verificar se o serviço termina antes do fechamento
+        const minTermino = minInicio + duracao + tempoEntre;
         
         let indisponivel = false;
         if (horariosOcupados.includes(horarioStr)) {
             indisponivel = true;
         }
         
-        // Verificar se está no intervalo
+        // Verificar se está no intervalo de almoço
         if (minIntInicio && minIntFim) {
             if (minInicio >= minIntInicio && minInicio < minIntFim) {
                 indisponivel = true;

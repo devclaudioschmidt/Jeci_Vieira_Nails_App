@@ -723,6 +723,8 @@ html {
 }
 
 .card-rodape {
+    max-width: 480px;
+    margin: 0 auto;
     background: var(--cor-fundo-card);
     border-radius: var(--raio-card);
     padding: 24px;

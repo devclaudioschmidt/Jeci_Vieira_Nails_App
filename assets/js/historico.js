@@ -62,15 +62,14 @@ function formatarData(dataStr) {
 
 function renderizarTela(futuros, passados) {
     document.body.innerHTML = `
-        <header class="header-historico">
+        <header class="header-perfil">
             <a href="dashboard.html" class="logo-header">
-                <img src="../data/img/favicon.svg" alt="Jeci Nails">
-                <span class="texto-logo">Jeci Nails</span>
+                <img src="../data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Jeci Vieira Nails" class="imagem-logo-topo">
             </a>
             <a href="dashboard.html" class="botao-voltar">←</a>
         </header>
 
-        <main class="container-historico">
+        <main class="container-perfil">
             <h1 class="titulo-pagina">Meus Agendamentos</h1>
             <p class="subtitulo-pagina">Acompanhe seus horários marcados</p>
 
@@ -88,7 +87,7 @@ function renderizarTela(futuros, passados) {
                 </div>
             </section>
             
-            <a href="agendamento.html" class="btn-novo-agendamento">Agendar Novo Serviço</a>
+            <a href="agendamento.html" class="botao-agendar">Agendar Novo Serviço</a>
         </main>
     `;
 }
@@ -117,11 +116,11 @@ function gerarHtmlCards(agendamentos, classeTipo, mensagemVazio) {
                 </div>
                 <div class="detalhe-item">
                     <span>🕐</span>
-                    <span>${ag.horario} (${ag.duracao} min)</span>
+                    <span>${ag.horario} (${ag.duracao || 60} min)</span>
                 </div>
                 <div class="detalhe-item">
                     <span>💰</span>
-                    <span>R$ ${parseFloat(ag.preco).toFixed(2).replace('.', ',')}</span>
+                    <span>R$ ${parseFloat(ag.preco || 0).toFixed(2).replace('.', ',')}</span>
                 </div>
             </div>
         </div>

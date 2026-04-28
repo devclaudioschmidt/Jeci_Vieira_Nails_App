@@ -1,20 +1,28 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meus Agendamentos - Jeci Vieira Nails</title>
+    
+    <meta name="theme-color" content="#C98B8B">
+    <link rel="icon" type="image/svg+xml" href="../data/img/favicon.svg">
+    <link rel="apple-touch-icon" href="../data/img/icons/icon-192x192.png">
+    <link rel="manifest" href="../assets/manifest/manifest.json">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap">
+    
+    <link rel="stylesheet" href="../css/style-perfil.css">
     <link rel="stylesheet" href="../css/style-historico.css">
-    <link rel="icon" href="../data/img/favicon.svg">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div id="status" style="padding: 20px; text-align: center; color: #666; font-family: 'Outfit', sans-serif;">
-        Carregando seus agendamentos...
-    </div>
 
-    <!-- Scripts Firebase -->
+<body>
+    <div id="status" class="mensagemCarregando">Carregando...</div>
+
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -22,4 +30,5 @@
     <script src="../assets/js/firebase-config.js"></script>
     <script src="../assets/js/historico.js"></script>
 </body>
+
 </html>

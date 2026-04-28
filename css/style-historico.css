@@ -1,15 +1,16 @@
+/* ================================================
+    JEICI VIEIRA NAILS - ESTILOS DO HISTÓRICO
+    ================================================ */
+
 :root {
     --rose-gold: #C98B8B;
     --rose-gold-claro: #E8C4C4;
     --rose-gold-escuro: #A66D6D;
     --coral: #E58C8C;
-    --rosa-delicado: #FFF5F5;
-    --fundo-vidro: rgba(255, 255, 255, 0.85);
-    --borda-vidro: rgba(201, 139, 139, 0.25);
     --cor-texto-escuro: #4A3A3A;
     --cor-texto-suave: #8C7A7A;
     --fonte-titulo: 'Playfair Display', serif;
-    --fonte-texto: 'Outfit', sans-serif;
+    --fonte-texto: 'Montserrat', sans-serif;
     --raio-card: 24px;
     --raio-botao: 16px;
     --transicao: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -26,62 +27,25 @@ body {
     background: radial-gradient(circle at top right, #FFF1F1, #FFFFFF 50%, #F9F0F0 100%);
     color: var(--cor-texto-escuro);
     min-height: 100vh;
+    padding-top: 80px;
 }
 
-.header-historico {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 24px;
-    background: var(--fundo-vidro);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--borda-vidro);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+.mensagemCarregando {
+    padding: 20px;
+    text-align: center;
+    color: var(--cor-texto-suave);
+    font-family: var(--fonte-texto);
 }
 
-.logo-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-}
-
-.logo-header img {
-    width: 32px;
-}
-
-.texto-logo {
-    font-family: var(--fonte-titulo);
-    font-size: 1.2rem;
-    color: var(--rose-gold-escuro);
-}
-
-.botao-voltar {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--rose-gold-claro);
-    color: var(--rose-gold-escuro);
-    border-radius: 50%;
-    text-decoration: none;
-    font-size: 1.2rem;
-    font-weight: bold;
-    transition: var(--transicao);
-}
-
-.container-historico {
+.container-perfil {
     max-width: 600px;
     margin: 0 auto;
-    padding: 32px 20px 100px 20px;
+    padding: 20px 20px 100px 20px;
 }
 
 .titulo-pagina {
     font-family: var(--fonte-titulo);
-    font-size: 2.2rem;
+    font-size: 2rem;
     color: var(--cor-texto-escuro);
     margin-bottom: 8px;
 }
@@ -89,18 +53,18 @@ body {
 .subtitulo-pagina {
     font-size: 1rem;
     color: var(--cor-texto-suave);
-    margin-bottom: 32px;
+    margin-bottom: 24px;
 }
 
 .secao-historico {
-    margin-bottom: 40px;
+    margin-bottom: 32px;
 }
 
 .titulo-secao {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--rose-gold-escuro);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -115,8 +79,8 @@ body {
     background: white;
     padding: 20px;
     border-radius: var(--raio-card);
-    border: 1px solid var(--borda-vidro);
-    box-shadow: 0 4px 15px rgba(201, 139, 139, 0.05);
+    border: 1px solid rgba(201, 139, 139, 0.2);
+    box-shadow: 0 4px 15px rgba(201, 139, 139, 0.08);
     transition: var(--transicao);
 }
 
@@ -133,7 +97,7 @@ body {
 }
 
 .servico-nome {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: var(--cor-texto-escuro);
 }
@@ -160,39 +124,40 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--cor-texto-suave);
 }
 
-.btn-novo-agendamento {
+.botao-agendar {
     position: fixed;
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
     width: 80%;
     max-width: 300px;
-    padding: 18px;
+    padding: 16px 24px;
     background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
     color: white;
     text-decoration: none;
     text-align: center;
     border-radius: var(--raio-botao);
     font-weight: 600;
+    font-size: 1rem;
     box-shadow: 0 10px 25px rgba(229, 140, 140, 0.4);
     transition: var(--transicao);
     z-index: 101;
 }
 
-.btn-novo-agendamento:hover {
+.botao-agendar:hover {
     transform: translateX(-50%) translateY(-3px);
     box-shadow: 0 15px 30px rgba(229, 140, 140, 0.5);
 }
 
 .sem-agendamentos {
     text-align: center;
-    padding: 30px;
+    padding: 24px;
     background: rgba(255, 255, 255, 0.5);
-    border: 1px dashed var(--borda-vidro);
+    border: 1px dashed rgba(201, 139, 139, 0.3);
     border-radius: var(--raio-card);
     color: var(--cor-texto-suave);
     font-style: italic;

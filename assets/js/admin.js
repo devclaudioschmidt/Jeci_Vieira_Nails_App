@@ -427,7 +427,9 @@ function criarEstruturaAdmin(dados) {
                 <div class="campo-config">
                     <span class="rotulo-config">Telefone</span>
                     <input type="tel" class="input-config" id="config-telefone" 
-                        value="${configuracoes.telefone || ''}" placeholder="(11) 99999-9999">
+                        value="${configuracoes.telefone || ''}" 
+                        placeholder="(11) 99999-9999"
+                        inputmode="tel">
                 </div>
                 
                 <div class="campo-config">
@@ -1004,6 +1006,36 @@ function inicializarMenuHamburger() {
 }
 
 /* ================================================
+    MÁSCARA DE TELEFONE
+    ================================================ */
+function inicializarMascaraTelefone() {
+    const inputTelefone = document.getElementById('config-telefone');
+    if (!inputTelefone) return;
+    
+    inputTelefone.addEventListener('input', (e) => {
+        let valor = e.target.value.replace(/\D/g, '');
+        
+        if (valor.length > 10) {
+            valor = valor.substring(0, 11);
+            valor = valor.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+        } else if (valor.length > 5) {
+            valor = valor.replace(/^(\d{2})(\d{4})(\d{4}).*/, '($1) $2-$3');
+        } else if (valor.length > 0) {
+            valor = valor.replace(/^(\d*)/, '($1');
+        }
+        
+        e.target.value = valor;
+    });
+    
+    inputTelefone.addEventListener('blur', (e) => {
+        let valor = e.target.value.replace(/\D/g, '');
+        if (valor.length > 0 && valor.length < 10) {
+            e.target.value = '';
+        }
+    });
+}
+
+/* ================================================
    INICIALIZAR EVENTOS
    ================================================ */
 function inicializarEventos() {
@@ -1015,6 +1047,8 @@ function inicializarEventos() {
             navegarPara(item.dataset.nav);
         });
     });
+    
+    inicializarMascaraTelefone();
     
     document.getElementById('btn-novo-servico').addEventListener('click', () => abrirModalServico());
     document.getElementById('btn-salvar-config').addEventListener('click', () => salvarConfiguracoes());

@@ -167,10 +167,17 @@ async function carregarDadosFirestore() {
         clientesFiltrados = [...clientes];
         console.log('[DEBUG] Clientes carregados:', clientes.length);
         
-        // Carregar agendamentos
+        // Carregar agendamentos (últimos 50 - regras-firestore.md)
         try {
+            const dataInicio = new Date();
+            dataInicio.setMonth(dataInicio.getMonth() - 2);
+            const dataStrInicio = dataInicio.toISOString().split('T')[0];
+            
             const agendamentosSnap = await firebase.firestore()
                 .collection('agendamentos')
+                .where('data', '>=', dataStrInicio)
+                .orderBy('data', 'desc')
+                .limit(50)
                 .get();
             
             agendamentos = agendamentosSnap.docs.map(doc => ({

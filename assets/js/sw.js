@@ -1,10 +1,11 @@
 /* ================================================
    JEICI VIEIRA NAILS - SERVICE WORKER
-   Desabilitado temporariamente
+   Temporariamente desabilitado
    ================================================ */
 
-// O service worker foi desabilitado porque estava causando
-// problemas de login no iOS Safari (PWA pedindo login novamente)
+// Este arquivo foi desabilitado para resolver
+// problemas de login no iOS Safari
+// O código original foi movido para sw.js.bak
 
-// Se precisar reativar no futuro, basta habilitar
-// novamente este arquivo
+// Por enquanto, não faz nada
+console.log('[Service Worker] Desabilitado');

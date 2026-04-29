@@ -163,7 +163,7 @@ body {
     font-style: italic;
 }
 
-/* Botões de Ação (Cancelar/Reagendar) */
+/* Botões de Ação (Cancelar) */
 .card-botoes {
     display: flex;
     gap: 10px;
@@ -191,16 +191,6 @@ body {
 
 .botao-card.cancelar:hover {
     background: #FFCDD2;
-}
-
-.botao-card.reagendar {
-    background: var(--rose-gold-claro);
-    color: var(--cor-texto-escuro);
-}
-
-.botao-card.reagendar:hover {
-    background: var(--rose-gold);
-    color: white;
 }
 
 /* Modal */

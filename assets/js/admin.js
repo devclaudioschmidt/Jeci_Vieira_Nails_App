@@ -383,7 +383,6 @@ async function abrirModalDetalhesAgendamento(id) {
         <button class="modal-botao secundario" id="modal-fechar-detalhes">Fechar</button>
         ${!ehCancelado && !ehPassado ? `
         <button class="modal-botao danger" id="modal-cancelar-agend">Cancelar</button>
-        <button class="modal-botao primario" id="modal-reagendar-agend">Reagendar</button>
         ` : ''}
     `;
     
@@ -402,142 +401,11 @@ async function abrirModalDetalhesAgendamento(id) {
             await cancelarAgendamento(id);
         });
     }
-    
-    // Evento Reagendar
-    const btnReagendar = document.getElementById('modal-reagendar-agend');
-    if (btnReagendar) {
-        btnReagendar.addEventListener('click', () => {
-            modal.classList.remove('ativo');
-            abrirModalReagendar(id);
-        });
-    }
 }
 
 /* ================================================
-   ABRIR MODAL DE REAGENDAMENTO
+   FORMATAR DATA
    ================================================ */
-let selectedDateReagend = null;
-let selectedTimeReagend = null;
-
-async function abrirModalReagendar(id) {
-    const agendamento = agendamentos.find(a => a.id === id);
-    if (!agendamento) return;
-    
-    selectedDateReagend = null;
-    selectedTimeReagend = null;
-    
-    const modal = criarModal();
-    
-    modal.querySelector('.modal-icon').textContent = '📅';
-    modal.querySelector('.modal-titulo').textContent = 'Reagendar Agendamento';
-    modal.querySelector('.modal-mensagem').innerHTML = `
-        <div style="text-align: left; font-size: 0.9rem;">
-            <p style="margin-bottom: 12px;"><strong>Novo horário:</strong></p>
-            <input type="date" id="reagendar-data" class="input-config" style="width: 100%; margin-bottom: 12px;">
-            <input type="time" id="reagendar-horario" class="input-config" style="width: 100%;">
-        </div>
-    `;
-    
-    modal.querySelector('.modal-botoes').innerHTML = `
-        <button class="modal-botao secundario" id="modal-cancel-reagendar">Cancelar</button>
-        <button class="modal-botao primario" id="modal-confirm-reagendar">Confirmar</button>
-    `;
-    
-    modal.classList.add('ativo');
-    
-    // Evento Cancelar
-    document.getElementById('modal-cancel-reagendar').addEventListener('click', () => {
-        modal.classList.remove('ativo');
-    });
-    
-    // Evento Confirmar
-    document.getElementById('modal-confirm-reagendar').addEventListener('click', async () => {
-        const novaData = document.getElementById('reagendar-data').value;
-        const novoHorario = document.getElementById('reagendar-horario').value;
-        
-        if (!novaData || !novoHorario) {
-            await mostrarAlerta('Campos Obrigatórios', 'Por favor, selecione data e horário.', 'alerta');
-            return;
-        }
-        
-        modal.classList.remove('ativo');
-        await reagendarAgendamentoAdmin(id, novaData, novoHorario);
-    });
-}
-
-/* ================================================
-   REAGENDAR AGENDAMENTO (ADMIN)
-   ================================================ */
-async function reagendarAgendamentoAdmin(id, novaData, novoHorario) {
-    const agendamentoOriginal = agendamentos.find(a => a.id === id);
-    if (!agendamentoOriginal) return;
-    
-    const confirmar = await mostrarConfirm(
-        'Confirmar Reagendamento',
-        `O horário será alterado de <strong>${formatarData(agendamentoOriginal.data)} às ${agendamentoOriginal.horario}</strong> para <strong>${formatarData(novaData)} às ${novoHorario}</strong>.<br><br>O horário antigo será liberado para novos agendamentos.`,
-        'alerta'
-    );
-    
-    if (!confirmar) return;
-    
-    try {
-        // Deletar agendamento antigo
-        await firebase.firestore().collection('agendamentos').doc(id).delete();
-        
-        // Criar novo agendamento
-        const novoAgendamento = {
-            ...agendamentoOriginal,
-            data: novaData,
-            horario: novoHorario,
-            status: 'confirmado',
-            reagendadoDe: id,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        delete novoAgendamento.id;
-        
-        await firebase.firestore().collection('agendamentos').add(novoAgendamento);
-        
-        await carregarDadosFirestore();
-        
-        // Oferecer notificação WhatsApp para o cliente
-        const clienteObj2 = clientes.find(c => c.id === agendamentoOriginal.userId);
-        const nomeCliente2 = clienteObj2 ? clienteObj2.nome : (agendamentoOriginal.clienteNome || 'Cliente');
-        const telefoneCliente2 = (clienteObj2 ? clienteObj2.telefone : '') || agendamentoOriginal.clienteTelefone || '';
-        if (telefoneCliente2) {
-            const msgWpp = `Olá ${nomeCliente2}! 💅 Aqui é o salão Jeci Vieira Nails.\n\nSeu agendamento foi reagendado!\n\nServiço: ${agendamentoOriginal.servico}\nNova data: ${formatarData(novaData)}\nNovo horário: ${novoHorario}\n\nQualquer dúvida, estamos à disposição! 😊`;
-            const linkWpp = gerarLinkWhatsApp(telefoneCliente2, msgWpp);
-            if (linkWpp) {
-                const modal = criarModal();
-                modal.querySelector('.modal-icon').textContent = '✅';
-                modal.querySelector('.modal-titulo').textContent = 'Reagendado com Sucesso';
-                modal.querySelector('.modal-mensagem').innerHTML = `Agendamento reagendado! Deseja avisar <strong>${nomeCliente2}</strong> via WhatsApp?`;
-                modal.querySelector('.modal-botoes').innerHTML = `
-                    <button class="modal-botao secundario" id="modal-skip-reagend">Pular</button>
-                    <a class="modal-botao whatsapp" href="${linkWpp}" target="_blank" rel="noopener" id="modal-wpp-reagend">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                        Avisar via WhatsApp
-                    </a>
-                `;
-                modal.dataset.clickOutside = 'true';
-                modal.classList.add('ativo');
-                document.getElementById('modal-skip-reagend').addEventListener('click', () => modal.classList.remove('ativo'));
-                document.getElementById('modal-wpp-reagend').addEventListener('click', () => {
-                    setTimeout(() => modal.classList.remove('ativo'), 500);
-                });
-                return;
-            }
-        }
-
-        await mostrarAlerta('Sucesso', 'Agendamento reagendado com sucesso!', 'sucesso');
-        
-    } catch (erro) {
-        console.error('[DEBUG] Erro ao reagendar:', erro);
-        await mostrarAlerta('Erro', 'Erro ao reagendar. Tente novamente.', 'erro');
-    }
-}
-
-function formatarData(dataStr) {
     if (!dataStr) return '';
     const [ano, mes, dia] = dataStr.split('-');
     return `${dia}/${mes}/${ano}`;
@@ -1424,7 +1292,7 @@ async function cancelarAgendamento(id) {
 
         // Oferecer notificação WhatsApp para o cliente
         if (agendamento && telefoneCliente) {
-            const msgWpp = `Olá ${nomeCliente}! 💅 Aqui é o salão Jeci Vieira Nails.\n\nInfelizmente precisamos cancelar seu agendamento:\n\nServiço: ${agendamento.servico}\nData: ${formatarData(agendamento.data)}\nHorário: ${agendamento.horario}\n\nPor favor, acesse o sistema para reagendar ou entre em contato. Sentimos muito pelo inconveniente! 🙏`;
+            const msgWpp = `Olá ${nomeCliente}! 💅 Aqui é o salão Jeci Vieira Nails.\n\nInfelizmente precisamos cancelar seu agendamento:\n\nServiço: ${agendamento.servico}\nData: ${formatarData(agendamento.data)}\nHorário: ${agendamento.horario}\n\nPor favor, faça um novo agendamento ou entre em contato. Sentimos muito pelo inconveniente! 🙏`;
             const linkWpp = gerarLinkWhatsApp(telefoneCliente, msgWpp);
             if (linkWpp) {
                 const modal = criarModal();

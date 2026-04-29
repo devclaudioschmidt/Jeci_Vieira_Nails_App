@@ -133,7 +133,6 @@ function gerarHtmlCards(agendamentos, classeTipo, mensagemVazio) {
         
         const dataAgend = new Date(ag.data + 'T' + ag.horario);
         const horasRestantes = (dataAgend - agora) / (1000 * 60 * 60);
-        const podeReagendar = horasRestantes > 24 && statusStr !== 'cancelado';
         const podeCancelar = statusStr !== 'cancelado';
         
         return `
@@ -159,7 +158,6 @@ function gerarHtmlCards(agendamentos, classeTipo, mensagemVazio) {
             ${classeTipo === 'futuro' ? `
             <div class="card-botoes">
                 ${podeCancelar ? `<button class="botao-card cancelar" data-id="${ag.id}" data-servico="${encodeURIComponent(ag.servico)}" data-data="${ag.data}" data-horario="${ag.horario}" data-acao="cancelar">Cancelar</button>` : ''}
-                ${podeReagendar ? `<button class="botao-card reagendar" data-id="${ag.id}" data-acao="reagendar" data-servico="${encodeURIComponent(ag.servico)}" data-servicoId="${ag.servicoId}" data-preco="${ag.preco}" data-duracao="${ag.duracao || 60}">Reagendar</button>` : ''}
                 ${telefoneAdm ? (() => {
                     const msgWpp = `Olá! Gostaria de falar sobre meu agendamento de ${ag.servico} no dia ${formatarData(ag.data)} às ${ag.horario}. 😊`;
                     const link = gerarLinkWhatsApp(telefoneAdm, msgWpp);
@@ -264,7 +262,7 @@ async function mostrarConfirmLocal(titulo, mensagem, tipo = 'alerta') {
 }
 
 /* ================================================
-   AÇÕES DOS BOTÕES (Cancelar/Reagendar)
+   AÇÃO CANCELAR AGENDAMENTO
    ================================================ */
 async function cancelarAgendamentoCliente(id) {
     // Pegar dados do agendamento antes de cancelar
@@ -286,7 +284,7 @@ async function cancelarAgendamentoCliente(id) {
         await firebase.firestore().collection('agendamentos').doc(id).delete();
         
         // Gerar link WhatsApp para avisar ADM
-        const msgCancelamento = `Olá! Infelizmente precisei cancelar meu agendamento. 😟\n\nServiço: ${servicoNome || 'agendamento'}\n${dataAgend ? 'Data: ' + formatarData(dataAgend) : ''}\n${horarioAgend ? 'Horário: ' + horarioAgend : ''}\n\nSe precisar, estou à disposição para reagendar!`;
+        const msgCancelamento = `Olá! Infelizmente precisei cancelar meu agendamento. 😟\n\nServiço: ${servicoNome || 'agendamento'}\n${dataAgend ? 'Data: ' + formatarData(dataAgend) : ''}\n${horarioAgend ? 'Horário: ' + horarioAgend : ''}\n\nQuando deseojado, farei um novo agendamento!`;
         const linkWppAdm = gerarLinkWhatsApp(telefoneAdm, msgCancelamento);
 
         // Modal de sucesso com botão de WhatsApp
@@ -313,57 +311,15 @@ async function cancelarAgendamentoCliente(id) {
     }
 }
 
-function reagendarAgendamento(agendamentoId, servico, servicoId, preco, duracao) {
-    const params = new URLSearchParams({
-        reagendar: 'true',
-        agendamentoId: agendamentoId,
-        servico: servico || '',
-        servicoId: servicoId || '',
-        preco: preco || '',
-        duracao: duracao || '60'
-    });
-    
-    window.location.href = `agendamento.html?${params.toString()}`;
-}
-
-async function verificarReagendamento(botao) {
-    const podeReagendar = botao.classList.contains('reagendar');
-    
-    if (!podeReagendar) {
-        await mostrarAlertaLocal(
-            'Reagendamento',
-            'Para reagendar, você precisa ter pelo menos 24 horas de antecedência.<br><br>Por favor, entre em contato com o administrador para alterar seu horário.',
-            'alerta'
-        );
-        return;
-    }
-    
-    const id = botao.dataset.id;
-    const servico = decodeURIComponent(botao.dataset.servico || '');
-    const servicoId = botao.dataset.servicoId;
-    const preco = botao.dataset.preco;
-    const duracao = botao.dataset.duracao;
-    
-    reagendarAgendamento(id, servico, servicoId, preco, duracao);
-}
-
-/* ================================================
-   INICIALIZAÇÃO
-   ================================================ */
 function setupBotoesAcoes() {
     document.body.addEventListener('click', async (e) => {
-        // Usa closest para capturar cliques em elementos filhos (ex: SVG)
-        // Só captura botões com data-acao (exclui links WhatsApp)
         const botao = e.target.closest('[data-acao]');
         if (!botao) return;
 
         const acao = botao.dataset.acao;
-        const id = botao.dataset.id;
 
         if (acao === 'cancelar') {
-            await cancelarAgendamentoCliente(id);
-        } else if (acao === 'reagendar') {
-            await verificarReagendamento(botao);
+            await cancelarAgendamentoCliente(botao.dataset.id);
         }
     });
 }

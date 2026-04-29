@@ -149,8 +149,7 @@ body {
     gap: 6px;
     margin-bottom: 24px;
     padding: 0 8px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    flex-wrap: wrap;
     max-width: 100%;
     box-sizing: border-box;
 }
@@ -158,13 +157,16 @@ body {
 .passo {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     padding: 8px 12px;
     background: var(--fundo-vidro);
     border-radius: 20px;
     border: 1px solid var(--borda-vidro);
-    min-width: 0;
-    flex-shrink: 0;
+    min-width: auto;
+    flex: 1 1 calc(50% - 6px);
+    max-width: calc(50% - 6px);
+    box-sizing: border-box;
 }
 
 .passo .numero-passo {
@@ -185,6 +187,16 @@ body {
     font-size: 0.7rem;
     font-weight: 600;
     white-space: nowrap;
+}
+
+.passo.ativo {
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
+    border-color: var(--rose-gold);
+    color: #fff;
+}
+
+.passo.ativo .numero-passo {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .passo.ativo {

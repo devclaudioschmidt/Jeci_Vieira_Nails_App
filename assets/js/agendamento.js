@@ -752,7 +752,6 @@ function criarModalAgendamento() {
 }
 
 function mostrarModalSucesso(mensagem, linkWhatsApp = null) {
-    function mostrarModalSucesso(mensagem, linkWhatsApp = null) {
     const modal = criarModalAgendamento();
     
     modal.querySelector('.modal-icon').textContent = '✅';

@@ -7,7 +7,7 @@
    CONFIGURAÇÕES DO CACHE
    Nome e versão do cache para controle de updates
    ---------------------------------------- */
-const nomeCache = 'jeci-nails-cache-v1';
+const nomeCache = 'jeci-nails-cache-v2';
 
 /* ----------------------------------------
    LISTA DE ARQUIVOS PARA CACHE
@@ -17,8 +17,11 @@ const nomeCache = 'jeci-nails-cache-v1';
 const listaArquivosCache = [
     './',
     './index.html',
+    './css/style.css',
     './css/style-login.css',
+    './assets/js/firebase-config.js',
     './assets/js/login.js',
+    './assets/js/auth.js',
     './data/img/favicon.svg',
     './data/img/Logo_JeciVieira_NailsDesigner.svg',
     './data/img/login/img_login_01.png',
@@ -78,37 +81,46 @@ self.addEventListener('activate', (evento) => {
     );
 });
 
-/* ----------------------------------------
-   ESTRATÉGIA DE CACHE - CACHE FIRST
-   Primeiro verifica se o arquivo está em cache,
-   se não estiver, busca na rede e armazena
-   ---------------------------------------- */
+/* ================================================
+   ESTRATÉGIA DE CACHE - NETWORK FIRST
+   Primeiro tenta buscar da rede (dados frescos),
+   se falhar, usa cache como backup.
+   Mantém usuário logado e dados atualizados.
+   ================================================ */
 self.addEventListener('fetch', (evento) => {
+    // Ignora requisições do Firebase e APIs externas
+    if (evento.request.url.includes('firebase') || 
+        evento.request.url.includes('googleapis') ||
+        evento.request.url.includes('gstatic')) {
+        return;
+    }
+    
     evento.respondWith(
-        caches.match(evento.request)
-            .then((respostaCache) => {
-                if (respostaCache) {
-                    console.log('[Service Worker] Servindo do cache:', evento.request.url);
-                    return respostaCache;
+        fetch(evento.request)
+            .then((respostaRede) => {
+                // Verifica se é resposta válida
+                if (!respostaRede || respostaRede.status !== 200 || respostaRede.type !== 'basic') {
+                    return respostaRede;
                 }
-
-                console.log('[Service Worker] Buscando da rede:', evento.request.url);
-                return fetch(evento.request)
-                    .then((respostaRede) => {
-                        if (!respostaRede || respostaRede.status !== 200 || respostaRede.type !== 'basic') {
-                            return respostaRede;
+                
+                // Clona e armazena no cache para uso offline
+                const respostaParaCache = respostaRede.clone();
+                caches.open(nomeCache)
+                    .then((cache) => {
+                        cache.put(evento.request, respostaParaCache);
+                    });
+                
+                console.log('[Service Worker] Servindo da rede:', evento.request.url);
+                return respostaRede;
+            })
+            .catch(() => {
+                // Se rede falhar, busca do cache
+                return caches.match(evento.request)
+                    .then((respostaCache) => {
+                        if (respostaCache) {
+                            console.log('[Service Worker] Servindo do cache:', evento.request.url);
                         }
-
-                        const respostaParaCache = respostaRede.clone();
-                        caches.open(nomeCache)
-                            .then((cache) => {
-                                cache.put(evento.request, respostaParaCache);
-                            });
-
-                        return respostaRede;
-                    })
-                    .catch((erro) => {
-                        console.error('[Service Worker] Erro ao buscar da rede:', erro);
+                        return respostaCache;
                     });
             })
             .catch((erro) => {

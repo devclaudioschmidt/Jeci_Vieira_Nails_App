@@ -562,7 +562,8 @@ function gerarHorarios(dataStr, duracao, config, horariosOcupados = []) {
     const horarios = [];
     
     // Determinar horário de funcionamento
-    const dataObj = new Date(dataStr);
+    const [ano, mes, dia] = dataStr.split('-').map(Number);
+    const dataObj = new Date(ano, mes - 1, dia);
     const diaSemana = dataObj.getDay();
     const isSabado = (diaSemana === 6);
     

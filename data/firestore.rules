@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // -------------------
+    // USUARIOS
+    // -------------------
+    match /usuarios/{userId} {
+      // Admin: acesso total
+      allow read, write: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
+      // Proprio usuario: pode ler e editar proprio perfil
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // -------------------
+    // AGENDAMENTOS
+    // -------------------
+    match /agendamentos/{agendamentoId} {
+      // Admin: acesso total
+      allow read, write, delete: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
+      // Cliente: criar (usa request.resource.data)
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Cliente: ler TODOS agendamentos (para verificar horarios occupados)
+      allow read: if request.auth != null;
+      // Cliente: atualizar propio agendamento (cancelar, reagendar)
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // -------------------
+    // SERVICOS
+    // -------------------
+    match /servicos/{servicoId} {
+      // Todos logados podem ler
+      allow read: if request.auth != null;
+      // Apenas admin pode criar, editar, excluir
+      allow create, write, delete: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // -------------------
+    // CONFIGURACOES
+    // -------------------
+    match /configuracoes/{configId} {
+      // Todos logados podem ler
+      allow read: if request.auth != null;
+      // Apenas admin pode editar
+      allow write: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // -------------------
+    // AVISOS
+    // -------------------
+    match /avisos/{avisoId} {
+      // Todos logados podem ler
+      allow read: if request.auth != null;
+      // Apenas admin pode criar, editar, excluir
+      allow create, write, delete: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}

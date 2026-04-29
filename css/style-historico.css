@@ -162,3 +162,136 @@ body {
     color: var(--cor-texto-suave);
     font-style: italic;
 }
+
+/* Botões de Ação (Cancelar/Reagendar) */
+.card-botoes {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(201, 139, 139, 0.2);
+}
+
+.botao-card {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--raio-botao);
+    font-family: var(--fonte-texto);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transicao);
+}
+
+.botao-card.cancelar {
+    background: #FFEBEE;
+    color: #C62828;
+}
+
+.botao-card.cancelar:hover {
+    background: #FFCDD2;
+}
+
+.botao-card.reagendar {
+    background: var(--rose-gold-claro);
+    color: var(--cor-texto-escuro);
+}
+
+.botao-card.reagendar:hover {
+    background: var(--rose-gold);
+    color: white;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+.modal-overlay.ativo {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-card {
+    background: white;
+    border-radius: var(--raio-card);
+    padding: 28px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+    box-shadow: 0 16px 48px rgba(201, 139, 139, 0.25);
+}
+
+.modal-overlay.ativo .modal-card {
+    transform: scale(1);
+}
+
+.modal-icon {
+    font-size: 52px;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.modal-titulo {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 10px;
+    font-family: var(--fonte-titulo);
+}
+
+.modal-mensagem {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+    line-height: 1.5;
+    font-family: var(--fonte-texto);
+}
+
+.modal-botoes {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.modal-botao {
+    padding: 12px 28px;
+    border-radius: var(--raio-botao);
+    border: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--fonte-texto);
+}
+
+.modal-botao.primario {
+    background: var(--rose-gold);
+    color: white;
+}
+
+.modal-botao.secundario {
+    background: #f0f0f0;
+    color: var(--cor-texto-escuro);
+}
+
+.modal-botao.danger {
+    background: #e74c3c;
+    color: white;
+}

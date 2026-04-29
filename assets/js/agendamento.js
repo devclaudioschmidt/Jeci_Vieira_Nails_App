@@ -11,6 +11,24 @@ let dataSelecionada = null;
 let horarioSelecionado = null;
 let passoAtual = 1;
 let dataCalendario = new Date();
+let reagendarParams = null;
+
+/* ================================================
+    VERIFICAR PARÂMETROS DE URL (reagendamento)
+    ================================================ */
+function verificarParamsReagendamento() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reagendar') === 'true') {
+        reagendarParams = {
+            agendamentoId: params.get('agendamentoId'),
+            servico: params.get('servico'),
+            servicoId: params.get('servicoId'),
+            preco: params.get('preco'),
+            duracao: parseInt(params.get('duracao') || '60')
+        };
+        console.log('[DEBUG] Modo reagendamento:', reagendarParams);
+    }
+}
 
 /* ================================================
     DADOS DO FIRESTORE
@@ -27,6 +45,7 @@ let configuracoes = {
     tempoEntreAgendamentos: 15
 };
 let agendamentosDia = [];
+let horariosBloqueados = [];
 
 const nomesMeses = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -66,17 +85,32 @@ async function carregarDadosAgendamento() {
     ================================================ */
 async function buscarAgendamentosDia(dataStr) {
     try {
-        const snap = await firebase.firestore()
-            .collection('agendamentos')
-            .where('data', '==', dataStr)
-            .where('status', 'in', ['pendente', 'confirmado'])
-            .get();
+        const [agendSnap, configSnap] = await Promise.all([
+            firebase.firestore()
+                .collection('agendamentos')
+                .where('data', '==', dataStr)
+                .where('status', 'in', ['pendente', 'confirmado'])
+                .get(),
+            firebase.firestore()
+                .collection('configuracoes')
+                .doc('salao')
+                .get()
+        ]);
 
-        agendamentosDia = snap.docs.map(doc => doc.data().horario);
+        agendamentosDia = agendSnap.docs.map(doc => ({
+            horario: doc.data().horario,
+            duracao: doc.data().duracao || 60
+        }));
+
+        const configData = configSnap.data() || {};
+        horariosBloqueados = configData.horariosBloqueados || [];
+        
         console.log('[DEBUG] Agendamentos do dia:', agendamentosDia.length);
+        console.log('[DEBUG] Horarios bloqueados:', horariosBloqueados.length);
     } catch (erro) {
         console.error('[DEBUG] Erro ao buscar agendamentos:', erro);
         agendamentosDia = [];
+        horariosBloqueados = [];
     }
 }
 
@@ -84,6 +118,8 @@ async function buscarAgendamentosDia(dataStr) {
     INICIALIZAÇÃO
     ================================================ */
 function inicializarAgendamento() {
+    verificarParamsReagendamento();
+    
     const status = document.getElementById('status');
     
     firebase.auth().onAuthStateChanged(async (usuario) => {
@@ -293,15 +329,15 @@ async function irParaPasso(passo) {
     // Validar antes de avançar
     if (passo > 1 && passo <= 3) {
         if (passo === 2 && !servicoSelecionado) {
-            alert('Por favor, selecione um serviço.');
+            await mostrarAlertaAgendamento('Por favor, selecione um serviço.');
             return;
         }
         if (passo === 3 && !dataSelecionada) {
-            alert('Por favor, selecione uma data.');
+            await mostrarAlertaAgendamento('Por favor, selecione uma data.');
             return;
         }
         if (passo === 4 && !horarioSelecionado) {
-            alert('Por favor, selecione um horário.');
+            await mostrarAlertaAgendamento('Por favor, selecione um horário.');
             return;
         }
     }
@@ -555,23 +591,63 @@ function gerarHorarios(dataStr, duracao, config, horariosOcupados = []) {
     
     // Gerar horários
     const tempoEntre = config.tempoEntreAgendamentos || 0;
+    
     while (minInicio + duracao + tempoEntre <= minFim) {
         const hora = Math.floor(minInicio / 60);
         const min = minInicio % 60;
         const horarioStr = `${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
         
-        // Verificar se o serviço termina antes do fechamento
+        // Término do serviço
         const minTermino = minInicio + duracao + tempoEntre;
         
         let indisponivel = false;
-        if (horariosOcupados.includes(horarioStr)) {
-            indisponivel = true;
+        
+        // Se há intervalo de almoço, verificar se o serviço termina ANTES do intervalo
+        if (minIntInicio && minIntFim) {
+            // Só pula se ainda não estamos no período após o intervalo
+            if (minInicio < minIntFim && minTermino > minIntInicio) {
+                // Pula para depois do intervalo
+                minInicio = minIntFim;
+                continue;
+            }
         }
         
-        // Verificar se está no intervalo de almoço
-        if (minIntInicio && minIntFim) {
-            if (minInicio >= minIntInicio && minInicio < minIntFim) {
+        // Verificar horários occupados
+        const minAtual = minInicio;
+        const duracaoNova = duracao + tempoEntre;
+        
+        for (const occ of horariosOcupados) {
+            const [occHora, occMin] = occ.horario.split(':').map(Number);
+            const minOcupado = occHora * 60 + occMin;
+            const duracaoOcupado = occ.duracao || 60;
+            const minFimOcupado = minOcupado + duracaoOcupado;
+            
+            // Verificar dois casos:
+            // 1. Novo horário começa durante o horário occupied
+            // 2. Novo horário termina depois do início do horário occupied (ultrapassa)
+            const comecaDurante = minAtual >= minOcupado && minAtual < minFimOcupado;
+            const terminaDepois = (minAtual + duracaoNova) > minOcupado && minAtual < minOcupado;
+            
+            if (comecaDurante || terminaDepois) {
                 indisponivel = true;
+                break;
+            }
+        }
+        
+        // Verificar bloqueios manuais
+        if (!indisponivel && horariosBloqueados.length > 0) {
+            for (const bloq of horariosBloqueados) {
+                if (bloq.data !== dataStr) continue;
+                
+                const [hIni, mIni] = bloq.horaInicio.split(':').map(Number);
+                const [hFim, mFim] = bloq.horaFim.split(':').map(Number);
+                const minBloqInicio = hIni * 60 + mIni;
+                const minBloqFim = hFim * 60 + mFim;
+                
+                if (minInicio >= minBloqInicio && minInicio < minBloqFim) {
+                    indisponivel = true;
+                    break;
+                }
             }
         }
         
@@ -623,6 +699,84 @@ function formatarData(dataStr) {
     return `${dia} de ${nomesMeses[mes - 1]} de ${ano}`;
 }
 
+async function mostrarAlertaAgendamento(mensagem) {
+    return new Promise((resolve) => {
+        const modal = criarModalAgendamento();
+        
+        modal.querySelector('.modal-icon').textContent = 'ℹ️';
+        modal.querySelector('.modal-titulo').textContent = 'Atenção';
+        modal.querySelector('.modal-mensagem').innerHTML = mensagem;
+        modal.querySelector('.modal-botoes').innerHTML = `
+            <button class="modal-botao primario" id="modal-ok">OK</button>
+        `;
+        
+        modal.classList.add('ativo');
+        
+        document.getElementById('modal-ok').addEventListener('click', () => {
+            modal.classList.remove('ativo');
+            resolve();
+        });
+    });
+}
+function criarModalAgendamento() {
+    const existing = document.getElementById('modal-agendamento');
+    if (existing) return existing;
+    
+    const modal = document.createElement('div');
+    modal.id = 'modal-agendamento';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-card">
+            <span class="modal-icon"></span>
+            <h3 class="modal-titulo"></h3>
+            <p class="modal-mensagem"></p>
+            <div class="modal-botoes"></div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    return modal;
+}
+
+function mostrarModalSucesso(mensagem) {
+    return new Promise((resolve) => {
+        const modal = criarModalAgendamento();
+        
+        modal.querySelector('.modal-icon').textContent = '✅';
+        modal.querySelector('.modal-titulo').textContent = 'Agendamento Confirmado!';
+        modal.querySelector('.modal-mensagem').innerHTML = mensagem;
+        modal.querySelector('.modal-botoes').innerHTML = `
+            <button class="modal-botao primario" id="modal-ver-agendamentos">Ver Meus Agendamentos</button>
+        `;
+        
+        modal.classList.add('ativo');
+        
+        document.getElementById('modal-ver-agendamentos').addEventListener('click', () => {
+            modal.classList.remove('ativo');
+            resolve('ver');
+        });
+    });
+}
+
+function mostrarModalErro(mensagem) {
+    return new Promise((resolve) => {
+        const modal = criarModalAgendamento();
+        
+        modal.querySelector('.modal-icon').textContent = '❌';
+        modal.querySelector('.modal-titulo').textContent = 'Erro';
+        modal.querySelector('.modal-mensagem').innerHTML = mensagem;
+        modal.querySelector('.modal-botoes').innerHTML = `
+            <button class="modal-botao danger" id="modal-tentar">Tentar Novamente</button>
+        `;
+        
+        modal.classList.add('ativo');
+        
+        document.getElementById('modal-tentar').addEventListener('click', () => {
+            modal.classList.remove('ativo');
+            resolve();
+        });
+    });
+}
+
 /* ================================================
    CONFIRMAR AGENDAMENTO
    ================================================ */
@@ -650,29 +804,44 @@ async function confirmarAgendamento() {
             throw new Error('Usuário não autenticado');
         }
 
-        // Dados com desnormalização (regras-firestore.md)
+        // Se for reagendamento, cancelar o agendamento antigo
+        if (reagendarParams && reagendarParams.agendamentoId) {
+            await firebase.firestore().collection('agendamentos').doc(reagendarParams.agendamentoId).update({
+                status: 'cancelado',
+                motivoReagendamento: 'Reagendado pelo cliente',
+                canceledAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log('[DEBUG] Agendamento antigo cancelado');
+        }
+
+        // Dados com desnormalização
         const agendamentoDoc = {
             ...dados,
             userId: usuario.uid,
             clienteNome: usuario.displayName || usuario.email || 'Cliente',
             servicoNome: dados.servico,
+            reagendadoDe: reagendarParams ? reagendarParams.agendamentoId : null,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
         await firebase.firestore().collection('agendamentos').add(agendamentoDoc);
         
         console.log('[DEBUG] Agendamento salvo com sucesso');
+        
+        const msg = reagendarParams 
+            ? `Agendamento reagendado!<br><br><strong>Serviço:</strong> ${servicoSelecionado.nome}<br><strong>Data:</strong> ${formatarData(dataSelecionada.str)}<br><strong>Horário:</strong> ${horarioSelecionado} (${servicoSelecionado.duracao} min)<br><strong>Valor:</strong> R$ ${servicoSelecionado.preco}`
+            : `Agendamento confirmado!<br><br><strong>Serviço:</strong> ${servicoSelecionado.nome}<br><strong>Data:</strong> ${formatarData(dataSelecionada.str)}<br><strong>Horário:</strong> ${horarioSelecionado} (${servicoSelecionado.duracao} min)<br><strong>Valor:</strong> R$ ${servicoSelecionado.preco}`;
+        
+        const acao = await mostrarModalSucesso(msg);
+        
+        if (acao === 'ver') {
+            window.location.href = 'dashboard.html';
+        }
+        
     } catch (erro) {
         console.error('[DEBUG] Erro ao salvar agendamento:', erro);
-        alert('Erro ao salvar agendamento. Tente novamente.');
-        return;
+        await mostrarModalErro('Erro ao salvar agendamento. Tente novamente.');
     }
-
-    // Exibir confirmação
-    alert(`Agendamento confirmado!\n\n${servicoSelecionado.nome}\n${formatarData(dataSelecionada.str)} às ${horarioSelecionado}\n\nR$ ${servicoSelecionado.preco}`);
-    
-    // Redirecionar para dashboard
-    window.location.href = 'dashboard.html';
 }
 
 /* ================================================

@@ -15,6 +15,10 @@ function inicializarHistorico() {
         }
 
         try {
+            const usuarioDoc = await firebase.firestore().collection('usuarios').doc(usuario.uid).get();
+            const usuarioDados = usuarioDoc.data() || {};
+            usuario.nome = usuarioDados.nome || usuario.displayName || 'Cliente';
+
             // Buscar Agendamentos do Usuário
             const agendamentosSnap = await firebase.firestore().collection('agendamentos')
                 .where('userId', '==', usuario.uid)
@@ -97,14 +101,22 @@ function gerarHtmlCards(agendamentos, classeTipo, mensagemVazio) {
         return `<div class="sem-agendamentos">${mensagemVazio}</div>`;
     }
 
+    const agora = new Date();
+    const hojeStr = agora.toISOString().split('T')[0];
+
     return agendamentos.map(ag => {
         const statusStr = ag.status || 'pendente';
         const badgeClass = `status-${statusStr}`;
         const badgeTexto = statusStr === 'confirmado' ? 'Confirmado' :
                            statusStr === 'cancelado' ? 'Cancelado' : 'Pendente';
-                           
+        
+        const dataAgend = new Date(ag.data + 'T' + ag.horario);
+        const horasRestantes = (dataAgend - agora) / (1000 * 60 * 60);
+        const podeReagendar = horasRestantes > 24 && statusStr !== 'cancelado';
+        const podeCancelar = statusStr !== 'cancelado';
+        
         return `
-        <div class="card-agendamento ${classeTipo}">
+        <div class="card-agendamento ${classeTipo}" data-id="${ag.id}">
             <div class="card-topo">
                 <span class="servico-nome">${ag.servico}</span>
                 <span class="status-badge ${badgeClass}">${badgeTexto}</span>
@@ -123,13 +135,178 @@ function gerarHtmlCards(agendamentos, classeTipo, mensagemVazio) {
                     <span>R$ ${parseFloat(ag.preco || 0).toFixed(2).replace('.', ',')}</span>
                 </div>
             </div>
+            ${classeTipo === 'futuro' ? `
+            <div class="card-botoes">
+                ${podeCancelar ? `<button class="botao-card cancelar" data-id="${ag.id}" data-acao="cancelar">Cancelar</button>` : ''}
+                ${podeReagendar ? `<button class="botao-card reagendar" data-id="${ag.id}" data-acao="reagendar" data-servico="${encodeURIComponent(ag.servico)}" data-servicoId="${ag.servicoId}" data-preco="${ag.preco}" data-duracao="${ag.duracao || 60}">Reagendar</button>` : ''}
+            </div>
+            ` : ''}
         </div>
         `;
     }).join('');
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inicializarHistorico);
-} else {
+/* ================================================
+   SISTEMA DE MODAIS (local)
+   ================================================ */
+function criarModalLocal() {
+    const existing = document.getElementById('modal-historico');
+    if (existing) return existing;
+    
+    const modal = document.createElement('div');
+    modal.id = 'modal-historico';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-card">
+            <span class="modal-icon"></span>
+            <h3 class="modal-titulo"></h3>
+            <p class="modal-mensagem"></p>
+            <div class="modal-botoes"></div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    return modal;
+}
+
+async function mostrarAlertaLocal(titulo, mensagem, tipo = 'info') {
+    return new Promise((resolve) => {
+        const modal = criarModalLocal();
+        
+        const icons = { sucesso: '✅', erro: '❌', alerta: '⚠️', info: 'ℹ️' };
+        const btnStyles = { sucesso: 'primario', erro: 'danger', alerta: 'secundario', info: 'primario' };
+        
+        modal.querySelector('.modal-icon').textContent = icons[tipo] || icons.info;
+        modal.querySelector('.modal-titulo').textContent = titulo;
+        modal.querySelector('.modal-mensagem').innerHTML = mensagem;
+        modal.querySelector('.modal-botoes').innerHTML = `
+            <button class="modal-botao ${btnStyles[tipo] || 'primario'}" id="modal-ok-historico">OK</button>
+        `;
+        
+        modal.classList.add('ativo');
+        
+        document.getElementById('modal-ok-historico').addEventListener('click', () => {
+            modal.classList.remove('ativo');
+            resolve();
+        });
+    });
+}
+
+async function mostrarConfirmLocal(titulo, mensagem, tipo = 'alerta') {
+    return new Promise((resolve) => {
+        const modal = criarModalLocal();
+        
+        const icons = { alerta: '⚠️', danger: '⚠️', bloq: '🔒' };
+        
+        modal.querySelector('.modal-icon').textContent = icons[tipo] || icons.alerta;
+        modal.querySelector('.modal-titulo').textContent = titulo;
+        modal.querySelector('.modal-mensagem').innerHTML = mensagem;
+        modal.querySelector('.modal-botoes').innerHTML = `
+            <button class="modal-botao secundario" id="modal-cancel-historico">Cancelar</button>
+            <button class="modal-botao danger" id="modal-confirm-historico">Confirmar</button>
+        `;
+        
+        modal.classList.add('ativo');
+        
+        document.getElementById('modal-cancel-historico').addEventListener('click', () => {
+            modal.classList.remove('ativo');
+            resolve(false);
+        });
+        
+        document.getElementById('modal-confirm-historico').addEventListener('click', () => {
+            modal.classList.remove('ativo');
+            resolve(true);
+        });
+    });
+}
+
+/* ================================================
+   AÇÕES DOS BOTÕES (Cancelar/Reagendar)
+   ================================================ */
+async function cancelarAgendamentoCliente(id) {
+    const confirmar = await mostrarConfirmLocal(
+        'Cancelar Agendamento',
+        'Tem certeza que deseja cancelar este agendamento?<br><br>Esta ação não pode ser desfeita.',
+        'alerta'
+    );
+    
+    if (!confirmar) return;
+    
+    try {
+        await firebase.firestore().collection('agendamentos').doc(id).update({
+            status: 'cancelado',
+            canceledAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        await mostrarAlertaLocal('Cancelado', 'Agendamento cancelado com sucesso!', 'sucesso');
+        
+        setTimeout(() => window.location.reload(), 1500);
+        
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao cancelar:', erro);
+        await mostrarAlertaLocal('Erro', 'Erro ao cancelar agendamento. Tente novamente.', 'erro');
+    }
+}
+
+function reagendarAgendamento(agendamentoId, servico, servicoId, preco, duracao) {
+    const params = new URLSearchParams({
+        reagendar: 'true',
+        agendamentoId: agendamentoId,
+        servico: servico || '',
+        servicoId: servicoId || '',
+        preco: preco || '',
+        duracao: duracao || '60'
+    });
+    
+    window.location.href = `agendamento.html?${params.toString()}`;
+}
+
+async function verificarReagendamento(botao) {
+    const podeReagendar = botao.classList.contains('reagendar');
+    
+    if (!podeReagendar) {
+        await mostrarAlertaLocal(
+            'Reagendamento',
+            'Para reagendar, você precisa ter pelo menos 24 horas de antecedência.<br><br>Por favor, entre em contato com o administrador para alterar seu horário.',
+            'alerta'
+        );
+        return;
+    }
+    
+    const id = botao.dataset.id;
+    const servico = decodeURIComponent(botao.dataset.servico || '');
+    const servicoId = botao.dataset.servicoId;
+    const preco = botao.dataset.preco;
+    const duracao = botao.dataset.duracao;
+    
+    reagendarAgendamento(id, servico, servicoId, preco, duracao);
+}
+
+/* ================================================
+   INICIALIZAÇÃO
+   ================================================ */
+function setupBotoesAcoes() {
+    document.body.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('botao-card')) {
+            const botao = e.target;
+            const acao = botao.dataset.acao;
+            const id = botao.dataset.id;
+            
+            if (acao === 'cancelar') {
+                await cancelarAgendamentoCliente(id);
+            } else if (acao === 'reagendar') {
+                await verificarReagendamento(botao);
+            }
+        }
+    });
+}
+
+function iniciar() {
     inicializarHistorico();
+    setupBotoesAcoes();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', iniciar);
+} else {
+    iniciar();
 }

@@ -29,12 +29,272 @@ let avisoAtivo = null;
 let servicoEditando = null;
 let clientes = [];
 let clientesFiltrados = [];
+let horariosBloqueados = [];
 
 /* Variáveis do Calendário */
 let dataAtual = new Date();
 let dataSelecionada = new Date();
 let agendamentos = [];
 let diasComAgendamentos = [];
+
+/* ================================================
+   SISTEMA DE VERIFICAÇÃO AUTOMÁTICA (POLLING)
+   Verifica novos agendamentos pendentes automaticamente
+   ================================================ */
+let ultimoCheck = null;
+let intervaloCheck = 30000; // 30 segundos
+let notificacaoAudio = null;
+let jaNotificou = false;
+
+function iniciarVerificacaoAutomatica() {
+    ultimoCheck = Date.now();
+    
+    // Criar elemento de áudio para notificação
+    if (typeof Audio !== 'undefined') {
+        notificacaoAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleGIBNpbrz6VsIRYfkeDQoI85EGmF38KQZiAOanaFqLBTKn6G27eVjGQ8ZqG+tXYlJGVjl7K5diwSNmqMwq2FIDFtmp28pCwySr8C9rmYVJGWKmbK1gSQmYJaWsK6BIDFhkJCxoCQqYZuQr6uFHzZml5evqHcfLGWEkrKuhCQvXpWNsaqFIS9dlI2xoCQxYpeOraWJHSxgkI6voCQ3YZKKramHMS1gkI6uoCc5Y5CIrKiJMC1fj46toCc6aJGGraaIMC5fj46toCc6aJGEraWIMC9fj46toCc6Z5CDraWINjBfj46toCc6Z5CDreMNMjFfj46toCc6Z5CDreQNMjFdj46toCc6aJCDreUNMjFdj46toCc6Z5CDreQNMjFdj46toCc6Z5CDreQNMjFdj46toCc6Z5CDreM=');
+    }
+    
+    // Iniciar verificação periódica
+    setInterval(verificarNovosAgendamentos, intervaloCheck);
+    console.log('[DEBUG] Verificação automática iniciada a cada 30s');
+}
+
+async function verificarNovosAgendamentos() {
+    try {
+        const db = firebase.firestore();
+        
+        // Buscar agendamentos criados desde o último check
+        const timestampAnterior = new Date(ultimoCheck);
+        
+        const snapshot = await db.collection('agendamentos')
+            .where('createdAt', '>=', firebase.firestore.Timestamp.fromDate(timestampAnterior))
+            .where('status', 'in', ['pendente', null])
+            .get();
+        
+        if (!snapshot.empty) {
+            const novos = snapshot.docs.filter(doc => {
+                const data = doc.data();
+                const created = data.createdAt ? data.createdAt.toMillis() : 0;
+                return created > ultimoCheck;
+            });
+            
+            if (novos.length > 0 && !jaNotificou) {
+                // Tocar som
+                tocarSomNotificacao();
+                
+                // Atualizar badge
+                atualizarBadgePendentes();
+                
+                // Mostrar notificação visual
+                mostrarNotificacaoNova(novos.length);
+                
+                jaNotificou = true;
+                
+                // Reset após 5 minutos para permitir nova notificação
+                setTimeout(() => {
+                    jaNotificou = false;
+                }, 300000);
+            }
+        }
+        
+        // Atualizar timestamp
+        ultimoCheck = Date.now();
+        
+    } catch (erro) {
+        console.error('[DEBUG] Erro na verificação automática:', erro);
+    }
+}
+
+function tocarSomNotificacao() {
+    try {
+        if (notificacaoAudio) {
+            notificacaoAudio.volume = 0.3;
+            notificacaoAudio.play().catch(e => console.log('[DEBUG] Não foi possível tocar som'));
+        }
+    } catch (e) {
+        console.log('[DEBUG] Erro ao tocar som');
+    }
+}
+
+async function atualizarBadgePendentes() {
+    const badge = document.getElementById('badge-solicitacoes');
+    if (!badge) return;
+    
+    const db = firebase.firestore();
+    const snapshot = await db.collection('agendamentos')
+        .where('status', 'in', ['pendente', null])
+        .get();
+    
+    const total = snapshot.size;
+    
+    if (total > 0) {
+        badge.textContent = total;
+        badge.style.display = 'flex';
+        badge.style.animation = 'pulse 1s infinite';
+    } else {
+        badge.style.display = 'none';
+        badge.style.animation = 'none';
+    }
+}
+
+function mostrarNotificacaoNova(quantos) {
+    const modal = criarModal();
+    
+    modal.querySelector('.modal-icon').textContent = '🔔';
+    modal.querySelector('.modal-titulo').textContent = 'Nova Solicitação!';
+    modal.querySelector('.modal-mensagem').innerHTML = `
+        Você tem <strong>${quantos}</strong> nova(s) solicitação(ões) de agendamento.<br><br>
+        Clique em "Ver Agendamentos" para visualizar.
+    `;
+    
+    modal.querySelector('.modal-botoes').innerHTML = `
+        <button class="modal-botao secundario" id="modal-fechar-notif">Fechar</button>
+        <button class="modal-botao primario" id="modal-ver-notif">Ver Agendamentos</button>
+    `;
+    
+    modal.classList.add('ativo');
+    
+    document.getElementById('modal-fechar-notif').addEventListener('click', () => {
+        modal.classList.remove('ativo');
+    });
+    
+    document.getElementById('modal-ver-notif').addEventListener('click', () => {
+        modal.classList.remove('ativo');
+        // Navegar para solicitações
+        document.querySelectorAll('.item-menu').forEach(item => {
+            if (item.dataset.nav === 'solicitacoes') {
+                item.click();
+            }
+        });
+    });
+}
+
+/* ================================================
+   FUNÇÕES UTILITÁRIAS
+   ================================================ */
+// Pegar ID do elemento pai (card)
+function pegarIdDoPai(evento, seletor) {
+    const elemento = evento.target.closest(seletor);
+    return elemento ? elemento.dataset.id : null;
+}
+
+// Pegar índice do elemento pai
+function pegarIndiceDoPai(evento, seletor) {
+    const elemento = evento.target.closest(seletor);
+    return elemento ? parseInt(elemento.dataset.index) : null;
+}
+
+/* ================================================
+   SISTEMA DE MODAIS
+   ================================================ */
+function criarModal() {
+    const existing = document.getElementById('modal-customizado');
+    if (existing) return existing;
+    
+    const modal = document.createElement('div');
+    modal.id = 'modal-customizado';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-card">
+            <span class="modal-icon"></span>
+            <h3 class="modal-titulo"></h3>
+            <p class="modal-mensagem"></p>
+            <div class="modal-botoes"></div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            if (modal.dataset.clickOutside !== 'false') {
+                modal.classList.remove('ativo');
+            }
+        }
+    });
+    
+    return modal;
+}
+
+function mostrarAlerta(titulo, mensagem, tipo = 'info') {
+    return new Promise((resolve) => {
+        const modal = criarModal();
+        
+        const icons = {
+            sucesso: '✅',
+            erro: '❌',
+            alerta: '⚠️',
+            info: 'ℹ️',
+            bloq: '🔒'
+        };
+        
+        const btnStyles = {
+            sucesso: 'primario',
+            erro: 'danger',
+            alerta: 'secundario',
+            info: 'primario',
+            bloq: 'primario'
+        };
+        
+        modal.querySelector('.modal-icon').textContent = icons[tipo] || icons.info;
+        modal.querySelector('.modal-titulo').textContent = titulo;
+        modal.querySelector('.modal-mensagem').innerHTML = mensagem;
+        modal.querySelector('.modal-botoes').innerHTML = `
+            <button class="modal-botao ${btnStyles[tipo] || 'primario'}" id="modal-ok">OK</button>
+        `;
+        
+        modal.dataset.clickOutside = 'false';
+        modal.classList.add('ativo');
+        
+        document.getElementById('modal-ok').addEventListener('click', () => {
+            modal.classList.remove('ativo');
+            resolve(true);
+        });
+    });
+}
+
+function mostrarConfirm(titulo, mensagem, tipo = 'alerta') {
+    return new Promise((resolve) => {
+        const modal = criarModal();
+        
+        const icons = {
+            sucesso: '✅',
+            alerta: '⚠️',
+            erro: '❌',
+            bloque: '🔒',
+            danger: '⚠️'
+        };
+        
+        const primaryBtn = tipo === 'danger' || tipo === 'bloque' ? 'danger' : 'primario';
+        
+        modal.querySelector('.modal-icon').textContent = icons[tipo] || icons.alerta;
+        modal.querySelector('.modal-titulo').textContent = titulo;
+        modal.querySelector('.modal-mensagem').innerHTML = mensagem;
+        modal.querySelector('.modal-botoes').innerHTML = `
+            <button class="modal-botao secundario" id="modal-cancelar">Cancelar</button>
+            <button class="modal-botao ${primaryBtn}" id="modal-confirmar">Confirmar</button>
+        `;
+        
+        modal.dataset.clickOutside = 'false';
+        modal.classList.add('ativo');
+        
+        const btnCancelar = document.getElementById('modal-cancelar');
+        const btnConfirmar = document.getElementById('modal-confirmar');
+        
+        const cleanup = () => {
+            modal.classList.remove('ativo');
+        };
+        
+        btnCancelar.addEventListener('click', () => {
+            cleanup();
+            resolve(false);
+        });
+        
+        btnConfirmar.addEventListener('click', () => {
+            cleanup();
+            resolve(true);
+        });
+    });
+}
 
 /* Nomes dos meses */
 const nomesMeses = [
@@ -44,6 +304,185 @@ const nomesMeses = [
 
 /* Nomes dos dias da semana */
 const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+/* ================================================
+   ABRIR MODAL DE DETALHES DO AGENDAMENTO
+   ================================================ */
+async function abrirModalDetalhesAgendamento(id) {
+    const agendamento = agendamentos.find(a => a.id === id);
+    if (!agendamento) return;
+    
+    const clienteObj = clientes.find(c => c.id === agendamento.userId);
+    const nomeCliente = clienteObj ? clienteObj.nome : (agendamento.clienteNome || 'Cliente');
+    const telefoneCliente = clienteObj ? clienteObj.telefone : '';
+    const emailCliente = clienteObj ? clienteObj.email : '';
+    
+    const statusTexto = agendamento.status === 'confirmado' ? 'Confirmado' :
+                        agendamento.status === 'cancelado' ? 'Cancelado' : 'Pendente';
+    const statusClass = agendamento.status === 'confirmado' ? '#27ae60' :
+                        agendamento.status === 'cancelado' ? '#e74c3c' : '#f39c12';
+    
+    const modal = criarModal();
+    
+    modal.querySelector('.modal-icon').textContent = '📅';
+    modal.querySelector('.modal-titulo').textContent = 'Detalhes do Agendamento';
+    modal.querySelector('.modal-mensagem').innerHTML = `
+        <div style="text-align: left; font-size: 0.9rem;">
+            <p><strong>Cliente:</strong> ${nomeCliente}</p>
+            <p><strong>Telefone:</strong> ${telefoneCliente || 'Não informado'}</p>
+            <p><strong>Email:</strong> ${emailCliente || 'Não informado'}</p>
+            <hr style="margin: 12px 0; border: none; border-top: 1px solid #eee;">
+            <p><strong>Serviço:</strong> ${agendamento.servico || agendamento.servicoNome}</p>
+            <p><strong>Data:</strong> ${formatarData(agendamento.data)}</p>
+            <p><strong>Horário:</strong> ${agendamento.horario} (${agendamento.duracao || 60} min)</p>
+            <p><strong>Valor:</strong> R$ ${parseFloat(agendamento.preco || 0).toFixed(2).replace('.', ',')}</p>
+            <p><strong>Status:</strong> <span style="color: ${statusClass}; font-weight: 600;">${statusTexto}</span></p>
+            ${agendamento.observacoes ? `<p><strong>Observações:</strong> ${agendamento.observacoes}</p>` : ''}
+        </div>
+    `;
+    
+    const ehCancelado = agendamento.status === 'cancelado';
+    const ehPassado = agendamento.data < new Date().toISOString().split('T')[0];
+    
+    modal.querySelector('.modal-botoes').innerHTML = `
+        <button class="modal-botao secundario" id="modal-fechar-detalhes">Fechar</button>
+        ${!ehCancelado && !ehPassado ? `
+        <button class="modal-botao danger" id="modal-cancelar-agend">Cancelar</button>
+        <button class="modal-botao primario" id="modal-reagendar-agend">Reagendar</button>
+        ` : ''}
+    `;
+    
+    modal.classList.add('ativo');
+    
+    // Evento Fechar
+    document.getElementById('modal-fechar-detalhes').addEventListener('click', () => {
+        modal.classList.remove('ativo');
+    });
+    
+    // Evento Cancelar
+    const btnCancelar = document.getElementById('modal-cancelar-agend');
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', async () => {
+            modal.classList.remove('ativo');
+            await cancelarAgendamento(id);
+        });
+    }
+    
+    // Evento Reagendar
+    const btnReagendar = document.getElementById('modal-reagendar-agend');
+    if (btnReagendar) {
+        btnReagendar.addEventListener('click', () => {
+            modal.classList.remove('ativo');
+            abrirModalReagendar(id);
+        });
+    }
+}
+
+/* ================================================
+   ABRIR MODAL DE REAGENDAMENTO
+   ================================================ */
+let selectedDateReagend = null;
+let selectedTimeReagend = null;
+
+async function abrirModalReagendar(id) {
+    const agendamento = agendamentos.find(a => a.id === id);
+    if (!agendamento) return;
+    
+    selectedDateReagend = null;
+    selectedTimeReagend = null;
+    
+    const modal = criarModal();
+    
+    modal.querySelector('.modal-icon').textContent = '📅';
+    modal.querySelector('.modal-titulo').textContent = 'Reagendar Agendamento';
+    modal.querySelector('.modal-mensagem').innerHTML = `
+        <div style="text-align: left; font-size: 0.9rem;">
+            <p style="margin-bottom: 12px;"><strong>Novo horário:</strong></p>
+            <input type="date" id="reagendar-data" class="input-config" style="width: 100%; margin-bottom: 12px;">
+            <input type="time" id="reagendar-horario" class="input-config" style="width: 100%;">
+        </div>
+    `;
+    
+    modal.querySelector('.modal-botoes').innerHTML = `
+        <button class="modal-botao secundario" id="modal-cancel-reagendar">Cancelar</button>
+        <button class="modal-botao primario" id="modal-confirm-reagendar">Confirmar</button>
+    `;
+    
+    modal.classList.add('ativo');
+    
+    // Evento Cancelar
+    document.getElementById('modal-cancel-reagendar').addEventListener('click', () => {
+        modal.classList.remove('ativo');
+    });
+    
+    // Evento Confirmar
+    document.getElementById('modal-confirm-reagendar').addEventListener('click', async () => {
+        const novaData = document.getElementById('reagendar-data').value;
+        const novoHorario = document.getElementById('reagendar-horario').value;
+        
+        if (!novaData || !novoHorario) {
+            await mostrarAlerta('Campos Obrigatórios', 'Por favor, selecione data e horário.', 'alerta');
+            return;
+        }
+        
+        modal.classList.remove('ativo');
+        await reagendarAgendamentoAdmin(id, novaData, novoHorario);
+    });
+}
+
+/* ================================================
+   REAGENDAR AGENDAMENTO (ADMIN)
+   ================================================ */
+async function reagendarAgendamentoAdmin(id, novaData, novoHorario) {
+    const agendamentoOriginal = agendamentos.find(a => a.id === id);
+    if (!agendamentoOriginal) return;
+    
+    const confirmar = await mostrarConfirm(
+        'Confirmar Reagendamento',
+        `O horário será alterado de <strong>${formatarData(agendamentoOriginal.data)} às ${agendamentoOriginal.horario}</strong> para <strong>${formatarData(novaData)} às ${novoHorario}</strong>.<br><br>O horário antigo será liberado para novos agendamentos.`,
+        'alerta'
+    );
+    
+    if (!confirmar) return;
+    
+    try {
+        // Cancelar agendamento antigo
+        await firebase.firestore().collection('agendamentos').doc(id).update({
+            status: 'cancelado',
+            motivoReagendamento: 'Reagendado pelo administrador',
+            reagendadoPara: novaData + ' ' + novoHorario,
+            canceledAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Criar novo agendamento
+        const novoAgendamento = {
+            ...agendamentoOriginal,
+            data: novaData,
+            horario: novoHorario,
+            status: 'confirmado',
+            reagendadoDe: id,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        delete novoAgendamento.id;
+        
+        await firebase.firestore().collection('agendamentos').add(novoAgendamento);
+        
+        await carregarDadosFirestore();
+        
+        await mostrarAlerta('Sucesso', 'Agendamento reagendado com sucesso!', 'sucesso');
+        
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao reagendar:', erro);
+        await mostrarAlerta('Erro', 'Erro ao reagendar. Tente novamente.', 'erro');
+    }
+}
+
+function formatarData(dataStr) {
+    if (!dataStr) return '';
+    const [ano, mes, dia] = dataStr.split('-');
+    return `${dia}/${mes}/${ano}`;
+}
 
 /* ================================================
    INICIALIZAÇÃO DO ADMIN
@@ -89,6 +528,9 @@ function inicializarAdmin() {
             await carregarDadosFirestore();
             exibirAdmin(dados);
             
+            // Iniciar sistema de verificação automática de novos agendamentos
+            iniciarVerificacaoAutomatica();
+            
         } catch (erro) {
             console.error('[DEBUG] Erro:', erro);
             status.textContent = 'Erro ao carregar: ' + erro.message;
@@ -131,10 +573,14 @@ async function carregarDadosFirestore() {
             domingoFechado: true,
             telefone: '',
             endereco: '',
-            tempoEntreAgendamentos: 15
+            tempoEntreAgendamentos: 15,
+            horariosBloqueados: []
         };
         
+        horariosBloqueados = configuracoes.horariosBloqueados || [];
+        
         console.log('[DEBUG] Configurações carregadas:', configuracoes);
+        console.log('[DEBUG] Horários bloqueados carregados:', horariosBloqueados);
         
         const avisoSnap = await firebase.firestore()
             .collection('avisos')
@@ -358,6 +804,44 @@ function criarEstruturaAdmin(dados) {
                         </button>
                     </div>
                 </section>
+                
+                <!-- Seção Bloqueios -->
+                <section class="secao" id="secao-bloqueios">
+                    <h2 class="titulo-secao">Bloqueios de Horários</h2>
+                    <p style="font-size: 0.85rem; color: #6B6B6B; margin-bottom: 16px;">
+                        Bloqueie horários específicos quando você não puder atender clientes.
+                    </p>
+                    
+                    <div class="formulario">
+                        <div class="campo-config">
+                            <span class="rotulo-config">Data</span>
+                            <input type="date" class="input-config" id="bloqueio-data">
+                        </div>
+                        
+                        <div class="campo-config">
+                            <span class="rotulo-config">Hora Início</span>
+                            <input type="time" class="input-config" id="bloqueio-inicio">
+                        </div>
+                        
+                        <div class="campo-config">
+                            <span class="rotulo-config">Hora Fim</span>
+                            <input type="time" class="input-config" id="bloqueio-fim">
+                        </div>
+                        
+                        <div class="campo-config">
+                            <span class="rotulo-config">Motivo (opcional)</span>
+                            <input type="text" class="input-config" id="bloqueio-motivo" 
+                                placeholder="Ex: Consulta médica">
+                        </div>
+                        
+                        <button class="botao-adicionar" id="btn-bloquear-horario">
+                            Bloquear Horário
+                        </button>
+                    </div>
+                    
+                    <h3 style="font-size: 1rem; margin: 24px 0 16px 0; color: #333;">Horários Bloqueados</h3>
+                    <div id="lista-bloqueios"></div>
+                </section>
             
                 <!-- Seção Configurações -->
                 <section class="secao" id="secao-configuracoes">
@@ -510,6 +994,10 @@ function criarEstruturaAdmin(dados) {
                     <span class="icone-menu">📢</span>
                     <span>Avisos</span>
                 </a>
+                <a href="#" class="item-menu" data-nav="bloqueios">
+                    <span class="icone-menu">🔒</span>
+                    <span>Bloqueios</span>
+                </a>
                 <a href="#" class="item-menu" data-nav="configuracoes">
                     <span class="icone-menu">⚙️</span>
                     <span>Configurações</span>
@@ -564,11 +1052,17 @@ function renderizarListaServicos() {
     container.innerHTML = html;
     
     document.querySelectorAll('.botao-icon.editar').forEach(btn => {
-        btn.addEventListener('click', () => editarServico(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+            const id = pegarIdDoPai(e, '.card-servico');
+            if (id) editarServico(id);
+        });
     });
     
     document.querySelectorAll('.botao-icon.excluir').forEach(btn => {
-        btn.addEventListener('click', () => excluirServico(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+            const id = pegarIdDoPai(e, '.card-servico');
+            if (id) excluirServico(id);
+        });
     });
 }
 
@@ -745,7 +1239,7 @@ function renderizarAgendamentosDia(dataStr) {
         const nomeServico = agend.servico || agend.servicoNome || 'Serviço';
         
         html += `
-            <div class="card-agendamento" data-id="${agend.id}">
+            <div class="card-agendamento" data-id="${agend.id}" style="cursor: pointer;">
                 <div class="horario-agendamento">${agend.horario}</div>
                 <div class="info-agendamento">
                     <p class="nome-cliente-agend">${nomeCliente}</p>
@@ -754,7 +1248,7 @@ function renderizarAgendamentosDia(dataStr) {
                 <div class="status-agendamento ${statusClass}">
                     ${agend.status === 'confirmado' ? '✓' : agend.status === 'cancelado' ? '✕' : '⏳'}
                 </div>
-                <div class="botoes-agendamento">
+                <div class="botoes-agendamento" onclick="event.stopPropagation()">
                     ${agend.status !== 'confirmado' ? 
                         `<button class="botao-icon confirmar" data-id="${agend.id}" title="Confirmar">✓</button>` : ''}
                     ${agend.status !== 'cancelado' ? 
@@ -766,13 +1260,24 @@ function renderizarAgendamentosDia(dataStr) {
     
     container.innerHTML = html;
     
+    // Evento de clique no card para abrir modal de detalhes
+    document.querySelectorAll('.card-agendamento[data-id]').forEach(card => {
+        card.addEventListener('click', () => abrirModalDetalhesAgendamento(card.dataset.id));
+    });
+    
     // Adicionar eventos aos botões
     document.querySelectorAll('.botao-icon.confirmar').forEach(btn => {
-        btn.addEventListener('click', () => confirmarAgendamento(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+            const id = pegarIdDoPai(e, '.card-agendamento');
+            if (id) confirmarAgendamento(id);
+        });
     });
     
     document.querySelectorAll('.botao-icon.cancelar').forEach(btn => {
-        btn.addEventListener('click', () => cancelarAgendamento(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+            const id = pegarIdDoPai(e, '.card-agendamento');
+            if (id) cancelarAgendamento(id);
+        });
     });
 }
 
@@ -806,9 +1311,13 @@ async function confirmarAgendamento(id) {
    CANCELAR AGENDAMENTO
    ================================================ */
 async function cancelarAgendamento(id) {
-    if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
-        return;
-    }
+    const confirmar = await mostrarConfirm(
+        'Cancelar Agendamento',
+        'Tem certeza que deseja cancelar este agendamento?<br><br>O cliente será notificado.',
+        'alerta'
+    );
+    
+    if (!confirmar) return;
     
     try {
         await firebase.firestore().collection('agendamentos').doc(id).update({
@@ -903,11 +1412,17 @@ function renderizarSolicitacoes() {
     
     // Adicionar eventos aos botões recém criados
     container.querySelectorAll('.botao-icon.confirmar').forEach(btn => {
-        btn.addEventListener('click', () => confirmarAgendamento(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+            const id = e.target.closest('.card-agendamento')?.dataset.id;
+            if (id) confirmarAgendamento(id);
+        });
     });
     
     container.querySelectorAll('.botao-icon.cancelar').forEach(btn => {
-        btn.addEventListener('click', () => cancelarAgendamento(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+            const id = e.target.closest('.card-agendamento')?.dataset.id;
+            if (id) cancelarAgendamento(id);
+        });
     });
 }
 
@@ -970,7 +1485,10 @@ function renderizarListaClientes() {
     }
     
     document.querySelectorAll('.card-cliente .botao-icon').forEach(btn => {
-        btn.addEventListener('click', () => abrirModalCliente(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+            const id = e.target.closest('.card-cliente')?.dataset.id;
+            if (id) abrirModalCliente(id);
+        });
     });
 }
 
@@ -1079,6 +1597,9 @@ function inicializarEventos() {
     document.getElementById('btn-novo-servico').addEventListener('click', () => abrirModalServico());
     document.getElementById('btn-salvar-config').addEventListener('click', () => salvarConfiguracoes());
     document.getElementById('btn-salvar-aviso').addEventListener('click', () => salvarAviso());
+    document.getElementById('btn-bloquear-horario').addEventListener('click', () => adicionarBloqueio());
+    
+    renderizarListaBloqueios();
     
     document.getElementById('menu-sair').addEventListener('click', async (e) => {
         e.preventDefault();
@@ -1219,55 +1740,36 @@ function abrirModalServico(servico = null) {
 /* ================================================
    ABRIR MODAL DE CLIENTE
    ================================================ */
-function abrirModalCliente(id) {
+async function abrirModalCliente(id) {
     const cliente = clientes.find(c => c.id === id);
     if (!cliente) return;
     
-    const overlay = document.createElement('div');
-    overlay.id = 'modal-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 300;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    `;
-    
     const dataCadastro = cliente.dataCadastro ? new Date(cliente.dataCadastro).toLocaleDateString('pt-BR') : 'Não informada';
     
-    overlay.innerHTML = `
-        <div class="formulario" style="width: 100%; max-width: 400px; margin: 0;">
-            <h2 class="titulo-secao">Dados do Cliente</h2>
-            <div style="margin-top: 20px;">
-                <p style="margin-bottom: 15px;"><strong>Nome:</strong> ${cliente.nome || 'Não informado'}</p>
-                <p style="margin-bottom: 15px;"><strong>Email:</strong> ${cliente.email || 'Não informado'}</p>
-                <p style="margin-bottom: 15px;"><strong>Telefone:</strong> ${cliente.telefone || 'Não informado'}</p>
-                <p style="margin-bottom: 15px;"><strong>CPF:</strong> ${cliente.cpf || 'Não informado'}</p>
-                <p style="margin-bottom: 15px;"><strong>Data de Nascimento:</strong> ${cliente.dataNascimento || 'Não informada'}</p>
-                <p style="margin-bottom: 15px;"><strong>Cadastro em:</strong> ${dataCadastro}</p>
-            </div>
-            <button type="button" class="botao botao-secundario" id="btn-fechar-modal" style="margin-top: 20px; width: 100%;">
-                Fechar
-            </button>
+    const modal = criarModal();
+    modal.dataset.clickOutside = 'true';
+    
+    modal.querySelector('.modal-icon').textContent = '👤';
+    modal.querySelector('.modal-titulo').textContent = 'Dados do Cliente';
+    modal.querySelector('.modal-mensagem').innerHTML = `
+        <div style="text-align: left; font-size: 0.9rem;">
+            <p style="margin-bottom: 12px;"><strong>Nome:</strong> ${cliente.nome || 'Não informado'}</p>
+            <p style="margin-bottom: 12px;"><strong>Email:</strong> ${cliente.email || 'Não informado'}</p>
+            <p style="margin-bottom: 12px;"><strong>Telefone:</strong> ${cliente.telefone || 'Não informado'}</p>
+            <p style="margin-bottom: 12px;"><strong>CPF:</strong> ${cliente.cpf || 'Não informado'}</p>
+            <p style="margin-bottom: 12px;"><strong>Data de Nascimento:</strong> ${cliente.dataNascimento || 'Não informada'}</p>
+            <p style="margin-bottom: 12px;"><strong>Cadastro em:</strong> ${dataCadastro}</p>
         </div>
     `;
     
-    document.body.appendChild(overlay);
+    modal.querySelector('.modal-botoes').innerHTML = `
+        <button class="modal-botao primario" id="btn-fechar-modal-cliente">Fechar</button>
+    `;
     
-    document.getElementById('btn-fechar-modal').addEventListener('click', () => {
-        overlay.remove();
-    });
+    modal.classList.add('ativo');
     
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-            overlay.remove();
-        }
+document.getElementById('btn-fechar-modal-cliente').addEventListener('click', () => {
+        modal.classList.remove('ativo');
     });
 }
 
@@ -1285,9 +1787,18 @@ function editarServico(id) {
    EXCLUIR SERVIÇO
    ================================================ */
 async function excluirServico(id) {
-    if (!confirm('Tem certeza que deseja excluir este serviço?')) {
+    if (!id) {
+        await mostrarAlerta('Erro', 'ID do serviço inválido.', 'erro');
         return;
     }
+    
+    const confirmar = await mostrarConfirm(
+        'Excluir Serviço',
+        'Tem certeza que deseja excluir este serviço?',
+        'danger'
+    );
+    
+    if (!confirmar) return;
     
     try {
         await firebase.firestore().collection('servicos').doc(id).delete();
@@ -1295,10 +1806,9 @@ async function excluirServico(id) {
         servicos = servicos.filter(s => s.id !== id);
         renderizarListaServicos();
         
-        console.log('[DEBUG] Serviço excluído:', id);
     } catch (erro) {
         console.error('[DEBUG] Erro ao excluir:', erro);
-        alert('Erro ao excluir serviço. Tente novamente.');
+        await mostrarAlerta('Erro', 'Erro ao excluir serviço. Tente novamente.', 'erro');
     }
 }
 
@@ -1313,12 +1823,12 @@ async function salvarServico() {
     const icone = document.getElementById('servico-icone').value || '💅';
     
     if (!nome) {
-        alert('Por favor, digite o nome do serviço.');
+        await mostrarAlerta('Campo Obrigatório', 'Por favor, digite o nome do serviço.', 'alerta');
         return;
     }
     
     if (preco <= 0) {
-        alert('Por favor, digite um preço válido.');
+        await mostrarAlerta('Campo Inválido', 'Por favor, digite um preço válido.', 'alerta');
         return;
     }
     
@@ -1351,7 +1861,7 @@ async function salvarServico() {
         
     } catch (erro) {
         console.error('[DEBUG] Erro ao salvar:', erro);
-        alert('Erro ao salvar serviço. Tente novamente.');
+        await mostrarAlerta('Erro', 'Erro ao salvar serviço. Tente novamente.', 'erro');
     }
 }
 
@@ -1381,12 +1891,12 @@ async function salvarConfiguracoes() {
         
         configuracoes = config;
         
-        alert('Configurações salvas com sucesso!');
+        await mostrarAlerta('Sucesso', 'Configurações salvas com sucesso!', 'sucesso');
         console.log('[DEBUG] Configurações salvas');
         
     } catch (erro) {
         console.error('[DEBUG] Erro ao salvar:', erro);
-        alert('Erro ao salvar configurações. Tente novamente.');
+        await mostrarAlerta('Erro', 'Erro ao salvar configurações. Tente novamente.', 'erro');
     }
 }
 
@@ -1399,7 +1909,7 @@ async function salvarAviso() {
     const ativo = document.getElementById('aviso-ativo').checked;
     
     if (!mensagem && ativo) {
-        alert('Por favor, digite uma mensagem para ativar o aviso.');
+        await mostrarAlerta('Campo Obrigatório', 'Por favor, digite uma mensagem para ativar o aviso.', 'alerta');
         return;
     }
     
@@ -1433,16 +1943,204 @@ async function salvarAviso() {
         }
         
         await carregarDadosFirestore();
-        alert('Aviso atualizado com sucesso!');
+        await mostrarAlerta('Sucesso', 'Aviso atualizado com sucesso!', 'sucesso');
         
     } catch (erro) {
         console.error('[DEBUG] Erro ao salvar aviso:', erro);
-        alert('Erro ao salvar aviso. Tente novamente.');
+        await mostrarAlerta('Erro', 'Erro ao salvar aviso. Tente novamente.', 'erro');
     } finally {
         if (btn) {
             btn.disabled = false;
             btn.textContent = 'Salvar Mensagem';
         }
+    }
+}
+
+/* ================================================
+   RENDERIZAR LISTA DE BLOQUEIOS
+   ================================================ */
+function renderizarListaBloqueios() {
+    const container = document.getElementById('lista-bloqueios');
+    if (!container) return;
+    
+    if (!horariosBloqueados || horariosBloqueados.length === 0) {
+        container.innerHTML = `
+            <div class="estado-vazio">
+                <span class="icone-vazio">🔒</span>
+                <p class="texto-vazio">Nenhum horário bloqueado.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const hoje = new Date().toISOString().split('T')[0];
+    
+    let html = '';
+    horariosBloqueados.forEach((bloq, index) => {
+        const dataFormata = formatarData_BR(bloq.data);
+        const jaPassou = bloq.data < hoje;
+        
+        html += `
+            <div class="card-servico" data-index="${index}">
+                <div class="info-servico">
+                    <p class="nome-servico">${dataFormata}</p>
+                    <p class="detalhes-servico">${bloq.horaInicio} - ${bloq.horaFim}</p>
+                    ${bloq.motivo ? `<p class="detalhes-servico" style="color: #888;">${bloq.motivo}</p>` : ''}
+                </div>
+                ${!jaPassou ? `
+                <button class="botao-icon excluir" data-index="${index}" title="Desbloquear">🔓</button>
+                ` : ''}
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    
+    // Adicionar eventos aos botões
+    container.querySelectorAll('.botao-icon.excluir').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.target.closest('.card-servico').dataset.index);
+            if (!isNaN(idx)) removerBloqueio(idx);
+        });
+    });
+}
+
+function formatarData_BR(dataISO) {
+    const [ano, mes, dia] = dataISO.split('-');
+    return `${dia}/${mes}/${ano}`;
+}
+
+/* ================================================
+   ADICIONAR BLOQUEIO
+   ================================================ */
+async function adicionarBloqueio() {
+    const data = document.getElementById('bloqueio-data').value;
+    const horaInicio = document.getElementById('bloqueio-inicio').value;
+    const horaFim = document.getElementById('bloqueio-fim').value;
+    const motivo = document.getElementById('bloqueio-motivo').value.trim();
+    
+    if (!data || !horaInicio || !horaFim) {
+        await mostrarAlerta('Campos Obrigatórios', 'Preencha data, hora de início e hora de fim.', 'alerta');
+        return;
+    }
+    
+    if (horaInicio >= horaFim) {
+        await mostrarAlerta('Horário Inválido', 'A hora de fim deve ser maior que a hora de início.', 'alerta');
+        return;
+    }
+    
+    try {
+        const snap = await firebase.firestore()
+            .collection('agendamentos')
+            .where('data', '==', data)
+            .where('status', 'in', ['pendente', 'confirmado'])
+            .get();
+        
+        const [hIni, mIni] = horaInicio.split(':').map(Number);
+        const [hFim, mFim] = horaFim.split(':').map(Number);
+        const minBloqInicio = hIni * 60 + mIni;
+        const minBloqFim = hFim * 60 + mFim;
+        
+        const agendamentosConflitantes = [];
+        
+        snap.docs.forEach(doc => {
+            const agendamento = doc.data();
+            const [hAgend, mAgend] = agendamento.horario.split(':').map(Number);
+            const minAgend = hAgend * 60 + mAgend;
+            const duracao = agendamento.duracao || 60;
+            
+            const minFimAgend = minAgend + duracao;
+            
+            if (minAgend < minBloqFim && minFimAgend > minBloqInicio) {
+                agendamentosConflitantes.push({
+                    id: doc.id,
+                    horario: agendamento.horario,
+                    duracao: duracao,
+                    servico: agendamento.servicoNome || agendamento.servico,
+                    cliente: agendamento.clienteNome || 'Cliente'
+                });
+            }
+        });
+        
+        if (agendamentosConflitantes.length > 0) {
+            let msg = '<strong>ATENÇÃO:</strong> existem agendamentos neste período:<br><br><ul>';
+            agendamentosConflitantes.forEach(ag => {
+                msg += `<li>${ag.horario} - ${ag.servico} (${ag.cliente})</li>`;
+            });
+            msg += '</ul><br>Deseja bloquear mesmo assim?<br><small>O(s) agendamento(s) deverá(ão) ser cancelado(s) manualmente.</small>';
+            
+            const confirmar = await mostrarConfirm('Agendamentos Conflictantes', msg, 'bloque');
+            if (!confirmar) return;
+        }
+        
+        const novoBloqueio = {
+            id: 'bloq_' + Date.now(),
+            data,
+            horaInicio,
+            horaFim,
+            motivo
+        };
+        
+        const bloqueiosAtualizados = [...(horariosBloqueados || []), novoBloqueio];
+        
+        await firebase.firestore().collection('configuracoes').doc('salao').set({
+            horariosBloqueados: bloqueiosAtualizados
+        }, { merge: true });
+        
+        horariosBloqueados = bloqueiosAtualizados;
+        
+        document.getElementById('bloqueio-data').value = '';
+        document.getElementById('bloqueio-inicio').value = '';
+        document.getElementById('bloqueio-fim').value = '';
+        document.getElementById('bloqueio-motivo').value = '';
+        
+        renderizarListaBloqueios();
+        await mostrarAlerta('Sucesso', 'Horário bloqueado com sucesso!', 'sucesso');
+        
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao bloquear horário:', erro);
+        await mostrarAlerta('Erro', 'Erro ao bloquear horário. Tente novamente.', 'erro');
+    }
+}
+
+/* ================================================
+   REMOVER BLOQUEIO
+   ================================================ */
+async function removerBloqueio(index) {
+    if (!horariosBloqueados || !horariosBloqueados[index]) {
+        await mostrarAlerta('Erro', 'Bloqueio não encontrado.', 'erro');
+        return;
+    }
+    
+    const bloq = horariosBloqueados[index];
+    const confirmar = await mostrarConfirm(
+        'Desbloquear Horário',
+        `Deseja desbloquear ${formatarData_BR(bloq.data)} das ${bloq.horaInicio} às ${bloq.horaFim}?`,
+        'bloque'
+    );
+    
+    if (!confirmar) return;
+    
+    try {
+        // Criar nova lista sem o bloqueio removido
+        const bloqueiosAtualizados = horariosBloqueados.filter((_, i) => i !== index);
+        
+        // Salvar no Firestore usando set com merge
+        await firebase.firestore().collection('configuracoes').doc('salao').set({
+            horariosBloqueados: bloqueiosAtualizados
+        }, { merge: true });
+        
+        // Atualizar variável local
+        horariosBloqueados = bloqueiosAtualizados;
+        
+        // Re-renderizar lista
+        renderizarListaBloqueios();
+        
+        await mostrarAlerta('Sucesso', 'Horário desbloqueado!', 'sucesso');
+        
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao desbloquear:', erro);
+        await mostrarAlerta('Erro', 'Erro ao desbloquear horários. Tente novamente.', 'erro');
     }
 }
 

@@ -8,7 +8,6 @@ const firebaseConfig = {
   authDomain: "jeci-vieira-nails.firebaseapp.com",
   projectId: "jeci-vieira-nails",
   storageBucket: "jeci-vieira-nails.firebasestorage.app",
-  messagingSenderId: "570979627981",
   appId: "1:570979627981:web:87a39a89fb8075ffa00a84"
 };
 

@@ -29,9 +29,6 @@ async function loginUsuario(email, senha) {
       return { sucesso: false, erro: "user-not-found" };
     }
 
-    // Solicitar permissão de notificação e salvar token
-    await salvarTokenFCM(uid, dadosUsuario.role);
-    
     console.log("[DEBUG] Login realizado com sucesso!");
 
     // Retorna sucesso com dados do usuário
@@ -39,60 +36,6 @@ async function loginUsuario(email, senha) {
   } catch (erro) {
     console.error("[ERRO] Login:", erro);
     return { sucesso: false, erro: erro.code };
-  }
-}
-
-/* ================================================
-   SALVAR TOKEN FCM
-   Solicita permissão e salva token para push notifications
-   ================================================ */
-async function salvarTokenFCM(uid, role) {
-  try {
-    // Verificar se o navegador suporta notifications
-    if (!('Notification' in window)) {
-      console.log("[DEBUG] Browser não suporta notifications");
-      return;
-    }
-    
-    // Verificar se já tem permissão
-    let permissao = Notification.permission;
-    
-    // Se não foi negada, solicitar
-    if (permissao === 'default') {
-      permissao = await Notification.requestPermission();
-    }
-    
-    // Se não permitiu, sair
-    if (permissao !== 'granted') {
-      console.log("[DEBUG] Permissão de notificação negada:", permissao);
-      return;
-    }
-    
-    // Obter token do FCM
-    const token = await firebase.messaging().getToken({
-      vapidKey: "BEl62iUYgU4xLZd98NBXTMKjKjpPoPR1tY7W0tC5aZE"
-    });
-    
-    if (!token) {
-      console.log("[DEBUG] Token FCM não obtido");
-      return;
-    }
-    
-    console.log("[DEBUG] Token FCM obtido:", token.substring(0, 50) + "...");
-    
-    // Salvar token no Firestore
-    await firebase.firestore().collection('tokens').doc(uid).set({
-      token: token,
-      role: role,
-      uid: uid,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      platform: navigator.userAgent.includes('Mobile') ? 'mobile' : 'web'
-    });
-    
-    console.log("[DEBUG] Token FCM salvo no Firestore");
-    
-  } catch (erro) {
-    console.error("[DEBUG] Erro ao salvar token FCM:", erro);
   }
 }
 

@@ -55,16 +55,10 @@ let diasComAgendamentos = [];
    ================================================ */
 let ultimoCheck = null;
 let intervaloCheck = 30000; // 30 segundos
-let notificacaoAudio = null;
 let jaNotificou = false;
 
 function iniciarVerificacaoAutomatica() {
     ultimoCheck = Date.now();
-    
-    // Criar elemento de áudio para notificação
-    if (typeof Audio !== 'undefined') {
-        notificacaoAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleGIBNpbrz6VsIRYfkeDQoI85EGmF38KQZiAOanaFqLBTKn6G27eVjGQ8ZqG+tXYlJGVjl7K5diwSNmqMwq2FIDFtmp28pCwySr8C9rmYVJGWKmbK1gSQmYJaWsK6BIDFhkJCxoCQqYZuQr6uFHzZml5evqHcfLGWEkrKuhCQvXpWNsaqFIS9dlI2xoCQxYpeOraWJHSxgkI6voCQ3YZKKramHMS1gkI6uoCc5Y5CIrKiJMC1fj46toCc6aJGGraaIMC5fj46toCc6aJGEraWIMC9fj46toCc6Z5CDraWINjBfj46toCc6Z5CDreMNMjFfj46toCc6Z5CDreQNMjFdj46toCc6aJCDreUNMjFdj46toCc6Z5CDreQNMjFdj46toCc6Z5CDreQNMjFdj46toCc6Z5CDreM=');
-    }
     
     // Iniciar verificação periódica
     setInterval(verificarNovosAgendamentos, intervaloCheck);
@@ -91,9 +85,6 @@ async function verificarNovosAgendamentos() {
             });
             
             if (novos.length > 0 && !jaNotificou) {
-                // Tocar som
-                tocarSomNotificacao();
-                
                 // Atualizar badge
                 atualizarBadgePendentes();
                 
@@ -114,17 +105,6 @@ async function verificarNovosAgendamentos() {
         
     } catch (erro) {
         console.error('[DEBUG] Erro na verificação automática:', erro);
-    }
-}
-
-function tocarSomNotificacao() {
-    try {
-        if (notificacaoAudio) {
-            notificacaoAudio.volume = 0.3;
-            notificacaoAudio.play().catch(e => console.log('[DEBUG] Não foi possível tocar som'));
-        }
-    } catch (e) {
-        console.log('[DEBUG] Erro ao tocar som');
     }
 }
 

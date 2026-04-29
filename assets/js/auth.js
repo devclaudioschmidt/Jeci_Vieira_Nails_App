@@ -6,8 +6,9 @@ async function loginUsuario(email, senha) {
   try {
     console.log("[DEBUG] Tentando login com:", email);
     
-    // Definir persistência LOCAL para manter login após fechar navegador
-    await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    // Definir persistência SESSION para manter login durante sessão do navegador
+    // Funciona melhor em alguns navegadores/iOS
+    await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION);
     
     // Autentica usuário no Firebase Auth
     const usuarioCredential = await firebase.auth().signInWithEmailAndPassword(email, senha);

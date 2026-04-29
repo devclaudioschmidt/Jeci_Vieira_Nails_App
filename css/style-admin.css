@@ -1405,6 +1405,15 @@ body > div[id="modal-customizado"] .modal-card {
     background: #c0392b;
 }
 
+.modal-botao.success {
+    background: #27ae60;
+    color: white;
+}
+
+.modal-botao.success:hover {
+    background: #219a52;
+}
+
 /* WhatsApp Button */
 .modal-botao.whatsapp {
     display: inline-flex;

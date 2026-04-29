@@ -22,8 +22,10 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
       // Cliente: ler TODOS agendamentos (para verificar horarios occupados)
       allow read: if request.auth != null;
-      // Cliente: atualizar propio agendamento (cancelar, reagendar)
+      // Cliente: atualizar propio agendamento (cancelar)
       allow update: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Cliente: pode excluir propio agendamento
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     
     // -------------------

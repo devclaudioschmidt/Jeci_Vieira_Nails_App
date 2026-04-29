@@ -465,7 +465,7 @@ function renderizarCalendario() {
             <span class="dia-cal ${indisponivel ? 'indisponivel' : ''} ${bloqueado ? 'bloqueado' : ''}" 
                   data-data="${dataStr}" 
                   data-dia="${dia}"
-                  ${(isSabado && !configuracoes.sabadoAbertura) ? 'data-bloqueado="sabado"' : ''}>
+                  ${(isSabado && (!configuracoes.sabadoAbertura || configuracoes.sabadoAbertura.trim() === '')) ? 'data-bloqueado="sabado"' : ''}>
                 ${dia}
             </span>
         `;
@@ -567,7 +567,7 @@ function gerarHorarios(dataStr, duracao, config, horariosOcupados = []) {
     const isSabado = (diaSemana === 6);
     
     let abertura, fechamento;
-    if (isSabado && config.sabadoAbertura) {
+    if (isSabado && config.sabadoAbertura && config.sabadoAbertura.trim() !== '') {
         abertura = config.sabadoAbertura;
         fechamento = config.sabadoFechamento;
     } else {

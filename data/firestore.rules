@@ -55,5 +55,25 @@ service cloud.firestore {
       // Apenas admin pode criar, editar, excluir
       allow create, write, delete: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
     }
+    
+    // -------------------
+    // TOKENS (FCM Push Notifications)
+    // -------------------
+    match /tokens/{userId} {
+      // Proprio usuario pode criar/atualizar seu token
+      allow create, write: if request.auth != null && request.auth.uid == userId;
+      // Admin pode ler todos os tokens
+      allow read: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // -------------------
+    // NOTIFICACOES
+    // -------------------
+    match /notificacoes/{notificacaoId} {
+      // Proprio usuario pode ler suas notificacoes
+      allow read, create: if request.auth != null && request.auth.uid == notificacaoId;
+      // Admin pode ler e criar todas
+      allow read, create: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
+    }
   }
 }

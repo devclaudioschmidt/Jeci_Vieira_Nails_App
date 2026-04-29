@@ -137,6 +137,29 @@ async function atualizarBadgePendentes() {
     }
 }
 
+/* ================================================
+   ENVIAR NOTIFICAÇÃO PUSH
+   Envia notificação para um usuário específico
+   ================================================ */
+async function enviarNotificacaoPush(uid, titulo, mensagem, tipo = 'info') {
+    try {
+        // Salvar notificação no Firestore
+        await firebase.firestore().collection('notificacoes').add({
+            uid: uid,
+            titulo: titulo,
+            mensagem: mensagem,
+            tipo: tipo,
+            lida: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        console.log('[DEBUG] Notificação salva para:', uid);
+        
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao enviar notificação:', erro);
+    }
+}
+
 function mostrarNotificacaoNova(quantos) {
     const modal = criarModal();
     
@@ -1286,10 +1309,24 @@ function renderizarAgendamentosDia(dataStr) {
    ================================================ */
 async function confirmarAgendamento(id) {
     try {
+        // Buscar dados do agendamento antes de confirmar
+        const agendDoc = await firebase.firestore().collection('agendamentos').doc(id).get();
+        const agendamento = agendDoc.data();
+        
         await firebase.firestore().collection('agendamentos').doc(id).update({
             status: 'confirmado',
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+        
+        // Enviar notificação para o cliente
+        if (agendamento && agendamento.userId) {
+            await enviarNotificacaoPush(
+                agendamento.userId,
+                'Agendamento Confirmado!',
+                `Seu agendamento de ${agendamento.servico} foi confirmado para ${formatarData(agendamento.data)} às ${agendamento.horario}.`,
+                'confirmado'
+            );
+        }
         
         // Atualizar lista local
         const idx = agendamentos.findIndex(a => a.id === id);

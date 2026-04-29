@@ -187,7 +187,954 @@ function mostrarAlerta(titulo, mensagem, tipo = 'info') {
         document.getElementById('modal-ok').addEventListener('click', () => {
             modal.classList.remove('ativo');
             resolve(true);
-});
+        });
+    });
+}
+
+function mostrarConfirm(titulo, mensagem, tipo = 'alerta') {
+    return new Promise((resolve) => {
+        const modal = criarModal();
+        
+        const icons = {
+            sucesso: '✅',
+            alerta: '⚠️',
+            erro: '❌',
+            bloque: '🔒',
+            danger: '⚠️'
+        };
+        
+        const primaryBtn = tipo === 'danger' || tipo === 'bloque' ? 'danger' : 'primario';
+        
+        modal.querySelector('.modal-icon').textContent = icons[tipo] || icons.alerta;
+        modal.querySelector('.modal-titulo').textContent = titulo;
+        modal.querySelector('.modal-mensagem').innerHTML = mensagem;
+        modal.querySelector('.modal-botoes').innerHTML = `
+            <button class="modal-botao secundario" id="modal-cancelar">Cancelar</button>
+            <button class="modal-botao ${primaryBtn}" id="modal-confirmar">Confirmar</button>
+        `;
+        
+        modal.dataset.clickOutside = 'false';
+        modal.classList.add('ativo');
+        
+        const btnCancelar = document.getElementById('modal-cancelar');
+        const btnConfirmar = document.getElementById('modal-confirmar');
+        
+        const cleanup = () => {
+            modal.classList.remove('ativo');
+        };
+        
+        btnCancelar.addEventListener('click', () => {
+            cleanup();
+            resolve(false);
+        });
+        
+        btnConfirmar.addEventListener('click', () => {
+            cleanup();
+            resolve(true);
+        });
+    });
+}
+
+/* Nomes dos meses */
+const nomesMeses = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+];
+
+/* Nomes dos dias da semana */
+const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+/* ================================================
+   ABRIR MODAL DE DETALHES DO AGENDAMENTO
+   ================================================ */
+async function abrirModalDetalhesAgendamento(id) {
+    const agendamento = agendamentos.find(a => a.id === id);
+    if (!agendamento) return;
+    
+    const clienteObj = clientes.find(c => c.id === agendamento.userId);
+    const nomeCliente = clienteObj ? clienteObj.nome : (agendamento.clienteNome || 'Cliente');
+    const telefoneCliente = clienteObj ? clienteObj.telefone : '';
+    const emailCliente = clienteObj ? clienteObj.email : '';
+    
+    const statusTexto = agendamento.status === 'confirmado' ? 'Confirmado' :
+                        agendamento.status === 'cancelado' ? 'Cancelado' : 'Pendente';
+    const statusClass = agendamento.status === 'confirmado' ? '#27ae60' :
+                        agendamento.status === 'cancelado' ? '#e74c3c' : '#f39c12';
+    
+    const modal = criarModal();
+    
+    modal.querySelector('.modal-icon').textContent = '📅';
+    modal.querySelector('.modal-titulo').textContent = 'Detalhes do Agendamento';
+    modal.querySelector('.modal-mensagem').innerHTML = `
+        <div style="text-align: left; font-size: 0.9rem;">
+            <p><strong>Cliente:</strong> ${nomeCliente}</p>
+            <p><strong>Telefone:</strong> ${telefoneCliente || 'Não informado'}</p>
+            <p><strong>Email:</strong> ${emailCliente || 'Não informado'}</p>
+            <hr style="margin: 12px 0; border: none; border-top: 1px solid #eee;">
+            <p><strong>Serviço:</strong> ${agendamento.servico || agendamento.servicoNome}</p>
+            <p><strong>Data:</strong> ${formatarData(agendamento.data)}</p>
+            <p><strong>Horário:</strong> ${agendamento.horario} (${agendamento.duracao || 60} min)</p>
+            <p><strong>Valor:</strong> R$ ${parseFloat(agendamento.preco || 0).toFixed(2).replace('.', ',')}</p>
+            <p><strong>Status:</strong> <span style="color: ${statusClass}; font-weight: 600;">${statusTexto}</span></p>
+            ${agendamento.observacoes ? `<p><strong>Observações:</strong> ${agendamento.observacoes}</p>` : ''}
+        </div>
+    `;
+    
+    const ehCancelado = agendamento.status === 'cancelado';
+    const ehPassado = agendamento.data < new Date().toISOString().split('T')[0];
+    
+    modal.querySelector('.modal-botoes').innerHTML = `
+        <button class="modal-botao secundario" id="modal-fechar-detalhes">Fechar</button>
+        ${!ehCancelado && !ehPassado ? `
+        <button class="modal-botao danger" id="modal-cancelar-agend">Cancelar</button>
+        ` : ''}
+    `;
+    
+    modal.classList.add('ativo');
+    
+    // Evento Fechar
+    document.getElementById('modal-fechar-detalhes').addEventListener('click', () => {
+        modal.classList.remove('ativo');
+    });
+    
+    // Evento Cancelar
+    const btnCancelar = document.getElementById('modal-cancelar-agend');
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', async () => {
+            modal.classList.remove('ativo');
+            await cancelarAgendamento(id);
+        });
+    }
+}
+
+/* ================================================
+   FORMATAR DATA
+   ================================================ */
+function formatarData(dataStr) {
+    if (!dataStr) return '';
+    const [ano, mes, dia] = dataStr.split('-');
+    return `${dia}/${mes}/${ano}`;
+}
+
+/* ================================================
+   INICIALIZAÇÃO DO ADMIN
+   Verifica autenticação e carrega dados
+   ================================================ */
+function inicializarAdmin() {
+    const status = document.getElementById('status');
+    
+    firebase.auth().onAuthStateChanged(async (usuario) => {
+        console.log('[DEBUG] Estado auth alterado, usuário:', usuario);
+        
+        try {
+            if (!usuario) {
+                status.textContent = 'Usuário não está logado. Redirecionando...';
+                setTimeout(() => {
+                    window.location.href = '../index.html';
+                }, 1500);
+                return;
+            }
+            
+            console.log('[DEBUG] UID do usuário:', usuario.uid);
+            
+            const doc = await firebase.firestore().collection('usuarios').doc(usuario.uid).get();
+            const dados = doc.data();
+            
+            console.log('[DEBUG] Dados do usuário:', dados);
+            
+            if (!doc.exists || !dados) {
+                console.error('[DEBUG] Documento do usuário não encontrado');
+                status.textContent = 'Dados do usuário não encontrados.请联系 o suporte.';
+                return;
+            }
+            
+            if (dados.role !== 'admin') {
+                console.warn('[DEBUG] Usuário não é admin. Role:', dados.role);
+                status.textContent = 'Acesso restrito. Redirecionando...';
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+                return;
+            }
+            
+            dadosAdmin = dados;
+            
+            await carregarDadosFirestore();
+            exibirAdmin(dados);
+            
+        } catch (erro) {
+            console.error('[DEBUG] Erro:', erro);
+            status.textContent = 'Erro ao carregar: ' + erro.message;
+        }
+    });
+}
+
+/* ================================================
+   CARREGAR DADOS DO FIRESTORE
+   Carrega serviços, configurações e avisos
+   ================================================ */
+async function carregarDadosFirestore() {
+    try {
+        console.log('[DEBUG] Carregando dados do Firestore...');
+        
+        const servicosSnap = await firebase.firestore()
+            .collection('servicos')
+            .orderBy('nome')
+            .get();
+        
+        servicos = servicosSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        
+        console.log('[DEBUG] Serviços carregados:', servicos.length);
+        
+        const configSnap = await firebase.firestore()
+            .collection('configuracoes')
+            .doc('salao')
+            .get();
+        
+        configuracoes = configSnap.data() || {
+            segundaAbertura: '09:00',
+            segundaIntervaloInicio: '12:00',
+            segundaIntervaloFim: '13:00',
+            segundaFechamento: '19:00',
+            sabadoAbertura: '09:00',
+            sabadoFechamento: '17:00',
+            domingoFechado: true,
+            telefone: '',
+            endereco: '',
+            tempoEntreAgendamentos: 15,
+            horariosBloqueados: []
+        };
+        
+        horariosBloqueados = configuracoes.horariosBloqueados || [];
+        
+        console.log('[DEBUG] Configurações carregadas:', configuracoes);
+        console.log('[DEBUG] Horários bloqueados carregados:', horariosBloqueados);
+        
+        const avisoSnap = await firebase.firestore()
+            .collection('avisos')
+            .where('ativo', '==', true)
+            .limit(1)
+            .get();
+        
+        if (!avisoSnap.empty) {
+            avisoAtivo = {
+                id: avisoSnap.docs[0].id,
+                ...avisoSnap.docs[0].data()
+            };
+        } else {
+            avisoAtivo = null;
+        }
+        
+        console.log('[DEBUG] Aviso ativo:', avisoAtivo);
+        
+        const clientesSnap = await firebase.firestore()
+            .collection('usuarios')
+            .where('role', '==', 'cliente')
+            .orderBy('nome')
+            .get();
+        
+        clientes = clientesSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        
+        clientesFiltrados = [...clientes];
+        console.log('[DEBUG] Clientes carregados:', clientes.length);
+        
+        // Carregar agendamentos (últimos 50 - regras-firestore.md)
+        try {
+            const dataInicio = new Date();
+            dataInicio.setMonth(dataInicio.getMonth() - 2);
+            const dataStrInicio = dataInicio.toISOString().split('T')[0];
+            
+            const agendamentosSnap = await firebase.firestore()
+                .collection('agendamentos')
+                .where('data', '>=', dataStrInicio)
+                .orderBy('data', 'desc')
+                .limit(50)
+                .get();
+            
+            agendamentos = agendamentosSnap.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            // Ordenar localmente para evitar obrigatoriedade de Índice Composto
+            agendamentos.sort((a, b) => {
+                if (a.data === b.data) {
+                    return a.horario.localeCompare(b.horario);
+                }
+                return a.data.localeCompare(b.data);
+            });
+            
+            // Criar lista de dias com agendamentos
+            diasComAgendamentos = [...new Set(agendamentos.map(a => a.data))];
+            console.log('[DEBUG] Agendamentos carregados:', agendamentos.length);
+        } catch (e) {
+            console.error('[DEBUG] Erro ao carregar agendamentos:', e);
+            agendamentos = [];
+            diasComAgendamentos = [];
+        }
+        
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao carregar dados:', erro);
+        servicos = [];
+        configuracoes = {
+            segundaAbertura: '09:00',
+            segundaIntervaloInicio: '12:00',
+            segundaIntervaloFim: '13:00',
+            segundaFechamento: '19:00',
+            sabadoAbertura: '09:00',
+            sabadoFechamento: '17:00',
+            domingoFechado: true,
+            telefone: '',
+            endereco: '',
+            tempoEntreAgendamentos: 15
+        };
+        avisoAtivo = null;
+        clientes = [];
+        clientesFiltrados = [];
+    }
+}
+
+/* ================================================
+   EXIBIR ADMIN
+   Renderiza o painel completo
+   ================================================ */
+function exibirAdmin(dados) {
+    document.body.innerHTML = criarEstruturaAdmin(dados);
+    inicializarMenuHamburger();
+    inicializarEventos();
+    inicializarCalendario();
+    renderizarCalendario();
+    renderizarSolicitacoes();
+    renderizarConfirmacoes();
+    renderizarListaServicos();
+    renderizarConfiguracoes();
+    renderizarAviso();
+    renderizarListaClientes();
+}
+
+/* ================================================
+   CRIAR ESTRUTURA HTML
+   ================================================ */
+function criarEstruturaAdmin(dados) {
+    return `
+        <!-- Header fixo -->
+        <header class="header-admin">
+            <div class="logo-header">
+                <img src="../data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Jeci Vieira Nails" class="imagem-logo-topo">
+            </div>
+            <div class="botoes-header">
+                <button class="botao-atualizar" id="btn-atualizar" aria-label="Atualizar dados">🔄</button>
+                <button class="botao-menu" id="btn-menu" aria-label="Abrir menu">
+                    <span class="linha-menu"></span>
+                    <span class="linha-menu"></span>
+                    <span class="linha-menu"></span>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Container principal -->
+        <main class="container-admin">
+            
+            <!-- Boas-vindas -->
+            <section class="boas-vindas-admin">
+                <span class="badge-admin">ADMINISTRADOR</span>
+                <h1 class="titulo-boas-vindas">${getSaudacao()}, ${dados.nome}!</h1>
+                <p class="subtitulo-boas-vindas">Gerencie os dados do salão</p>
+</section>
+            
+            <!-- Área de conteúdo (exibe a seção selecionada) -->
+            <main class="conteudo-admin" id="conteudo-admin">
+                
+                <!-- Seção Solicitações -->
+                <section class="secao" id="secao-solicitacoes">
+                    <h2 class="titulo-secao">Solicitações Pendentes</h2>
+                    <div class="lista-agendamentos" id="lista-solicitacoes">
+                        <!-- Solicitações serão renderizadas aqui -->
+                    </div>
+                </section>
+
+                <!-- Seção Confirmações -->
+                <section class="secao" id="secao-confirmacoes">
+                    <h2 class="titulo-secao">Confirmações - Próximo Dia</h2>
+                    <p style="color: var(--cor-texto-suave); margin-bottom: 16px;">Agendamentos dos próximos dias que precisam de confirmação de presença.</p>
+                    <div class="lista-agendamentos" id="lista-confirmacoes">
+                        <!-- Confirmações serão renderizadas aqui -->
+                    </div>
+                </section>
+
+                <!-- Seção Agenda (padrão) -->
+                <section class="secao ativa" id="secao-agenda">
+                    <h2 class="titulo-secao">Agenda do Dia</h2>
+                    
+                    <!-- Calendário -->
+                    <div class="calendario-container">
+                        <div class="calendario-header">
+                            <button class="botao-nav-calendario" id="btn-mes-anterior">◀</button>
+                            <span class="mes-atual" id="mes-agenda">Abril 2025</span>
+                            <button class="botao-nav-calendario" id="btn-mes-proximo">▶</button>
+                        </div>
+                        <div class="dias-semana">
+                            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                        </div>
+                        <div class="dias-calendario" id="dias-calendario">
+                            <!-- Dias serão renderizados aqui -->
+                        </div>
+                    </div>
+                    
+                    <!-- Lista de agendamentos do dia selecionado -->
+                    <h3 class="titulo-data" id="titulo-data-selecionada">26 de Abril de 2025</h3>
+                    <div class="lista-agendamentos" id="lista-agendamentos">
+                        <!-- Agendamentos serão renderizados aqui -->
+                    </div>
+                </section>
+                
+                <!-- Seção Serviços -->
+                <section class="secao" id="secao-servicos">
+                    <h2 class="titulo-secao">Gerenciar Serviços</h2>
+                    <div class="lista-servicos" id="lista-servicos">
+                        <!-- Lista de serviços será renderizada aqui -->
+                    </div>
+                    <button class="botao-adicionar" id="btn-novo-servico">
+                        <span>+</span> Adicionar Serviço
+                    </button>
+                </section>
+            
+                <!-- Seção Clientes -->
+                <section class="secao" id="secao-clientes">
+                    <h2 class="titulo-secao">Lista de Clientes</h2>
+                    
+                    <div class="campo-busca">
+                        <input type="text" class="input-campo" id="busca-cliente" 
+                            placeholder="Buscar cliente por nome ou telefone...">
+                    </div>
+                    
+                    <div class="lista-clientes" id="lista-clientes">
+                        <!-- Lista de clientes será renderizada aqui -->
+                    </div>
+                </section>
+                
+                <!-- Seção Avisos -->
+                <section class="secao" id="secao-avisos">
+                    <h2 class="titulo-secao">Mensagem aos Clientes</h2>
+                    
+                    <div class="formulario">
+                        <div class="area-aviso">
+                            <label class="label-campo">Mensagem</label>
+                            <textarea class="textarea-aviso" id="aviso-texto" 
+                                placeholder="Digite uma mensagem para exibir na dashboard dos clientes..."
+                                maxlength="300">${avisoAtivo ? avisoAtivo.mensagem : ''}</textarea>
+                            <span class="contador-caracteres" id="contador-aviso">
+                                ${(avisoAtivo ? avisoAtivo.mensagem : '').length}/300
+                            </span>
+                        </div>
+                        
+                        <div class="switch-container">
+                            <span class="switch-label">Exibir mensagem</span>
+                            <label class="switch">
+                                <input type="checkbox" id="aviso-ativo" 
+                                    ${avisoAtivo && avisoAtivo.ativo ? 'checked' : ''}>
+                                <span class="slider-switch"></span>
+                            </label>
+                        </div>
+                        
+                        <button class="botao-adicionar" id="btn-salvar-aviso">
+                            Salvar Aviso
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Seção Bloqueios -->
+                <section class="secao" id="secao-bloqueios">
+                    <h2 class="titulo-secao">Bloqueios de Horários</h2>
+                    <p style="font-size: 0.85rem; color: #6B6B6B; margin-bottom: 16px;">
+                        Bloqueie horários específicos quando você não puder atender clientes.
+                    </p>
+                    
+                    <div class="formulario">
+                        <div class="campo-config">
+                            <span class="rotulo-config">Data</span>
+                            <input type="date" class="input-config" id="bloqueio-data">
+                        </div>
+                        
+                        <div class="campo-config">
+                            <span class="rotulo-config">Hora Início</span>
+                            <input type="time" class="input-config" id="bloqueio-inicio">
+                        </div>
+                        
+                        <div class="campo-config">
+                            <span class="rotulo-config">Hora Fim</span>
+                            <input type="time" class="input-config" id="bloqueio-fim">
+                        </div>
+                        
+                        <div class="campo-config">
+                            <span class="rotulo-config">Motivo (opcional)</span>
+                            <input type="text" class="input-config" id="bloqueio-motivo" 
+                                placeholder="Ex: Consulta médica">
+                        </div>
+                        
+                        <button class="botao-adicionar" id="btn-bloquear-horario">
+                            Bloquear Horário
+                        </button>
+                    </div>
+                    
+                    <h3 style="font-size: 1rem; margin: 24px 0 16px 0; color: #333;">Horários Bloqueados</h3>
+                    <div id="lista-bloqueios"></div>
+                </section>
+            
+                <!-- Seção Configurações -->
+                <section class="secao" id="secao-configuracoes">
+                <h2 class="titulo-secao">Configurações do Salão</h2>
+                
+                <p style="font-size: 0.85rem; color: #6B6B6B; margin-bottom: 16px; font-weight: 500;">
+                    Segunda a Sexta
+                </p>
+                
+                <div class="campo-config">
+                    <span class="rotulo-config">Abertura</span>
+                    <input type="time" class="input-config" id="config-segunda-abertura" 
+                        value="${configuracoes.segundaAbertura || '09:00'}">
+                </div>
+                
+                <div class="campo-config">
+                    <span class="rotulo-config">Intervalo Início</span>
+                    <input type="time" class="input-config" id="config-segunda-intervalo-inicio" 
+                        value="${configuracoes.segundaIntervaloInicio || '12:00'}">
+                </div>
+                
+                <div class="campo-config">
+                    <span class="rotulo-config">Intervalo Fim</span>
+                    <input type="time" class="input-config" id="config-segunda-intervalo-fim" 
+                        value="${configuracoes.segundaIntervaloFim || '13:00'}">
+                </div>
+                
+                <div class="campo-config">
+                    <span class="rotulo-config">Fechamento</span>
+                    <input type="time" class="input-config" id="config-segunda-fechamento" 
+                        value="${configuracoes.segundaFechamento || '19:00'}">
+                </div>
+                
+                <p style="font-size: 0.85rem; color: #6B6B6B; margin: 20px 0 16px 0; font-weight: 500;">
+                    Sábado
+                </p>
+                
+                <div class="campo-config">
+                    <span class="rotulo-config">Abertura</span>
+                    <input type="time" class="input-config" id="config-sabado-abertura" 
+                        value="${configuracoes.sabadoAbertura || '09:00'}">
+                </div>
+                
+                <div class="campo-config">
+                    <span class="rotulo-config">Fechamento</span>
+                    <input type="time" class="input-config" id="config-sabado-fechamento" 
+                        value="${configuracoes.sabadoFechamento || '17:00'}">
+                </div>
+                
+                <p style="font-size: 0.85rem; color: #6B6B6B; margin: 20px 0 16px 0; font-weight: 500;">
+                    Domingo
+                </p>
+                
+                <div class="campo-config">
+                    <span class="rotulo-config">Fechado</span>
+                    <label class="switch">
+                        <input type="checkbox" id="config-domingo-fechado" 
+                            ${configuracoes.domingoFechado === false ? '' : 'checked'}>
+                        <span class="slider-switch"></span>
+                    </label>
+                </div>
+                
+                <p style="font-size: 0.85rem; color: #6B6B6B; margin: 20px 0 16px 0; font-weight: 500;">
+                    Contato
+                </p>
+                
+                <div class="campo-config">
+                    <span class="rotulo-config">Telefone</span>
+                    <input type="tel" class="input-config" id="config-telefone" 
+                        value="${configuracoes.telefone || ''}" 
+                        placeholder="(11) 99999-9999"
+                        inputmode="tel">
+                </div>
+                
+                <div class="campo-config">
+                    <span class="rotulo-config">Endereço</span>
+                    <input type="text" class="input-config" id="config-endereco" 
+                        value="${configuracoes.endereco || ''}" placeholder="Rua, número, bairro">
+                </div>
+                
+                <div class="campo-config">
+                    <span class="rotulo-config">Tempo entre serviços (min)</span>
+                    <input type="number" class="input-config" id="config-tempo" 
+                        value="${configuracoes.tempoEntreAgendamentos || 15}" 
+                        min="0" max="60">
+                </div>
+                
+                <button class="botao-adicionar" id="btn-salvar-config" style="margin-top: 12px;">
+                    Salvar Configurações
+                </button>
+            </section>
+            
+        </main>
+        
+        <!-- Rodapé com informações em card -->
+        <footer class="rodape">
+            <div class="card-rodape">
+                <span class="titulo-card-rodape">Dados do Salão</span>
+                <div class="card-rodape-linha">
+                    <span class="icone-rodape">📍</span>
+                    <span>${configuracoes.endereco || 'Endereço não informado'}</span>
+                </div>
+                <div class="card-rodape-linha">
+                    <span class="icone-rodape">📞</span>
+                    <span>${configuracoes.telefone || 'Telefone não informado'}</span>
+                </div>
+                <div class="card-rodape-divisor"></div>
+                <div class="card-rodape-horarios">
+                    <span class="titulo-rodape">Horários de Funcionamento</span>
+                    <span>Seg à Sex: ${configuracoes.segundaAbertura || '09:00'} - ${configuracoes.segundaIntervaloInicio || '12:00'} / ${configuracoes.segundaIntervaloFim || '13:00'} - ${configuracoes.segundaFechamento || '19:00'}</span>
+                    <span>Sábado: ${configuracoes.sabadoAbertura || '09:00'} - ${configuracoes.sabadoFechamento || '17:00'}</span>
+                    <span>Domingo e Feriados: ${configuracoes.domingoFechado ? 'Fechado' : 'Aberto'}</span>
+                </div>
+            </div>
+        </footer>
+        
+        <!-- Overlay do menu -->
+        <div class="menu-overlay" id="menu-overlay"></div>
+        
+        <!-- Menu hamburger -->
+        <nav class="menu-hamburger" id="menu-hamburger">
+            <div class="cabecalho-menu">
+                <span class="titulo-menu">Menu</span>
+                <button class="botao-fechar-menu" id="btn-fechar-menu">
+                    ✕
+                </button>
+            </div>
+            <div class="lista-menu">
+                <div class="menu-secao">
+                    <span class="titulo-secao-menu">Navegação</span>
+                </div>
+                <a href="#" class="item-menu" data-nav="solicitacoes">
+                    <span class="icone-menu">🔔</span>
+                    <span>Solicitações</span>
+                    <span class="badge-notificacao" id="badge-solicitacoes" style="display:none;">0</span>
+                </a>
+                <a href="#" class="item-menu" data-nav="confirmacoes">
+                    <span class="icone-menu">✅</span>
+                    <span>Confirmações</span>
+                    <span class="badge-notificacao" id="badge-confirmacoes" style="display:none;">0</span>
+                </a>
+                <a href="#" class="item-menu ativo" data-nav="agenda">
+                    <span class="icone-menu">📅</span>
+                    <span>Agenda</span>
+                </a>
+                <a href="#" class="item-menu" data-nav="servicos">
+                    <span class="icone-menu">💅</span>
+                    <span>Serviços</span>
+                </a>
+                <a href="#" class="item-menu" data-nav="clientes">
+                    <span class="icone-menu">👥</span>
+                    <span>Clientes</span>
+                </a>
+                <a href="#" class="item-menu" data-nav="avisos">
+                    <span class="icone-menu">📢</span>
+                    <span>Avisos</span>
+                </a>
+                <a href="#" class="item-menu" data-nav="bloqueios">
+                    <span class="icone-menu">🔒</span>
+                    <span>Bloqueios</span>
+                </a>
+                <a href="#" class="item-menu" data-nav="configuracoes">
+                    <span class="icone-menu">⚙️</span>
+                    <span>Configurações</span>
+                </a>
+                <div class="menu-divisor"></div>
+                <a href="#" class="item-menu sair" id="menu-sair">
+                    <span class="icone-menu">🚪</span>
+                    <span>Sair</span>
+                </a>
+            </div>
+        </nav>
+    `;
+}
+
+/* ================================================
+   RENDERIZAR LISTA DE SERVIÇOS
+   ================================================ */
+function renderizarListaServicos() {
+    const container = document.getElementById('lista-servicos');
+    
+    if (servicos.length === 0) {
+        container.innerHTML = `
+            <div class="estado-vazio">
+                <span class="icone-vazio">💅</span>
+                <p class="texto-vazio">Nenhum serviço cadastrado.</p>
+                <p class="texto-vazio">Clique em "Adicionar Serviço" para começar.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    servicos.forEach(servico => {
+        html += `
+            <div class="card-servico" data-id="${servico.id}">
+                <div class="icone-servico">
+                    ${servico.icone || '💅'}
+                </div>
+                <div class="info-servico">
+                    <p class="nome-servico">${servico.nome}</p>
+                    <p class="detalhes-servico">${servico.duracao || 60} min</p>
+                </div>
+                <p class="preco-servico">R$ ${servico.preco}</p>
+                <div class="botoes-servico">
+                    <button class="botao-icon editar" data-id="${servico.id}" title="Editar">✏️</button>
+                    <button class="botao-icon excluir" data-id="${servico.id}" title="Excluir">🗑️</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    
+    document.querySelectorAll('.botao-icon.editar').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = pegarIdDoPai(e, '.card-servico');
+            if (id) editarServico(id);
+        });
+    });
+    
+    document.querySelectorAll('.botao-icon.excluir').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = pegarIdDoPai(e, '.card-servico');
+            if (id) excluirServico(id);
+        });
+    });
+}
+
+/* ================================================
+   RENDERIZAR CONFIGURAÇÕES
+   ================================================ */
+function renderizarConfiguracoes() {
+    document.getElementById('config-segunda-abertura').value = configuracoes.segundaAbertura || '09:00';
+    document.getElementById('config-segunda-intervalo-inicio').value = configuracoes.segundaIntervaloInicio || '12:00';
+    document.getElementById('config-segunda-intervalo-fim').value = configuracoes.segundaIntervaloFim || '13:00';
+    document.getElementById('config-segunda-fechamento').value = configuracoes.segundaFechamento || '19:00';
+    document.getElementById('config-sabado-abertura').value = configuracoes.sabadoAbertura || '09:00';
+    document.getElementById('config-sabado-fechamento').value = configuracoes.sabadoFechamento || '17:00';
+    document.getElementById('config-domingo-fechado').checked = configuracoes.domingoFechado !== false;
+    document.getElementById('config-telefone').value = configuracoes.telefone || '';
+    document.getElementById('config-endereco').value = configuracoes.endereco || '';
+    document.getElementById('config-tempo').value = configuracoes.tempoEntreAgendamentos || 15;
+}
+
+/* ================================================
+   RENDERIZAR AVISO
+   ================================================ */
+function renderizarAviso() {
+    const texto = document.getElementById('aviso-texto');
+    const ativo = document.getElementById('aviso-ativo');
+    const contador = document.getElementById('contador-aviso');
+    
+    if (avisoAtivo) {
+        texto.value = avisoAtivo.mensagem || '';
+        ativo.checked = avisoAtivo.ativo || false;
+    } else {
+        texto.value = '';
+        ativo.checked = false;
+    }
+    
+    contador.textContent = `${texto.value.length}/300`;
+    
+    texto.addEventListener('input', () => {
+        contador.textContent = `${texto.value.length}/300`;
+    });
+}
+
+/* ================================================
+   INICIALIZAR CALENDÁRIO
+   ================================================ */
+function inicializarCalendario() {
+    const btnMesAnterior = document.getElementById('btn-mes-anterior');
+    const btnMesProximo = document.getElementById('btn-mes-proximo');
+    
+    if (btnMesAnterior) {
+        btnMesAnterior.addEventListener('click', () => {
+            dataAtual.setMonth(dataAtual.getMonth() - 1);
+            renderizarCalendario();
+        });
+    }
+    
+    if (btnMesProximo) {
+        btnMesProximo.addEventListener('click', () => {
+            dataAtual.setMonth(dataAtual.getMonth() + 1);
+            renderizarCalendario();
+        });
+    }
+    
+    // Selecionar hoje por padrão
+    const hoje = new Date();
+    dataSelecionada = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+}
+
+/* ================================================
+   RENDERIZAR CALENDÁRIO
+   ================================================ */
+function renderizarCalendario() {
+    const mesElement = document.getElementById('mes-agenda');
+    const diasContainer = document.getElementById('dias-calendario');
+    const tituloData = document.getElementById('titulo-data-selecionada');
+    
+    if (!mesElement || !diasContainer) return;
+    
+    // Exibir nome do mês
+    const mes = dataAtual.getMonth();
+    const ano = dataAtual.getFullYear();
+    mesElement.textContent = `${nomesMeses[mes]} ${ano}`;
+    
+    // Calcular dias do mês
+    const primeiroDia = new Date(ano, mes, 1);
+    const ultimoDia = new Date(ano, mes + 1, 0);
+    const diasNoMes = ultimoDia.getDate();
+    const diaSemanaPrimeiro = primeiroDia.getDay();
+    
+    let html = '';
+    
+    // Dias vazios antes do primeiro dia
+    for (let i = 0; i < diaSemanaPrimeiro; i++) {
+        html += '<span class="dia-vazio"></span>';
+    }
+    
+    // Dias do mês
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+        const dataStr = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        const temAgendamento = diasComAgendamentos.includes(dataStr);
+        const isHoje = dataSelecionada.getDate() === dia && 
+                     dataSelecionada.getMonth() === mes && 
+                     dataSelecionada.getFullYear() === ano;
+        
+        html += `
+            <span class="dia ${temAgendamento ? 'tem-agendamento' : ''} ${isHoje ? 'selecionado' : ''}" 
+                  data-data="${dataStr}" 
+                  data-dia="${dia}">
+                ${dia}
+            </span>
+        `;
+    }
+    
+    diasContainer.innerHTML = html;
+    
+    // Adicionar eventos aos dias
+    document.querySelectorAll('.dia[data-data]').forEach(diaEl => {
+        diaEl.addEventListener('click', () => {
+            const dataStr = diaEl.dataset.data;
+            const dia = parseInt(diaEl.dataset.dia);
+            dataSelecionada = new Date(ano, mes, dia);
+            
+            // Atualizar visual
+            document.querySelectorAll('.dia').forEach(d => d.classList.remove('selecionado'));
+            diaEl.classList.add('selecionado');
+            
+            // Atualizar título da data
+            if (tituloData) {
+                tituloData.textContent = `${dia} de ${nomesMeses[mes]} de ${ano}`;
+            }
+            
+            // Renderizar agendamentos do dia
+            renderizarAgendamentosDia(dataStr);
+        });
+    });
+    
+    // Renderizar agendamentos do dia selecionado
+    const dataStrAtual = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dataSelecionada.getDate()).padStart(2, '0')}`;
+    if (tituloData) {
+        tituloData.textContent = `${dataSelecionada.getDate()} de ${nomesMeses[mes]} de ${ano}`;
+    }
+    renderizarAgendamentosDia(dataStrAtual);
+}
+
+/* ================================================
+   RENDERIZAR AGENDAMENTOS DO DIA
+   ================================================ */
+function renderizarAgendamentosDia(dataStr) {
+    const container = document.getElementById('lista-agendamentos');
+    if (!container) return;
+    
+    const agendamentosDia = agendamentos.filter(a => a.data === dataStr);
+    
+    if (agendamentosDia.length === 0) {
+        container.innerHTML = `
+            <div class="estado-vazio">
+                <span class="icone-vazio">📅</span>
+                <p class="texto-vazio">Nenhum agendamento neste dia.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Ordenar por horário
+    agendamentosDia.sort((a, b) => a.horario.localeCompare(b.horario));
+    
+    let html = '';
+    agendamentosDia.forEach(agend => {
+        const statusClass = agend.status === 'confirmado' ? 'confirmado' : 
+                        agend.status === 'cancelado' ? 'cancelado' : 'pendente';
+        
+        const clienteObj = clientes.find(c => c.id === agend.userId);
+        const nomeCliente = clienteObj ? clienteObj.nome : (agend.clienteNome || 'Cliente Desconhecido');
+        const nomeServico = agend.servico || agend.servicoNome || 'Serviço';
+        
+        html += `
+            <div class="card-agendamento" data-id="${agend.id}" style="cursor: pointer;">
+                <div class="horario-agendamento">${agend.horario}</div>
+                <div class="info-agendamento">
+                    <p class="nome-cliente-agend">${nomeCliente}</p>
+                    <p class="servico-agend">${nomeServico}</p>
+                </div>
+                <div class="status-agendamento ${statusClass}">
+                    ${agend.status === 'confirmado' ? '✓' : agend.status === 'cancelado' ? '✕' : '⏳'}
+                </div>
+                <div class="botoes-agendamento" onclick="event.stopPropagation()">
+                    ${(() => {
+                        const telefoneCliente = (clienteObj ? clienteObj.telefone : '') || agend.clienteTelefone || '';
+                        const msgWpp = `Olá ${nomeCliente}! 💅 Aqui é a equipe do salão. Gostaria de falar sobre seu agendamento de ${agend.servico} no dia ${formatarData(agend.data)} às ${agend.horario}.`;
+                        const linkWpp = gerarLinkWhatsApp(telefoneCliente, msgWpp);
+                        return linkWpp ? `<a class="botao-icon whatsapp-icon" href="${linkWpp}" target="_blank" rel="noopener" title="Contatar cliente via WhatsApp" onclick="event.stopPropagation()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>` : '';
+                    })()}
+                    ${agend.status !== 'confirmado' ? 
+                        `<button class="botao-icon confirmar" data-id="${agend.id}" title="Confirmar">✓</button>` : ''}
+                    ${agend.status !== 'cancelado' ? 
+                        `<button class="botao-icon cancelar" data-id="${agend.id}" title="Cancelar">✕</button>` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    
+    // Evento de clique no card para abrir modal de detalhes
+    document.querySelectorAll('.card-agendamento[data-id]').forEach(card => {
+        card.addEventListener('click', () => abrirModalDetalhesAgendamento(card.dataset.id));
+    });
+    
+    // Adicionar eventos aos botões
+    document.querySelectorAll('.botao-icon.confirmar').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = pegarIdDoPai(e, '.card-agendamento');
+            if (id) confirmarAgendamento(id);
+        });
+    });
+    
+    document.querySelectorAll('.botao-icon.cancelar').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = pegarIdDoPai(e, '.card-agendamento');
+            if (id) cancelarAgendamento(id);
+        });
     });
 }
 
@@ -204,6 +1151,16 @@ async function confirmarAgendamento(id) {
             status: 'confirmado',
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+        
+        // Enviar notificação para o cliente
+        if (agendamento && agendamento.userId) {
+            await enviarNotificacaoPush(
+                agendamento.userId,
+                'Agendamento Confirmado!',
+                `Seu agendamento de ${agendamento.servico} foi confirmado para ${formatarData(agendamento.data)} às ${agendamento.horario}.`,
+                'confirmado'
+            );
+        }
         
         // Atualizar lista local
         const idx = agendamentos.findIndex(a => a.id === id);

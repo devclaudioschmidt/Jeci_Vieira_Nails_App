@@ -165,6 +165,13 @@ function criarModalLocal() {
         </div>
     `;
     document.body.appendChild(modal);
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('ativo');
+        }
+    });
+    
     return modal;
 }
 
@@ -184,8 +191,12 @@ async function mostrarAlertaLocal(titulo, mensagem, tipo = 'info') {
         
         modal.classList.add('ativo');
         
-        document.getElementById('modal-ok-historico').addEventListener('click', () => {
+        const cleanup = () => {
             modal.classList.remove('ativo');
+        };
+        
+        document.getElementById('modal-ok-historico').addEventListener('click', () => {
+            cleanup();
             resolve();
         });
     });
@@ -207,13 +218,17 @@ async function mostrarConfirmLocal(titulo, mensagem, tipo = 'alerta') {
         
         modal.classList.add('ativo');
         
-        document.getElementById('modal-cancel-historico').addEventListener('click', () => {
+        const cleanup = () => {
             modal.classList.remove('ativo');
+        };
+        
+        document.getElementById('modal-cancel-historico').addEventListener('click', () => {
+            cleanup();
             resolve(false);
         });
         
         document.getElementById('modal-confirm-historico').addEventListener('click', () => {
-            modal.classList.remove('ativo');
+            cleanup();
             resolve(true);
         });
     });

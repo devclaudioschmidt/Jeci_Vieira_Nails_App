@@ -590,6 +590,7 @@ function exibirAdmin(dados) {
     inicializarCalendario();
     renderizarCalendario();
     renderizarSolicitacoes();
+    renderizarConfirmacoes();
     renderizarListaServicos();
     renderizarConfiguracoes();
     renderizarAviso();
@@ -634,6 +635,15 @@ function criarEstruturaAdmin(dados) {
                     <h2 class="titulo-secao">Solicitações Pendentes</h2>
                     <div class="lista-agendamentos" id="lista-solicitacoes">
                         <!-- Solicitações serão renderizadas aqui -->
+                    </div>
+                </section>
+
+                <!-- Seção Confirmações -->
+                <section class="secao" id="secao-confirmacoes">
+                    <h2 class="titulo-secao">Confirmações - Próximo Dia</h2>
+                    <p style="color: var(--cor-texto-suave); margin-bottom: 16px;">Agendamentos dos próximos dias que precisam de confirmação de presença.</p>
+                    <div class="lista-agendamentos" id="lista-confirmacoes">
+                        <!-- Confirmações serão renderizadas aqui -->
                     </div>
                 </section>
 
@@ -890,6 +900,11 @@ function criarEstruturaAdmin(dados) {
                     <span class="icone-menu">🔔</span>
                     <span>Solicitações</span>
                     <span class="badge-notificacao" id="badge-solicitacoes" style="display:none;">0</span>
+                </a>
+                <a href="#" class="item-menu" data-nav="confirmacoes">
+                    <span class="icone-menu">✅</span>
+                    <span>Confirmações</span>
+                    <span class="badge-notificacao" id="badge-confirmacoes" style="display:none;">0</span>
                 </a>
                 <a href="#" class="item-menu ativo" data-nav="agenda">
                     <span class="icone-menu">📅</span>
@@ -1236,6 +1251,7 @@ async function confirmarAgendamento(id) {
         const dataStr = `${dataSelecionada.getFullYear()}-${String(dataSelecionada.getMonth() + 1).padStart(2, '0')}-${String(dataSelecionada.getDate()).padStart(2, '0')}`;
         renderizarAgendamentosDia(dataStr);
         renderizarSolicitacoes();
+        renderizarConfirmacoes();
         
     } catch (erro) {
         console.error('[DEBUG] Erro ao confirmar:', erro);
@@ -1272,6 +1288,7 @@ async function cancelarAgendamento(id) {
         const dataStr = `${dataSelecionada.getFullYear()}-${String(dataSelecionada.getMonth() + 1).padStart(2, '0')}-${String(dataSelecionada.getDate()).padStart(2, '0')}`;
         renderizarAgendamentosDia(dataStr);
         renderizarSolicitacoes();
+        renderizarConfirmacoes();
 
         // Oferecer notificação WhatsApp para o cliente
         if (agendamento && telefoneCliente) {
@@ -1383,6 +1400,126 @@ function renderizarSolicitacoes() {
     container.innerHTML = html;
     
     // Adicionar eventos aos botões recém criados
+    container.querySelectorAll('.botao-icon.confirmar').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.target.closest('.card-agendamento')?.dataset.id;
+            if (id) confirmarAgendamento(id);
+        });
+    });
+    
+    container.querySelectorAll('.botao-icon.cancelar').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.target.closest('.card-agendamento')?.dataset.id;
+            if (id) cancelarAgendamento(id);
+        });
+    });
+}
+
+/* ================================================
+   RENDERIZAR CONFIRMAÇÕES
+   ================================================ */
+function renderizarConfirmacoes() {
+    const container = document.getElementById('lista-confirmacoes');
+    const badge = document.getElementById('badge-confirmacoes');
+    if (!container) return;
+    
+    // Calcular próxima data (amanhã)
+    const amanha = new Date();
+    amanha.setDate(amanha.getDate() + 1);
+    const amanhaStr = amanha.toISOString().split('T')[0];
+    
+    // Data limite: 3 dias à frente para captar agendamentos próximos
+    const limite = new Date();
+    limite.setDate(limite.getDate() + 3);
+    const limiteStr = limite.toISOString().split('T')[0];
+    
+    // Filtrar agendamentos: próximos dias, não cancelados
+    const confirmacoes = agendamentos.filter(a => {
+        if (a.status === 'cancelado') return false;
+        if (a.data < amanhaStr) return false;
+        if (a.data > limiteStr) return false;
+        return true;
+    });
+    
+    // Atualizar Badge
+    const pendentes = confirmacoes.filter(a => a.status !== 'confirmado');
+    if (badge) {
+        if (pendentes.length > 0) {
+            badge.textContent = pendentes.length;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    
+    if (confirmacoes.length === 0) {
+        container.innerHTML = `
+            <div class="estado-vazio">
+                <span class="icone-vazio">✅</span>
+                <p class="texto-vazio">Nenhum agendamento nos próximos dias.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Ordenar do mais próximo para o mais distante
+    confirmacoes.sort((a, b) => {
+        if (a.data === b.data) {
+            return a.horario.localeCompare(b.horario);
+        }
+        return a.data.localeCompare(b.data);
+    });
+    
+    let html = '';
+    confirmacoes.forEach(agend => {
+        const clienteObj = clientes.find(c => c.id === agend.userId);
+        const nomeCliente = clienteObj ? clienteObj.nome : (agend.clienteNome || 'Cliente Desconhecido');
+        const telefoneCliente = (clienteObj ? clienteObj.telefone : '') || agend.clienteTelefone || '';
+        const nomeServico = agend.servico || agend.servicoNome || 'Serviço';
+        const jaConfirmado = agend.status === 'confirmado';
+        
+        const [ano, mes, dia] = agend.data.split('-');
+        const dataFormatada = `${dia}/${mes}/${ano}`;
+        
+        // Formatar data para exibição
+        const dataObj = new Date(agend.data + 'T00:00:00');
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const amanhaDate = new Date(amanhaStr + 'T00:00:00');
+        let LabelData = dataFormatada;
+        if (dataObj.getTime() === amanhaDate.getTime()) {
+            LabelData = 'Amanhã';
+        }
+        
+        // Mensagem de confirmação
+        const msgConfirmacao = `Olá ${nomeCliente}! 💅 Aqui é o salão Jeci Vieira Nails.\n\nVim confirmar seu agendamento:\nServiço: ${nomeServico}\nData: ${dataFormatada}\nHorário: ${agend.horario}\n\nQualquer dúvida, estamos à disposição! 😊`;
+        const linkWpp = gerarLinkWhatsApp(telefoneCliente, msgConfirmacao);
+        
+        html += `
+            <div class="card-agendamento" data-id="${agend.id}">
+                <div class="horario-agendamento">
+                    <div style="font-size:0.75rem; color:#6B6B6B; margin-bottom:2px;">${LabelData}</div>
+                    <div>${agend.horario}</div>
+                </div>
+                <div class="info-agendamento">
+                    <p class="nome-cliente-agend">${nomeCliente}</p>
+                    <p class="servico-agend">${nomeServico}</p>
+                </div>
+                <div class="status-agendamento ${jaConfirmado ? 'confirmado' : 'pendente'}">${jaConfirmado ? '✓' : '⏳'}</div>
+                <div class="botoes-agendamento">
+                    ${linkWpp ? `<a class="botao-icon whatsapp-icon" href="${linkWpp}" target="_blank" rel="noopener" title="Confirmar via WhatsApp" onclick="event.stopPropagation()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    </a>` : ''}
+                    ${!jaConfirmado ? `<button class="botao-icon confirmar" data-id="${agend.id}" title="Confirmar internamente">✓</button>` : ''}
+                    <button class="botao-icon cancelar" data-id="${agend.id}" title="Cancelar">✕</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    
+    // Adicionar eventos aos botões
     container.querySelectorAll('.botao-icon.confirmar').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = e.target.closest('.card-agendamento')?.dataset.id;

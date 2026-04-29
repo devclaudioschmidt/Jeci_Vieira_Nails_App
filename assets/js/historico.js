@@ -225,25 +225,23 @@ async function mostrarConfirmLocal(titulo, mensagem, tipo = 'alerta') {
 async function cancelarAgendamentoCliente(id) {
     const confirmar = await mostrarConfirmLocal(
         'Cancelar Agendamento',
-        'Tem certeza que deseja cancelar este agendamento?<br><br>Esta ação não pode ser desfeita.',
+        'Tem certeza que deseja excluir este agendamento?<br><br>Esta ação não pode ser desfeita.',
         'alerta'
     );
     
     if (!confirmar) return;
     
     try {
-        await firebase.firestore().collection('agendamentos').doc(id).update({
-            status: 'cancelado',
-            canceledAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        // Excluir permanentemente do banco de dados
+        await firebase.firestore().collection('agendamentos').doc(id).delete();
         
-        await mostrarAlertaLocal('Cancelado', 'Agendamento cancelado com sucesso!', 'sucesso');
+        await mostrarAlertaLocal('Excluído', 'Agendamento excluído com sucesso!', 'sucesso');
         
         setTimeout(() => window.location.reload(), 1500);
         
     } catch (erro) {
-        console.error('[DEBUG] Erro ao cancelar:', erro);
-        await mostrarAlertaLocal('Erro', 'Erro ao cancelar agendamento. Tente novamente.', 'erro');
+        console.error('[DEBUG] Erro ao excluir:', erro);
+        await mostrarAlertaLocal('Erro', 'Erro ao excluir agendamento. Tente novamente.', 'erro');
     }
 }
 

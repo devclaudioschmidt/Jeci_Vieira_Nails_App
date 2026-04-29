@@ -1350,22 +1350,19 @@ async function confirmarAgendamento(id) {
 async function cancelarAgendamento(id) {
     const confirmar = await mostrarConfirm(
         'Cancelar Agendamento',
-        'Tem certeza que deseja cancelar este agendamento?<br><br>O cliente será notificado.',
+        'Tem certeza que deseja <strong>excluir</strong> este agendamento?<br><br>O cliente será notificado.',
         'alerta'
     );
     
     if (!confirmar) return;
     
     try {
-        await firebase.firestore().collection('agendamentos').doc(id).update({
-            status: 'cancelado',
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        await firebase.firestore().collection('agendamentos').doc(id).delete();
         
-        // Atualizar lista local
+        // Remover da lista local
         const idx = agendamentos.findIndex(a => a.id === id);
         if (idx !== -1) {
-            agendamentos[idx].status = 'cancelado';
+            agendamentos.splice(idx, 1);
         }
         
         // Re-renderizar

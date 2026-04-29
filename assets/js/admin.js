@@ -1152,16 +1152,6 @@ async function confirmarAgendamento(id) {
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        // Enviar notificação para o cliente
-        if (agendamento && agendamento.userId) {
-            await enviarNotificacaoPush(
-                agendamento.userId,
-                'Agendamento Confirmado!',
-                `Seu agendamento de ${agendamento.servico} foi confirmado para ${formatarData(agendamento.data)} às ${agendamento.horario}.`,
-                'confirmado'
-            );
-        }
-        
         // Atualizar lista local
         const idx = agendamentos.findIndex(a => a.id === id);
         if (idx !== -1) {

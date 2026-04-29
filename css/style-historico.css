@@ -295,3 +295,47 @@ body {
     background: #e74c3c;
     color: white;
 }
+
+/* WhatsApp Button */
+.modal-botao.whatsapp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #25D366;
+    color: white;
+    text-decoration: none;
+    border-radius: var(--raio-botao);
+    padding: 12px 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    font-family: var(--fonte-texto);
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.modal-botao.whatsapp:hover {
+    background: #1ebe5d;
+    transform: translateY(-2px);
+}
+
+/* WhatsApp Card Button (inline in appointment cards) */
+.botao-card.whatsapp-card {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #25D366;
+    color: white;
+    text-decoration: none;
+    border-radius: var(--raio-botao);
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.82rem;
+    font-family: var(--fonte-texto);
+    flex: 1;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.botao-card.whatsapp-card:hover {
+    background: #1ebe5d;
+    transform: translateY(-2px);
+}

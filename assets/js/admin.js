@@ -20,6 +20,18 @@ function getSaudacao() {
 }
 
 /* ================================================
+   WHATSAPP HELPER
+   ================================================ */
+function gerarLinkWhatsApp(telefone, mensagem) {
+    if (!telefone) return null;
+    const numero = telefone.replace(/\D/g, '');
+    const numeroCompleto = numero.startsWith('55') ? numero : '55' + numero;
+    const texto = encodeURIComponent(mensagem);
+    return `https://wa.me/${numeroCompleto}?text=${texto}`;
+}
+
+
+/* ================================================
    VARIÁVEIS GLOBAIS
    ================================================ */
 let dadosAdmin = {};
@@ -488,6 +500,35 @@ async function reagendarAgendamentoAdmin(id, novaData, novoHorario) {
         
         await carregarDadosFirestore();
         
+        // Oferecer notificação WhatsApp para o cliente
+        const clienteObj2 = clientes.find(c => c.id === agendamentoOriginal.userId);
+        const nomeCliente2 = clienteObj2 ? clienteObj2.nome : (agendamentoOriginal.clienteNome || 'Cliente');
+        const telefoneCliente2 = (clienteObj2 ? clienteObj2.telefone : '') || agendamentoOriginal.clienteTelefone || '';
+        if (telefoneCliente2) {
+            const msgWpp = `Olá ${nomeCliente2}! 💅 Aqui é o salão Jeci Vieira Nails.\n\nSeu agendamento foi reagendado!\n\nServiço: ${agendamentoOriginal.servico}\nNova data: ${formatarData(novaData)}\nNovo horário: ${novoHorario}\n\nQualquer dúvida, estamos à disposição! 😊`;
+            const linkWpp = gerarLinkWhatsApp(telefoneCliente2, msgWpp);
+            if (linkWpp) {
+                const modal = criarModal();
+                modal.querySelector('.modal-icon').textContent = '✅';
+                modal.querySelector('.modal-titulo').textContent = 'Reagendado com Sucesso';
+                modal.querySelector('.modal-mensagem').innerHTML = `Agendamento reagendado! Deseja avisar <strong>${nomeCliente2}</strong> via WhatsApp?`;
+                modal.querySelector('.modal-botoes').innerHTML = `
+                    <button class="modal-botao secundario" id="modal-skip-reagend">Pular</button>
+                    <a class="modal-botao whatsapp" href="${linkWpp}" target="_blank" rel="noopener" id="modal-wpp-reagend">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        Avisar via WhatsApp
+                    </a>
+                `;
+                modal.dataset.clickOutside = 'true';
+                modal.classList.add('ativo');
+                document.getElementById('modal-skip-reagend').addEventListener('click', () => modal.classList.remove('ativo'));
+                document.getElementById('modal-wpp-reagend').addEventListener('click', () => {
+                    setTimeout(() => modal.classList.remove('ativo'), 500);
+                });
+                return;
+            }
+        }
+
         await mostrarAlerta('Sucesso', 'Agendamento reagendado com sucesso!', 'sucesso');
         
     } catch (erro) {
@@ -1270,6 +1311,14 @@ function renderizarAgendamentosDia(dataStr) {
                     ${agend.status === 'confirmado' ? '✓' : agend.status === 'cancelado' ? '✕' : '⏳'}
                 </div>
                 <div class="botoes-agendamento" onclick="event.stopPropagation()">
+                    ${(() => {
+                        const telefoneCliente = (clienteObj ? clienteObj.telefone : '') || agend.clienteTelefone || '';
+                        const msgWpp = `Olá ${nomeCliente}! 💅 Aqui é a equipe do salão. Gostaria de falar sobre seu agendamento de ${agend.servico} no dia ${formatarData(agend.data)} às ${agend.horario}.`;
+                        const linkWpp = gerarLinkWhatsApp(telefoneCliente, msgWpp);
+                        return linkWpp ? `<a class="botao-icon whatsapp-icon" href="${linkWpp}" target="_blank" rel="noopener" title="Contatar cliente via WhatsApp" onclick="event.stopPropagation()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>` : '';
+                    })()}
                     ${agend.status !== 'confirmado' ? 
                         `<button class="botao-icon confirmar" data-id="${agend.id}" title="Confirmar">✓</button>` : ''}
                     ${agend.status !== 'cancelado' ? 
@@ -1346,6 +1395,11 @@ async function confirmarAgendamento(id) {
    CANCELAR AGENDAMENTO
    ================================================ */
 async function cancelarAgendamento(id) {
+    const agendamento = agendamentos.find(a => a.id === id);
+    const clienteObj = agendamento ? clientes.find(c => c.id === agendamento.userId) : null;
+    const nomeCliente = clienteObj ? clienteObj.nome : (agendamento?.clienteNome || 'Cliente');
+    const telefoneCliente = (clienteObj ? clienteObj.telefone : '') || agendamento?.clienteTelefone || '';
+
     const confirmar = await mostrarConfirm(
         'Cancelar Agendamento',
         'Tem certeza que deseja <strong>excluir</strong> este agendamento?<br><br>O cliente será notificado.',
@@ -1367,11 +1421,37 @@ async function cancelarAgendamento(id) {
         const dataStr = `${dataSelecionada.getFullYear()}-${String(dataSelecionada.getMonth() + 1).padStart(2, '0')}-${String(dataSelecionada.getDate()).padStart(2, '0')}`;
         renderizarAgendamentosDia(dataStr);
         renderizarSolicitacoes();
+
+        // Oferecer notificação WhatsApp para o cliente
+        if (agendamento && telefoneCliente) {
+            const msgWpp = `Olá ${nomeCliente}! 💅 Aqui é o salão Jeci Vieira Nails.\n\nInfelizmente precisamos cancelar seu agendamento:\n\nServiço: ${agendamento.servico}\nData: ${formatarData(agendamento.data)}\nHorário: ${agendamento.horario}\n\nPor favor, acesse o sistema para reagendar ou entre em contato. Sentimos muito pelo inconveniente! 🙏`;
+            const linkWpp = gerarLinkWhatsApp(telefoneCliente, msgWpp);
+            if (linkWpp) {
+                const modal = criarModal();
+                modal.querySelector('.modal-icon').textContent = '✅';
+                modal.querySelector('.modal-titulo').textContent = 'Cancelado com Sucesso';
+                modal.querySelector('.modal-mensagem').innerHTML = `Agendamento excluído. Deseja avisar <strong>${nomeCliente}</strong> via WhatsApp?`;
+                modal.querySelector('.modal-botoes').innerHTML = `
+                    <button class="modal-botao secundario" id="modal-skip-wpp">Pular</button>
+                    <a class="modal-botao whatsapp" href="${linkWpp}" target="_blank" rel="noopener" id="modal-enviar-wpp">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        Avisar via WhatsApp
+                    </a>
+                `;
+                modal.dataset.clickOutside = 'true';
+                modal.classList.add('ativo');
+                document.getElementById('modal-skip-wpp').addEventListener('click', () => modal.classList.remove('ativo'));
+                document.getElementById('modal-enviar-wpp').addEventListener('click', () => {
+                    setTimeout(() => modal.classList.remove('ativo'), 500);
+                });
+            }
+        }
         
     } catch (erro) {
         console.error('[DEBUG] Erro ao cancelar:', erro);
     }
 }
+
 
 /* ================================================
    RENDERIZAR SOLICITAÇÕES
@@ -1433,12 +1513,21 @@ function renderizarSolicitacoes() {
                 </div>
                 <div class="status-agendamento pendente">⏳</div>
                 <div class="botoes-agendamento">
+                    ${(() => {
+                        const telefoneCliente = (clienteObj ? clienteObj.telefone : '') || agend.clienteTelefone || '';
+                        const msgWpp = `Olá ${nomeCliente}! 💅 Aqui é a equipe do salão Jeci Vieira Nails. Vimos sua solicitação de agendamento de ${nomeServico} para o dia ${dataFormatada} às ${agend.horario}. Gostaríamos de confirmar!`;
+                        const linkWpp = gerarLinkWhatsApp(telefoneCliente, msgWpp);
+                        return linkWpp ? `<a class="botao-icon whatsapp-icon" href="${linkWpp}" target="_blank" rel="noopener" title="Contatar cliente via WhatsApp" onclick="event.stopPropagation()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>` : '';
+                    })()}
                     <button class="botao-icon confirmar" data-id="${agend.id}" title="Confirmar">✓</button>
                     <button class="botao-icon cancelar" data-id="${agend.id}" title="Cancelar">✕</button>
                 </div>
             </div>
         `;
     });
+
     
     container.innerHTML = html;
     

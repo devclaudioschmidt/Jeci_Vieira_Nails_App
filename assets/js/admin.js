@@ -714,11 +714,14 @@ function criarEstruturaAdmin(dados) {
             <div class="logo-header">
                 <img src="../data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Jeci Vieira Nails" class="imagem-logo-topo">
             </div>
-            <button class="botao-menu" id="btn-menu" aria-label="Abrir menu">
-                <span class="linha-menu"></span>
-                <span class="linha-menu"></span>
-                <span class="linha-menu"></span>
-            </button>
+            <div class="botoes-header">
+                <button class="botao-atualizar" id="btn-atualizar" aria-label="Atualizar dados">🔄</button>
+                <button class="botao-menu" id="btn-menu" aria-label="Abrir menu">
+                    <span class="linha-menu"></span>
+                    <span class="linha-menu"></span>
+                    <span class="linha-menu"></span>
+                </button>
+            </div>
         </header>
         
         <!-- Container principal -->
@@ -1548,6 +1551,17 @@ function inicializarMenuHamburger() {
         botaoFechar.addEventListener('click', () => {
             menu.classList.remove('aberto');
             overlay.classList.remove('aberto');
+        });
+    }
+    
+    const botaoAtualizar = document.getElementById('btn-atualizar');
+    if (botaoAtualizar) {
+        botaoAtualizar.addEventListener('click', async () => {
+            botaoAtualizar.style.animation = 'none';
+            botaoAtualizar.offsetHeight;
+            botaoAtualizar.style.animation = 'spin 1s ease-in-out';
+            await carregarDadosFirestore();
+            await mostrarAlerta('Atualizado', 'Dados atualizados com sucesso!', 'sucesso');
         });
     }
 }

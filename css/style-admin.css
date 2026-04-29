@@ -73,6 +73,12 @@ body {
     gap: 10px;
 }
 
+.botoes-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .logo-header img, .imagem-logo-topo {
     height: 45px;
     width: auto;
@@ -99,6 +105,20 @@ body {
     border: none;
     cursor: pointer;
     padding: 0;
+}
+
+.botao-atualizar {
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    transition: transform 0.3s;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .linha-menu {

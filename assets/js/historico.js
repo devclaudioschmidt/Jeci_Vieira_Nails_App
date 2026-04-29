@@ -352,16 +352,18 @@ async function verificarReagendamento(botao) {
    ================================================ */
 function setupBotoesAcoes() {
     document.body.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('botao-card')) {
-            const botao = e.target;
-            const acao = botao.dataset.acao;
-            const id = botao.dataset.id;
-            
-            if (acao === 'cancelar') {
-                await cancelarAgendamentoCliente(id);
-            } else if (acao === 'reagendar') {
-                await verificarReagendamento(botao);
-            }
+        // Usa closest para capturar cliques em elementos filhos (ex: SVG)
+        // Só captura botões com data-acao (exclui links WhatsApp)
+        const botao = e.target.closest('[data-acao]');
+        if (!botao) return;
+
+        const acao = botao.dataset.acao;
+        const id = botao.dataset.id;
+
+        if (acao === 'cancelar') {
+            await cancelarAgendamentoCliente(id);
+        } else if (acao === 'reagendar') {
+            await verificarReagendamento(botao);
         }
     });
 }

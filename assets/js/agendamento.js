@@ -804,14 +804,10 @@ async function confirmarAgendamento() {
             throw new Error('Usuário não autenticado');
         }
 
-        // Se for reagendamento, cancelar o agendamento antigo
+        // Se for reagendamento, deletar o agendamento antiguo
         if (reagendarParams && reagendarParams.agendamentoId) {
-            await firebase.firestore().collection('agendamentos').doc(reagendarParams.agendamentoId).update({
-                status: 'cancelado',
-                motivoReagendamento: 'Reagendado pelo cliente',
-                canceledAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            console.log('[DEBUG] Agendamento antigo cancelado');
+            await firebase.firestore().collection('agendamentos').doc(reagendarParams.agendamentoId).delete();
+            console.log('[DEBUG] Agendamento antiguo eliminado');
         }
 
         // Dados com desnormalização

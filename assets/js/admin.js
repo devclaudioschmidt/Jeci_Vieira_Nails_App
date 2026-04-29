@@ -469,13 +469,8 @@ async function reagendarAgendamentoAdmin(id, novaData, novoHorario) {
     if (!confirmar) return;
     
     try {
-        // Cancelar agendamento antigo
-        await firebase.firestore().collection('agendamentos').doc(id).update({
-            status: 'cancelado',
-            motivoReagendamento: 'Reagendado pelo administrador',
-            reagendadoPara: novaData + ' ' + novoHorario,
-            canceledAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        // Deletar agendamento antigo
+        await firebase.firestore().collection('agendamentos').doc(id).delete();
         
         // Criar novo agendamento
         const novoAgendamento = {

@@ -437,12 +437,14 @@ function inicializarAdmin() {
             
             console.log('[DEBUG] Dados do usuário:', dados);
             
-            if (!dados) {
-                status.textContent = 'Dados do usuário não encontrados.';
+            if (!doc.exists || !dados) {
+                console.error('[DEBUG] Documento do usuário não encontrado');
+                status.textContent = 'Dados do usuário não encontrados.请联系 o suporte.';
                 return;
             }
             
             if (dados.role !== 'admin') {
+                console.warn('[DEBUG] Usuário não é admin. Role:', dados.role);
                 status.textContent = 'Acesso restrito. Redirecionando...';
                 setTimeout(() => {
                     window.location.href = 'dashboard.html';

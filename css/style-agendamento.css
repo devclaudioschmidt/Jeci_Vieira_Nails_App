@@ -146,18 +146,45 @@ body {
 .passos-container {
     display: flex;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 24px;
+    padding: 0 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .passo {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
+    gap: 6px;
+    padding: 8px 12px;
     background: var(--fundo-vidro);
     border-radius: 20px;
     border: 1px solid var(--borda-vidro);
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+.passo .numero-passo {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(201, 139, 139, 0.2);
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.passo .texto-passo {
+    font-family: var(--fonte-texto);
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .passo.ativo {
@@ -166,26 +193,8 @@ body {
     color: #fff;
 }
 
-.passo .numero-passo {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(201, 139, 139, 0.2);
-    border-radius: 50%;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
 .passo.ativo .numero-passo {
     background: rgba(255, 255, 255, 0.3);
-}
-
-.passo .texto-passo {
-    font-family: var(--fonte-texto);
-    font-size: 0.75rem;
-    font-weight: 600;
 }
 
 /* ================================================

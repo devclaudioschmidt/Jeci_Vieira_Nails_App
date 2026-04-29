@@ -108,82 +108,6 @@ async function verificarNovosAgendamentos() {
     }
 }
 
-async function atualizarBadgePendentes() {
-    const badge = document.getElementById('badge-solicitacoes');
-    if (!badge) return;
-    
-    const db = firebase.firestore();
-    const snapshot = await db.collection('agendamentos')
-        .where('status', 'in', ['pendente', null])
-        .get();
-    
-    const total = snapshot.size;
-    
-    if (total > 0) {
-        badge.textContent = total;
-        badge.style.display = 'flex';
-        badge.style.animation = 'pulse 1s infinite';
-    } else {
-        badge.style.display = 'none';
-        badge.style.animation = 'none';
-    }
-}
-
-/* ================================================
-   ENVIAR NOTIFICAÇÃO PUSH
-   Envia notificação para um usuário específico
-   ================================================ */
-async function enviarNotificacaoPush(uid, titulo, mensagem, tipo = 'info') {
-    try {
-        // Salvar notificação no Firestore
-        await firebase.firestore().collection('notificacoes').add({
-            uid: uid,
-            titulo: titulo,
-            mensagem: mensagem,
-            tipo: tipo,
-            lida: false,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        console.log('[DEBUG] Notificação salva para:', uid);
-        
-    } catch (erro) {
-        console.error('[DEBUG] Erro ao enviar notificação:', erro);
-    }
-}
-
-function mostrarNotificacaoNova(quantos) {
-    const modal = criarModal();
-    
-    modal.querySelector('.modal-icon').textContent = '🔔';
-    modal.querySelector('.modal-titulo').textContent = 'Nova Solicitação!';
-    modal.querySelector('.modal-mensagem').innerHTML = `
-        Você tem <strong>${quantos}</strong> nova(s) solicitação(ões) de agendamento.<br><br>
-        Clique em "Ver Agendamentos" para visualizar.
-    `;
-    
-    modal.querySelector('.modal-botoes').innerHTML = `
-        <button class="modal-botao secundario" id="modal-fechar-notif">Fechar</button>
-        <button class="modal-botao primario" id="modal-ver-notif">Ver Agendamentos</button>
-    `;
-    
-    modal.classList.add('ativo');
-    
-    document.getElementById('modal-fechar-notif').addEventListener('click', () => {
-        modal.classList.remove('ativo');
-    });
-    
-    document.getElementById('modal-ver-notif').addEventListener('click', () => {
-        modal.classList.remove('ativo');
-        // Navegar para solicitações
-        document.querySelectorAll('.item-menu').forEach(item => {
-            if (item.dataset.nav === 'solicitacoes') {
-                item.click();
-            }
-        });
-    });
-}
-
 /* ================================================
    FUNÇÕES UTILITÁRIAS
    ================================================ */
@@ -437,9 +361,6 @@ function inicializarAdmin() {
             
             await carregarDadosFirestore();
             exibirAdmin(dados);
-            
-            // Iniciar sistema de verificação automática de novos agendamentos
-            iniciarVerificacaoAutomatica();
             
         } catch (erro) {
             console.error('[DEBUG] Erro:', erro);
@@ -1218,7 +1139,7 @@ function renderizarAgendamentosDia(dataStr) {
 }
 
 /* ================================================
-   CONFIRMAR AGENDAMENTO
+   ATUALIZAR BADGE PENDENTES
    ================================================ */
 async function confirmarAgendamento(id) {
     try {

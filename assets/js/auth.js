@@ -6,6 +6,9 @@ async function loginUsuario(email, senha) {
   try {
     console.log("[DEBUG] Tentando login com:", email);
     
+    // Definir persistência LOCAL para manter login após fechar navegador
+    await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    
     // Autentica usuário no Firebase Auth
     const usuarioCredential = await firebase.auth().signInWithEmailAndPassword(email, senha);
     console.log("[DEBUG] Usuário autenticado:", usuarioCredential.user.uid);
@@ -113,44 +116,6 @@ async function enviarNotificacao(uid, titulo, mensagem, tipo = 'info') {
     
   } catch (erro) {
     console.error("[DEBUG] Erro ao enviar notificação:", erro);
-  }
-}
-
-/* ================================================
-   LOGIN DE USUÁRIO
-   Autentica usuário e retorna dados
-   ================================================ */
-async function loginUsuario(email, senha) {
-  try {
-    console.log("[DEBUG] Tentando login com:", email);
-    
-    // Autentica usuário no Firebase Auth
-    const usuarioCredential = await firebase.auth().signInWithEmailAndPassword(email, senha);
-    console.log("[DEBUG] Usuário autenticado:", usuarioCredential.user.uid);
-    
-    const uid = usuarioCredential.user.uid;
-    console.log("[DEBUG] UID:", uid);
-
-    // Busca dados do usuário no Firestore
-    const usuarioDoc = await firebase.firestore().collection("usuarios").doc(uid).get();
-    const dadosUsuario = usuarioDoc.data();
-    
-    console.log("[DEBUG] Dados do usuário:", dadosUsuario);
-    console.log("[DEBUG] Role:", dadosUsuario?.role);
-
-    // Verifica se encontrou dados
-    if (!dadosUsuario) {
-      console.error("[ERRO] Usuário não encontrado no Firestore");
-      return { sucesso: false, erro: "user-not-found" };
-    }
-
-    console.log("[DEBUG] Login realizado com sucesso!");
-
-    // Retorna sucesso com dados do usuário
-    return { sucesso: true, uid: uid, role: dadosUsuario.role };
-  } catch (erro) {
-    console.error("[ERRO] Login:", erro);
-    return { sucesso: false, erro: erro.code };
   }
 }
 

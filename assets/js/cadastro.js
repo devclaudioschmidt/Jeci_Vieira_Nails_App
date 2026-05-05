@@ -47,12 +47,12 @@ function validarCadastro(nome, email, senha, confirmarSenha) {
    PROCESSAR CADASTRO
    Envia dados para o Firebase
    ---------------------------------------- */
-async function processarCadastro(nome, email, senha) {
+async function processarCadastro(nome, email, senha, telefone) {
     const botaoSubmit = formCadastro.querySelector('button[type="submit"]');
     botaoSubmit.disabled = true;
     botaoSubmit.textContent = 'Cadastrando...';
 
-    const resultado = await cadastrarUsuario(email, senha, nome);
+    const resultado = await cadastrarUsuario(email, senha, nome, telefone);
 
     if (resultado.sucesso) {
         mostrarMensagem('Cadastro realizado com sucesso!', 'sucesso');
@@ -84,14 +84,15 @@ function inicializarCadastro() {
         const email = document.getElementById('campoEmail').value;
         const senha = document.getElementById('campoSenha').value;
         const confirmarSenha = document.getElementById('campoConfirmarSenha').value;
+        const telefone = document.getElementById('campoTelefone')?.value || '';
 
         // Valida dados
         if (!validarCadastro(nome, email, senha, confirmarSenha)) {
             return;
         }
 
-        // Processa cadastro
-        await processarCadastro(nome, email, senha);
+        // Processa cadastro (agora com telefone)
+        await processarCadastro(nome, email, senha, telefone);
     });
 }
 

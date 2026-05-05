@@ -796,7 +796,56 @@ async function confirmarAgendamentoAdmin() {
     
     try {
         if (!adminUid) {
-            throw new Error('Admin nao identificado');
+            throw new Error('Admin não identificado');
+        }
+        
+        var userId = null;
+        
+        // SE É CLIENTE NOVO (não selecionado da lista)
+        if (!clienteSelecionado && clienteNome && clienteTelefone) {
+            console.log('[DEBUG] Verificando se cliente já existe...');
+            
+            // Verificar se já existe cliente com este telefone
+            var clienteExistenteSnap = await firebase.firestore().collection('usuarios')
+                .where('telefone', '==', clienteTelefone)
+                .limit(1)
+                .get();
+            
+            if (!clienteExistenteSnap.empty) {
+                // Cliente já existe! Usar ID existente
+                var clienteExistente = clienteExistenteSnap.docs[0];
+                userId = clienteExistente.id;
+                clienteNome = clienteExistente.data().nome; // Atualiza nome se necessário
+                console.log('[DEBUG] Cliente já existia, usando ID existente:', userId);
+            } else {
+                // Cliente novo, criar registro
+                console.log('[DEBUG] Criando novo cliente na coleção usuarios...');
+                
+                var novoCliente = {
+                    nome: clienteNome,
+                    telefone: clienteTelefone,
+                    email: '',
+                    cpf: '',
+                    dataNascimento: '',
+                    role: 'cliente',
+                    dataCadastro: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                var docRef = await firebase.firestore().collection('usuarios').add(novoCliente);
+                userId = docRef.id;
+                
+                // Atualizar lista local de clientes
+                clientes.push({
+                    id: userId,
+                    nome: clienteNome,
+                    telefone: clienteTelefone
+                });
+                
+                console.log('[DEBUG] Novo cliente criado com ID:', userId);
+            }
+        } else if (clienteSelecionado) {
+            // Cliente existente selecionado da lista
+            userId = clienteSelecionado.id;
         }
         
         var agendamentoDoc = {
@@ -811,7 +860,7 @@ async function confirmarAgendamentoAdmin() {
             clienteNome: clienteNome,
             clienteTelefone: clienteTelefone,
             criadoPor: adminUid,
-            userId: clienteSelecionado ? clienteSelecionado.id : null,
+            userId: userId,
             servicoNome: servicoSelecionado.nome,
             reagendadoDe: reagendarParams ? reagendarParams.agendamentoId : null,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()

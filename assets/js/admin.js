@@ -1483,16 +1483,14 @@ function renderizarListaClientes() {
     clientesFiltrados.forEach(cliente => {
         html += `
             <div class="card-cliente" data-id="${cliente.id}">
-                <div class="icone-cliente">
-                    👤
-                </div>
                 <div class="info-cliente">
                     <p class="nome-cliente">${cliente.nome || 'Sem nome'}</p>
                     <p class="detalhes-cliente">${cliente.email || 'Sem email'}</p>
                     <p class="detalhes-cliente">${cliente.telefone || 'Sem telefone'}</p>
                 </div>
                 <div class="botoes-cliente">
-                    <button class="botao-icon" data-id="${cliente.id}" title="Ver detalhes">👁️</button>
+                    <button class="botao-acao-cliente detalhes" data-id="${cliente.id}">Ver Detalhes</button>
+                    <button class="botao-acao-cliente excluir" data-id="${cliente.id}">Remover</button>
                 </div>
             </div>
         `;
@@ -1518,12 +1516,57 @@ function renderizarListaClientes() {
         });
     }
     
-    document.querySelectorAll('.card-cliente .botao-icon').forEach(btn => {
+    document.querySelectorAll('.botao-acao-cliente.detalhes').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = e.target.closest('.card-cliente')?.dataset.id;
             if (id) abrirModalCliente(id);
         });
     });
+    
+    // Eventos para botão de excluir cliente
+    document.querySelectorAll('.botao-acao-cliente.excluir').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.target.closest('.card-cliente')?.dataset.id;
+            if (id) {
+                const cliente = clientes.find(c => c.id === id);
+                const nome = cliente ? cliente.nome : 'Cliente';
+                removerCliente(id, nome);
+            }
+        });
+    });
+}
+
+/* ================================================
+   REMOVER CLIENTE
+   Remove cliente da coleção usuarios
+   ================================================ */
+async function removerCliente(clienteId, nomeCliente) {
+    const confirmar = await mostrarConfirm(
+        'Remover Cliente',
+        `Tem certeza que deseja remover o cliente <strong>${nomeCliente}</strong>?<br><br>
+        <small style="color: #666;">Esta ação não pode ser desfeita. Os agendamentos deste cliente serão mantidos no histórico.</small>`,
+        'danger'
+    );
+    
+    if (!confirmar) return;
+    
+    try {
+        await firebase.firestore().collection('usuarios').doc(clienteId).delete();
+        
+        // Remover da lista local
+        clientes = clientes.filter(c => c.id !== clienteId);
+        clientesFiltrados = clientesFiltrados.filter(c => c.id !== clienteId);
+        
+        // Re-renderizar
+        renderizarListaClientes();
+        
+        await mostrarAlerta('Sucesso', 'Cliente removido com sucesso!', 'sucesso');
+        console.log('[DEBUG] Cliente removido:', clienteId);
+        
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao remover cliente:', erro);
+        await mostrarAlerta('Erro', 'Erro ao remover cliente: ' + erro.message, 'erro');
+    }
 }
 
 /* ================================================

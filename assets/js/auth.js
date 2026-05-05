@@ -89,6 +89,73 @@ function getUsuarioAtual() {
 }
 
 /* ----------------------------------------
+   CADASTRAR USUÁRIO
+   Cria conta Firebase Auth + documento no Firestore
+   Verifica duplicação por telefone
+   ---------------------------------------- */
+async function cadastrarUsuario(email, senha, nome, telefone = '') {
+    try {
+        let userId = null;
+        let usuarioExistenteDoc = null;
+        
+        // VERIFICAR se foi passado telefone
+        if (telefone && telefone.trim() !== '') {
+            const telLimpo = telefone.replace(/\D/g, '');
+            console.log('[DEBUG] Verificando se telefone já existe:', telLimpo);
+            
+            const existenteSnap = await firebase.firestore().collection('usuarios')
+                .where('telefone', '==', telefone)
+                .limit(1)
+                .get();
+            
+            if (!existenteSnap.empty) {
+                // ENCONTROU! Usar documento existente
+                usuarioExistenteDoc = existenteSnap.docs[0];
+                userId = usuarioExistenteDoc.id;
+                
+                console.log('[DEBUG] Usuário já existia com este telefone. ID:', userId);
+                
+                // Criar conta Firebase Auth para este usuário
+                const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, senha);
+                const novoUid = userCredential.user.uid;
+                
+                // Atualizar documento existente com novo uid e email
+                await firebase.firestore().collection('usuarios').doc(userId).update({
+                    email: email,
+                    uidAuth: novoUid, // Vincular ao Auth
+                    dataCadastro: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                console.log('[DEBUG] Documento atualizado com novo uid:', novoUid);
+                
+                return { sucesso: true };
+            }
+        }
+        
+        // SE NÃO ENCONTROU (ou não tem telefone), fluxo normal
+        console.log('[DEBUG] Criando novo usuário do zero...');
+        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, senha);
+        userId = userCredential.user.uid;
+        
+        const dadosUsuario = {
+            nome: nome,
+            email: email,
+            telefone: telefone || '',
+            role: 'cliente',
+            dataCadastro: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        await firebase.firestore().collection('usuarios').doc(userId).set(dadosUsuario);
+        
+        return { sucesso: true };
+        
+    } catch (erro) {
+        console.error('[DEBUG] Erro no cadastro:', erro);
+        return { sucesso: false, erro: erro.code };
+    }
+}
+
+/* ----------------------------------------
    OBTER DADOS DO USUÁRIO
    Retorna dados do usuário do Firestore
    ---------------------------------------- */

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <!-- ================================================
+         META TAGS E CONFIGURAÇÕES
+         ================================================ -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendar para Cliente - Jeci Vieira Nails</title>
+    
+    <!-- Meta tags para PWA -->
+    <meta name="theme-color" content="#C98B8B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Jeci Vieira Nails">
+    
+    <!-- Favicon e ícone para PWA -->
+    <link rel="icon" type="image/svg+xml" href="../data/img/favicon.svg">
+    <link rel="apple-touch-icon" href="../data/img/icons/icon-192x192.png">
+    
+    <!-- Arquivo Manifest PWA -->
+    <link rel="manifest" href="../assets/manifest/manifest.json">
+    
+    <!-- Pré-conexão com Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Fontes: Montserrat e Playfair Display -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap">
+    
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="../css/style-agendamento.css">
+    <link rel="stylesheet" href="../css/style-admin-agendamento.css">
+</head>
+
+<!-- ================================================
+     CORPO DA PÁGINA
+     ================================================ -->
+<body>
+    <!-- Card de carregamento -->
+    <div class="cardDashboard">
+        <p class="mensagemCarregando" id="status">Carregando...</p>
+    </div>
+    
+    <!-- ================================================
+         SCRIPTS DO FIREBASE
+         ================================================ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Configuração do Firebase -->
+    <script src="../assets/js/firebase-config.js"></script>
+    
+    <!-- ================================================
+         SCRIPTS DO APLICATIVO
+         ================================================ -->
+    <script src="../assets/js/admin-agendamento.js"></script>
+</body>
+
+</html>

@@ -148,10 +148,51 @@ body {
     justify-content: center;
     gap: 6px;
     margin-bottom: 24px;
-    padding: 0 8px;
-    flex-wrap: wrap;
-    max-width: 100%;
-    box-sizing: border-box;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.passos-container::-webkit-scrollbar {
+    display: none;
+}
+
+@media (max-width: 479px) {
+    .passos-container {
+        justify-content: flex-start;
+        padding-bottom: 8px;
+    }
+    
+    .passo .texto-passo {
+        display: none;
+    }
+    
+    .passo .numero-passo {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+}
+
+
+.passos-container::-webkit-scrollbar {
+    display: none;
+}
+
+@media (max-width: 479px) {
+    .passos-container {
+        justify-content: flex-start;
+        padding-bottom: 8px;
+    }
+    
+    .passo .texto-passo {
+        display: none;
+    }
+    
+    .passo .numero-passo {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
 }
 
 .passo {

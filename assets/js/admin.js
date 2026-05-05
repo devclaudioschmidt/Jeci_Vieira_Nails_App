@@ -839,6 +839,10 @@ function criarEstruturaAdmin(dados) {
                     <span class="icone-menu">👥</span>
                     <span>Clientes</span>
                 </a>
+                <a href="admin-agendamento.html" class="item-menu" id="menu-agendar-cliente">
+                    <span class="icone-menu">📝</span>
+                    <span>Agendar para Cliente</span>
+                </a>
                 <a href="#" class="item-menu" data-nav="avisos">
                     <span class="icone-menu">📢</span>
                     <span>Avisos</span>

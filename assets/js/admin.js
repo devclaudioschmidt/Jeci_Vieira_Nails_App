@@ -2009,12 +2009,8 @@ async function salvarAviso() {
         }
 
         if (!ativo) {
-            // Se desativou, podemos apenas marcar como inativo ou excluir
             if (avisoAtivo && avisoAtivo.id) {
-                await firebase.firestore().collection('avisos').doc(avisoAtivo.id).update({
-                    ativo: false,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                await firebase.firestore().collection('avisos').doc(avisoAtivo.id).delete();
             }
         } else {
             const dados = {

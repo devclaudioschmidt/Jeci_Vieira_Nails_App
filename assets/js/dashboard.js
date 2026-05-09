@@ -242,29 +242,29 @@ function criarEstruturaDashboard(dados) {
                 ${criarBannerAviso()}
             </section>
             
-            <!-- Rodapé com informações em card -->
-            <footer class="rodape">
-                <div class="card-rodape">
-                    <span class="titulo-card-rodape">Dados do Salão</span>
-                    <div class="card-rodape-linha">
-                        <span class="icone-rodape">📍</span>
-                        <span>${dadosMock.configuracoes.endereco || 'Endereço não informado'}</span>
-                    </div>
-                    <div class="card-rodape-linha">
-                        <span class="icone-rodape">📞</span>
-                        <span>${dadosMock.configuracoes.telefone || 'Telefone não informado'}</span>
-                    </div>
-                    <div class="card-rodape-divisor"></div>
-                    <div class="card-rodape-horarios">
-                        <span class="titulo-rodape">Horários de Funcionamento</span>
-                        <span>Seg à Sex: ${dadosMock.configuracoes.segundaAbertura || '09:00'} - ${dadosMock.configuracoes.segundaIntervaloInicio || '12:00'} / ${dadosMock.configuracoes.segundaIntervaloFim || '13:00'} - ${dadosMock.configuracoes.segundaFechamento || '19:00'}</span>
-                        <span>Sábado: ${dadosMock.configuracoes.sabadoAbertura || '09:00'} - ${dadosMock.configuracoes.sabadoFechamento || '17:00'}</span>
-                        <span>Domingo e Feriados: ${dadosMock.configuracoes.domingoFechado ? 'Fechado' : 'Aberto'}</span>
-                    </div>
-                </div>
-            </footer>
-            
         </main>
+        
+        <!-- Rodapé com informações em card -->
+        <footer class="rodape">
+            <div class="card-rodape">
+                <span class="titulo-card-rodape">Dados do Salão</span>
+                <div class="card-rodape-linha">
+                    <span class="icone-rodape">📍</span>
+                    <span>${dadosMock.configuracoes.endereco || 'Endereço não informado'}</span>
+                </div>
+                <div class="card-rodape-linha">
+                    <span class="icone-rodape">📞</span>
+                    <span>${dadosMock.configuracoes.telefone || 'Telefone não informado'}</span>
+                </div>
+                <div class="card-rodape-divisor"></div>
+                <div class="card-rodape-horarios">
+                    <span class="titulo-rodape">Horários de Funcionamento</span>
+                    <span>Seg à Sex: ${dadosMock.configuracoes.segundaAbertura || '09:00'} - ${dadosMock.configuracoes.segundaIntervaloInicio || '12:00'} / ${dadosMock.configuracoes.segundaIntervaloFim || '13:00'} - ${dadosMock.configuracoes.segundaFechamento || '19:00'}</span>
+                    <span>Sábado: ${dadosMock.configuracoes.sabadoAbertura || '09:00'} - ${dadosMock.configuracoes.sabadoFechamento || '17:00'}</span>
+                    <span>Domingo e Feriados: ${dadosMock.configuracoes.domingoFechado ? 'Fechado' : 'Aberto'}</span>
+                </div>
+            </div>
+        </footer>
         
         <!-- Overlay do menu -->
         <div class="menu-overlay" id="menu-overlay"></div>

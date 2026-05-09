@@ -146,7 +146,7 @@ body {
 .passos-container {
     display: flex;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 24px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -173,14 +173,61 @@ body {
     }
 }
 
+
+.passos-container::-webkit-scrollbar {
+    display: none;
+}
+
+@media (max-width: 479px) {
+    .passos-container {
+        justify-content: flex-start;
+        padding-bottom: 8px;
+    }
+    
+    .passo .texto-passo {
+        display: none;
+    }
+    
+    .passo .numero-passo {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+}
+
 .passo {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
     background: var(--fundo-vidro);
     border-radius: 20px;
     border: 1px solid var(--borda-vidro);
+    min-width: auto;
+    flex: 1 1 calc(50% - 6px);
+    max-width: calc(50% - 6px);
+    box-sizing: border-box;
+}
+
+.passo .numero-passo {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(201, 139, 139, 0.2);
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.passo .texto-passo {
+    font-family: var(--fonte-texto);
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .passo.ativo {
@@ -189,26 +236,18 @@ body {
     color: #fff;
 }
 
-.passo .numero-passo {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(201, 139, 139, 0.2);
-    border-radius: 50%;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
 .passo.ativo .numero-passo {
     background: rgba(255, 255, 255, 0.3);
 }
 
-.passo .texto-passo {
-    font-family: var(--fonte-texto);
-    font-size: 0.75rem;
-    font-weight: 600;
+.passo.ativo {
+    background: linear-gradient(135deg, var(--rose-gold) 0%, var(--coral) 100%);
+    border-color: var(--rose-gold);
+    color: #fff;
+}
+
+.passo.ativo .numero-passo {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 /* ================================================

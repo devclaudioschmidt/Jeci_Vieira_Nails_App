@@ -337,6 +337,7 @@ function inicializarEventosAdmin() {
     }
     if (telInput) {
         telInput.addEventListener('input', verificarCamposNovoCliente);
+        telInput.addEventListener('input', function() { aplicarMascaraTelefone(telInput); });
     }
     
     document.getElementById('btn-mes-anterior').addEventListener('click', function() {
@@ -349,7 +350,13 @@ function inicializarEventosAdmin() {
         renderizarCalendario();
     });
     
-    document.getElementById('btn-passo-0').addEventListener('click', function() { irParaPasso(1); });
+    document.getElementById('btn-passo-0').addEventListener('click', function() {
+        if (!clienteSelecionado && clienteNome && clienteTelefone) {
+            mostrarModalConfirmacaoCliente(clienteNome, clienteTelefone);
+        } else {
+            irParaPasso(1);
+        }
+    });
     document.getElementById('btn-passo-1').addEventListener('click', function() { irParaPasso(2); });
     document.getElementById('btn-passo-2').addEventListener('click', async function() { await irParaPasso(3); });
     document.getElementById('btn-passo-3').addEventListener('click', function() { irParaPasso(4); });
@@ -361,6 +368,21 @@ function inicializarEventosAdmin() {
     document.getElementById('btn-confirmar').addEventListener('click', confirmarAgendamentoAdmin);
     
     renderizarCalendario();
+}
+
+/* ================================================
+   MASCARA DE TELEFONE
+   ================================================ */
+function aplicarMascaraTelefone(input) {
+    var val = input.value.replace(/\D/g, '').slice(0, 11);
+    if (val.length > 6) {
+        val = '(' + val.slice(0, 2) + ') ' + val.slice(2, 7) + '-' + val.slice(7);
+    } else if (val.length > 2) {
+        val = '(' + val.slice(0, 2) + ') ' + val.slice(2);
+    } else if (val.length > 0) {
+        val = '(' + val;
+    }
+    input.value = val;
 }
 
 /* ================================================
@@ -384,6 +406,91 @@ function verificarCamposNovoCliente() {
     } else {
         btn.disabled = true;
     }
+}
+
+/* ================================================
+   SALVAR NOVO CLIENTE
+   ================================================ */
+async function salvarNovoCliente(nome, telefone) {
+    try {
+        var novoCliente = {
+            nome: nome,
+            telefone: telefone,
+            email: '',
+            cpf: '',
+            dataNascimento: '',
+            role: 'cliente',
+            dataCadastro: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        var docRef = await firebase.firestore().collection('usuarios').add(novoCliente);
+        var userId = docRef.id;
+
+        var novoClienteObj = {
+            id: userId,
+            nome: nome,
+            telefone: telefone,
+            email: ''
+        };
+
+        clientes.push(novoClienteObj);
+        clientesFiltrados.push(novoClienteObj);
+
+        renderizarClientes();
+
+        var cards = document.querySelectorAll('.card-cliente-selecao');
+        cards.forEach(function(card) {
+            if (card.dataset.id === userId) {
+                card.classList.add('selecionado');
+                clienteSelecionado = novoClienteObj;
+                clienteNome = nome;
+                clienteTelefone = telefone;
+                document.getElementById('btn-passo-0').disabled = false;
+            }
+        });
+
+        return true;
+    } catch (erro) {
+        console.error('[DEBUG] Erro ao salvar novo cliente:', erro);
+        return false;
+    }
+}
+
+/* ================================================
+   MOSTRAR MODAL CONFIRMACAO CLIENTE
+   ================================================ */
+function mostrarModalConfirmacaoCliente(nome, telefone) {
+    var modal = criarModalAgendamento();
+
+    modal.querySelector('.modal-icon').textContent = '';
+    modal.querySelector('.modal-titulo').textContent = 'Cadastrar Novo Cliente';
+    modal.querySelector('.modal-mensagem').innerHTML =
+        'Deseja cadastrar este cliente no banco de dados?<br><br>' +
+        '<strong>Nome:</strong> ' + nome + '<br>' +
+        '<strong>Telefone:</strong> ' + telefone;
+
+    modal.querySelector('.modal-botoes').innerHTML =
+        '<button class="modal-botao primario" id="modal-confirmar-cliente">✅ SIM</button>' +
+        '<button class="modal-botao secundario" id="modal-cancelar-cliente">❌ Nao</button>';
+
+    modal.classList.add('ativo');
+
+    document.getElementById('modal-confirmar-cliente').addEventListener('click', async function() {
+        modal.classList.remove('ativo');
+        var salvou = await salvarNovoCliente(nome, telefone);
+        if (salvou) {
+            var toast = document.createElement('div');
+            toast.className = 'mensagemFeedback sucesso';
+            toast.textContent = 'Cliente cadastrado com sucesso!';
+            toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#4CAF50;color:#fff;padding:12px 24px;border-radius:12px;font-family:var(--fonte-texto);z-index:99999;font-size:0.9rem;box-shadow:0 4px 16px rgba(0,0,0,0.2);';
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 3000);
+        }
+    });
+
+    document.getElementById('modal-cancelar-cliente').addEventListener('click', function() {
+        modal.classList.remove('ativo');
+    });
 }
 
 /* ================================================
@@ -799,54 +906,7 @@ async function confirmarAgendamentoAdmin() {
             throw new Error('Admin não identificado');
         }
         
-        var userId = null;
-        
-        // SE É CLIENTE NOVO (não selecionado da lista)
-        if (!clienteSelecionado && clienteNome && clienteTelefone) {
-            console.log('[DEBUG] Verificando se cliente já existe...');
-            
-            // Verificar se já existe cliente com este telefone
-            var clienteExistenteSnap = await firebase.firestore().collection('usuarios')
-                .where('telefone', '==', clienteTelefone)
-                .limit(1)
-                .get();
-            
-            if (!clienteExistenteSnap.empty) {
-                // Cliente já existe! Usar ID existente
-                var clienteExistente = clienteExistenteSnap.docs[0];
-                userId = clienteExistente.id;
-                clienteNome = clienteExistente.data().nome; // Atualiza nome se necessário
-                console.log('[DEBUG] Cliente já existia, usando ID existente:', userId);
-            } else {
-                // Cliente novo, criar registro
-                console.log('[DEBUG] Criando novo cliente na coleção usuarios...');
-                
-                var novoCliente = {
-                    nome: clienteNome,
-                    telefone: clienteTelefone,
-                    email: '',
-                    cpf: '',
-                    dataNascimento: '',
-                    role: 'cliente',
-                    dataCadastro: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                var docRef = await firebase.firestore().collection('usuarios').add(novoCliente);
-                userId = docRef.id;
-                
-                // Atualizar lista local de clientes
-                clientes.push({
-                    id: userId,
-                    nome: clienteNome,
-                    telefone: clienteTelefone
-                });
-                
-                console.log('[DEBUG] Novo cliente criado com ID:', userId);
-            }
-        } else if (clienteSelecionado) {
-            // Cliente existente selecionado da lista
-            userId = clienteSelecionado.id;
-        }
+        var userId = clienteSelecionado ? clienteSelecionado.id : null;
         
         var agendamentoDoc = {
             servico: servicoSelecionado.nome,

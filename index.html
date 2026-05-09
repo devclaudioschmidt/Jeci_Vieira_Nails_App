@@ -95,6 +95,15 @@
     
     <!-- Lógica da página de login (formulário, validação, redirect) -->
     <script src="assets/js/index.js"></script>
+    
+    <!-- Limpar qualquer Service Worker antigo registrado no navegador -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+                regs.forEach(function(reg) { reg.unregister(); });
+            });
+        }
+    </script>
 </body>
 
 </html>

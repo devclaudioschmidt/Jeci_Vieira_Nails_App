@@ -8,7 +8,6 @@
    ================================================ */
 const dadosMock = {
     proximoAgendamento: null,
-    servicos: [],
     aviso: null,
     configuracoes: {
         segundaAbertura: '09:00',
@@ -97,18 +96,6 @@ async function carregarDadosGlobais() {
         const configSnap = await firebase.firestore().collection('configuracoes').doc('salao').get();
         if (configSnap.exists) {
             dadosMock.configuracoes = { ...dadosMock.configuracoes, ...configSnap.data() };
-        }
-
-        // 3. Carregar Serviços Ativos
-        const servicosSnap = await firebase.firestore().collection('servicos')
-            .where('ativo', '==', true)
-            .get();
-        
-        if (!servicosSnap.empty) {
-            dadosMock.servicos = servicosSnap.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
         }
 
     } catch (erro) {
@@ -227,15 +214,10 @@ function criarEstruturaDashboard(dados) {
             <section class="card-proximo-section">
                 ${criarCardProximoAgendamento()}
             </section>
+            <button class="botao-agendar-agora" id="btn-agendar-agora">
+                Agendar agora
+            </button>
             
-            <!-- Serviços Disponíveis -->
-            <section class="secao-servicos">
-                <h2 class="titulo-secao">Serviços Disponíveis</h2>
-                ${criarGridServicos()}
-                <button class="botao-ver-todos" id="btn-ver-servicos">
-                    Ver todos os serviços
-                </button>
-            </section>
             
             <!-- Área de Avisos -->
             <section class="secao-avisos" id="secao-avisos">
@@ -316,9 +298,6 @@ function criarCardProximoAgendamento() {
                 <p class="texto-proximo-vazio">
                     Você não tem nenhum agendamento agendado.
                 </p>
-                <button class="botao-agendar-agora" id="btn-agendar-agora">
-                    Agendar agora
-                </button>
             </div>
         `;
     }
@@ -339,33 +318,6 @@ function criarCardProximoAgendamento() {
             </div>
         </div>
     `;
-}
-
-/* ================================================
-   CRIAR GRID DE SERVIÇOS
-   Gera o HTML dos cards de serviços
-   ================================================ */
-function criarGridServicos() {
-    const servicos = dadosMock.servicos;
-    
-    if (servicos.length === 0) {
-        return '<p class="texto-vazio" style="text-align: center; padding: 20px;">Nenhum serviço disponível no momento.</p>';
-    }
-
-    let html = '<div class="grid-servicos">';
-    
-    servicos.forEach(servico => {
-        html += `
-            <div class="card-servico" data-id="${servico.id}">
-                <span class="icone-servico">${servico.icone}</span>
-                <p class="nome-servico">${servico.nome}</p>
-                <p class="preco-servico">R$ ${servico.preco}</p>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    return html;
 }
 
 /* ================================================
@@ -456,14 +408,6 @@ function inicializarEventosDashboard() {
         });
     }
     
-    const cardsServico = document.querySelectorAll('.card-servico');
-    cardsServico.forEach(card => {
-        card.addEventListener('click', () => {
-            const servicoId = card.dataset.id;
-            console.log('[DEBUG] Selecionar serviço:', servicoId);
-            window.location.href = `agendamento.html?servico=${servicoId}`;
-        });
-    });
 }
 
 // ============================================

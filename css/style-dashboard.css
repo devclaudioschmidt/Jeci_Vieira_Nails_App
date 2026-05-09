@@ -238,8 +238,8 @@ html {
 }
 
 .botao-agendar-agora {
-    display: inline-block;
-    margin-top: 16px;
+    display: block;
+    margin: 16px auto 0;
     padding: 12px 24px;
     font-family: var(--fonte-texto);
     font-size: 0.85rem;
@@ -281,124 +281,6 @@ html {
     font-size: 0.95rem;
     color: var(--cor-texto-suave);
     margin-bottom: 16px;
-}
-
-/* ----------------------------------------
-   SEÇÃO DE SERVIÇOS
-   Grid de serviços disponíveis
-   ---------------------------------------- */
-.secao-servicos {
-    margin-bottom: 24px;
-}
-
-.titulo-secao {
-    font-family: var(--fonte-titulo);
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--cor-texto-escuro);
-    margin-bottom: 16px;
-    position: relative;
-    display: inline-block;
-}
-
-.titulo-secao::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 40px;
-    height: 2px;
-    background: linear-gradient(90deg, var(--rose-gold) 0%, var(--coral) 100%);
-    border-radius: 2px;
-}
-
-.grid-servicos {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-}
-
-.card-servico {
-    background: linear-gradient(145deg, #fff 0%, var(--rosa-delicado) 100%);
-    border: 1px solid rgba(232, 196, 196, 0.4);
-    border-radius: 20px;
-    padding: 24px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: var(--transicao);
-    box-shadow: 0 4px 16px rgba(201, 139, 139, 0.1);
-    position: relative;
-    overflow: hidden;
-}
-
-.card-servico::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--rose-gold) 0%, var(--coral) 100%);
-    opacity: 0;
-    transition: var(--transicao);
-}
-
-.card-servico:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(201, 139, 139, 0.2);
-}
-
-.card-servico:hover::before {
-    opacity: 1;
-}
-
-.card-servico:active {
-    transform: scale(0.97);
-}
-
-.icone-servico {
-    font-size: 2rem;
-    margin-bottom: 10px;
-    display: block;
-}
-
-.nome-servico {
-    font-family: var(--fonte-texto);
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--cor-texto-escuro);
-    margin-bottom: 6px;
-}
-
-.preco-servico {
-    font-family: var(--fonte-texto);
-    font-size: 0.85rem;
-    color: var(--rose-gold);
-    font-weight: 600;
-}
-
-.botao-ver-todos {
-    display: block;
-    width: 100%;
-    padding: 14px;
-    margin-top: 16px;
-    font-family: var(--fonte-texto);
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--rose-gold);
-    background: transparent;
-    border: 1px solid rgba(201, 139, 139, 0.3);
-    border-radius: var(--raio-botao);
-    cursor: pointer;
-    transition: var(--transicao);
-}
-
-.botao-ver-todos:hover {
-    background: rgba(201, 139, 139, 0.1);
-}
-
-.botao-ver-todos:active {
-    background: rgba(201, 139, 139, 0.2);
 }
 
 /* ----------------------------------------
@@ -662,10 +544,6 @@ html {
     
     .card-proximo {
         padding: 28px;
-    }
-    
-    .grid-servicos {
-        gap: 18px;
     }
 }
 

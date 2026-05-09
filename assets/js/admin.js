@@ -779,6 +779,7 @@ function criarEstruturaAdmin(dados) {
             </section>
             
         </main>
+        </main>
         
         <!-- Rodapé com informações em card -->
         <footer class="rodape">

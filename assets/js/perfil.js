@@ -110,7 +110,91 @@ function renderizarEstruturaPerfil() {
     
     // Inicializa eventos e carrega dados
     inicializarPerfil();
+    
+    // Inicializar sistema de refresh
+    inicializarRefreshPerfil();
 }
+
+// ============================================
+// INICIALIZAR SISTEMA DE REFRESH DO PERFIL
+// ============================================
+async function inicializarRefreshPerfil() {
+    // Injetar estilos CSS do refresh
+    await inicializarRefresh('perfil', refreshPerfilCompleto);
+
+    const header = document.querySelector('.header-perfil');
+    if (header) {
+        const logoHeader = header.querySelector('.logo-header');
+        const botaoVoltar = header.querySelector('.botao-voltar');
+
+        if (logoHeader && botaoVoltar && !header.querySelector('.botoes-header')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'botoes-header';
+            header.insertBefore(wrapper, logoHeader.nextSibling);
+            wrapper.appendChild(botaoVoltar);
+        }
+    }
+
+    // Listener de volta à página
+    document.removeEventListener('visibilitychange', globalRefreshPage);
+    document.addEventListener('visibilitychange', globalRefreshPage);
+
+    // Callback global
+    window.globalRefreshPage = refreshPerfilCompleto;
+
+    // Botão no header se existir
+    const headerParaBotao = document.querySelector('.header-perfil');
+    if (headerParaBotao) {
+        adicionarBotaoRefreshHeader(headerParaBotao, refreshPerfilCompleto);
+    }
+}
+
+// ============================================
+// REFRESH COMPLETO DO PERFIL
+// ============================================
+async function refreshPerfilCompleto() {
+    const botao = document.getElementById('btn-header-refresh');
+
+    try {
+        mostrarFeedbackRefresh(true, 'refresh');
+        if (botao) {
+            botao.classList.add('animando');
+        }
+
+        // Buscar estado de auth atual
+        const usuario = await firebase.auth().currentUser;
+        if (!usuario) {
+            window.location.href = '../index.html';
+            return;
+        }
+
+        // Recarregar dados do perfil
+        const doc = await firebase.firestore().collection('usuarios').doc(usuario.uid).get();
+        const dados = doc.data();
+        
+        if (dados) {
+            document.getElementById('campoNome').value = dados.nome || '';
+            document.getElementById('campoEmail').value = dados.email || '';
+            document.getElementById('campoTelefone').value = dados.telefone || '';
+            document.getElementById('campoDataNascimento').value = dados.dataNascimento || '';
+        }
+
+        if (botao) {
+            setTimeout(() => {
+                botao.classList.remove('animando');
+            }, 1000);
+        }
+
+        mostrarAlertaRefresh('Atualizado', 'Dados recarregados com sucesso!', 'sucesso');
+
+    } catch (erro) {
+        console.error('[DEBUG] Erro no refresh do perfil:', erro);
+        mostrarAlertaRefresh('Erro', 'Falha ao recarregar dados.', 'erro');
+    } finally {
+        mostrarFeedbackRefresh(false);
+    }
+}
+
 
 // ============================================
 // CARREGAR DADOS DO PERFIL

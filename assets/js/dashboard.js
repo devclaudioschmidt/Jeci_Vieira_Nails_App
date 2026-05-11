@@ -165,6 +165,96 @@ async function exibirDashboard(dados) {
     /* Inicializa os componentes */
     inicializarMenuHamburger();
     inicializarEventosDashboard();
+    
+    // Inicializar sistema de refresh
+    inicializarRefreshDashboard();
+}
+
+/* ================================================
+   INICIALIZAR SISTEMA DE REFRESH DO DASHBOARD
+   ================================================ */
+async function inicializarRefreshDashboard() {
+    // Injetar estilos CSS do refresh
+    await inicializarRefresh('dashboard', refreshDashboardCompleto);
+
+    // Listener de volta à página
+    document.removeEventListener('visibilitychange', globalRefreshPage);
+    document.addEventListener('visibilitychange', globalRefreshPage);
+
+    // Callback global
+    window.globalRefreshPage = refreshDashboardCompleto;
+
+    // Adicionar botão de refresh no header
+    const header = document.querySelector('.header-dashboard');
+    if (header) {
+        // Garantir que o wrapper existe
+        let wrapper = header.querySelector('.botoes-header');
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.className = 'botoes-header';
+            
+            const logoHeader = header.querySelector('.logo-header');
+            const botaoMenu = header.querySelector('#btn-menu');
+            
+            if (logoHeader && botaoMenu) {
+                header.insertBefore(wrapper, logoHeader.nextSibling);
+                wrapper.appendChild(botaoMenu);
+            }
+        }
+
+        adicionarBotaoRefreshHeader(header, refreshDashboardCompleto);
+    }
+}
+
+/* ================================================
+   REFRESH COMPLETO DO DASHBOARD
+   ================================================ */
+async function refreshDashboardCompleto() {
+    const botao = document.getElementById('btn-header-refresh');
+
+    try {
+        mostrarFeedbackRefresh(true, 'refresh');
+        if (botao) {
+            botao.classList.add('animando');
+        }
+
+        // Buscar estado de auth atual
+        const usuario = await firebase.auth().currentUser;
+        if (!usuario) {
+            window.location.href = '../index.html';
+            return;
+        }
+
+        // Recarregar dados globais
+        dadosMock.proximoAgendamento = null;
+        dadosMock.aviso = null;
+        await carregarDadosGlobais();
+        await carregarProximoAgendamento(usuario.uid);
+
+        // Pegar dados atualizados do usuário
+        const usuarioDoc = await firebase.firestore().collection('usuarios').doc(usuario.uid).get();
+        const dados = usuarioDoc.data() || { nome: 'Cliente' };
+
+        // Re-renderizar
+        document.body.innerHTML = criarEstruturaDashboard(dados);
+        inicializarMenuHamburger();
+        inicializarEventosDashboard();
+        inicializarRefreshDashboard();
+
+        if (botao) {
+            setTimeout(() => {
+                botao.classList.remove('animando');
+            }, 1000);
+        }
+
+        mostrarAlertaRefresh('Atualizado', 'Dados recarregados com sucesso!', 'sucesso');
+
+    } catch (erro) {
+        console.error('[DEBUG] Erro no refresh do dashboard:', erro);
+        mostrarAlertaRefresh('Erro', 'Falha ao recarregar dados.', 'erro');
+    } finally {
+        mostrarFeedbackRefresh(false);
+    }
 }
 
 /* ================================================

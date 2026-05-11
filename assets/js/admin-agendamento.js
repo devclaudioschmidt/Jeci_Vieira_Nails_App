@@ -231,6 +231,100 @@ function exibirPaginaAgendamentoAdmin() {
     inicializarEventosAdmin();
     renderizarClientes();
     renderizarServicos();
+    
+    // Inicializar sistema de refresh
+    inicializarRefreshAdminAgendamento();
+}
+
+/* ================================================
+   INICIALIZAR SISTEMA DE REFRESH DO ADMIN AGENDAMENTO
+   ================================================ */
+async function inicializarRefreshAdminAgendamento() {
+    // Injetar estilos CSS do refresh
+    await inicializarRefresh('admin-agendamento', refreshAdminAgendamentoCompleto);
+
+    const header = document.querySelector('.header-agendamento');
+    if (header) {
+        const logoHeader = header.querySelector('.logo-header');
+        const botaoVoltar = header.querySelector('.botao-voltar');
+
+        if (logoHeader && botaoVoltar && !header.querySelector('.botoes-header')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'botoes-header';
+            header.insertBefore(wrapper, logoHeader.nextSibling);
+            wrapper.appendChild(botaoVoltar);
+        }
+    }
+
+    // Listener de volta à página
+    document.removeEventListener('visibilitychange', globalRefreshPage);
+    document.addEventListener('visibilitychange', globalRefreshPage);
+
+    // Callback global
+    window.globalRefreshPage = refreshAdminAgendamentoCompleto;
+
+    // Botão no header se existir
+    const headerParaBotao = document.querySelector('.header-agendamento');
+    if (headerParaBotao) {
+        adicionarBotaoRefreshHeader(headerParaBotao, refreshAdminAgendamentoCompleto);
+    }
+}
+
+/* ================================================
+   REFRESH COMPLETO DO ADMIN AGENDAMENTO
+   ================================================ */
+async function refreshAdminAgendamentoCompleto() {
+    var botao = document.getElementById('btn-header-refresh');
+
+    try {
+        mostrarFeedbackRefresh(true, 'refresh');
+        if (botao) {
+            botao.classList.add('animando');
+        }
+
+        // Recarregar dados
+        await carregarDadosAgendamento();
+
+        // Preservar estado do passo atual
+        var passoAnterior = passoAtual;
+        var clienteAnterior = clienteSelecionado;
+        var servicoAnterior = servicoSelecionado;
+        var dataAnterior = dataSelecionada;
+        var horarioAnterior = horarioSelecionado;
+
+        // Re-renderizar página
+        exibirPaginaAgendamentoAdmin();
+
+        // Restaurar estado se não foi resetado
+        if (clienteAnterior && clientesFiltrados.find(function(c) { return c.id === clienteAnterior.id; })) {
+            clienteSelecionado = clienteAnterior;
+            servicoSelecionado = servicoAnterior;
+            dataSelecionada = dataAnterior;
+            horarioSelecionado = horarioAnterior;
+            passoAtual = passoAnterior;
+
+            // Re-selecionar cliente visualmente
+            var clienteCard = document.querySelector('[data-cliente-id="' + clienteAnterior.id + '"]');
+            if (clienteCard) {
+                clienteCard.classList.add('selecionado');
+                atualizarBotaoProximo(0, true);
+            }
+        }
+
+        if (botao) {
+            setTimeout(function() {
+                botao.classList.remove('animando');
+            }, 1000);
+        }
+
+        mostrarAlertaRefresh('Atualizado', 'Dados recarregados com sucesso!', 'sucesso');
+
+    } catch (erro) {
+        console.error('[DEBUG] Erro no refresh do admin agendamento:', erro);
+        mostrarAlertaRefresh('Erro', 'Falha ao recarregar dados.', 'erro');
+    } finally {
+        mostrarFeedbackRefresh(false);
+    }
 }
 
 /* ================================================

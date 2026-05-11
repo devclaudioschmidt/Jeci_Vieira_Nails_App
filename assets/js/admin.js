@@ -504,10 +504,10 @@ async function carregarDadosFirestore() {
    EXIBIR ADMIN
    Renderiza o painel completo
    ================================================ */
-function exibirAdmin(dados) {
+async function exibirAdmin(dados) {
     document.body.innerHTML = criarEstruturaAdmin(dados);
     inicializarMenuHamburger();
-    inicializarEventos();
+    await inicializarEventos();
     inicializarCalendario();
     renderizarCalendario();
     renderizarSolicitacoes();
@@ -516,6 +516,72 @@ function exibirAdmin(dados) {
     renderizarConfiguracoes();
     renderizarAviso();
     renderizarListaClientes();
+    
+    // Inicializar sistema de refresh
+    inicializarRefreshAdmin();
+}
+
+/* ================================================
+   INICIALIZAR SISTEMA DE REFRESH DO ADMIN
+   ================================================ */
+async function inicializarRefreshAdmin() {
+    // Injetar estilos CSS do refresh
+    await inicializarRefresh('admin', refreshAdminCompleto);
+
+    // Listener de volta à página
+    document.removeEventListener('visibilitychange', globalRefreshPage);
+    document.addEventListener('visibilitychange', globalRefreshPage);
+
+    // Callback global
+    window.globalRefreshPage = refreshAdminCompleto;
+
+    // Adicionar botão de refresh no header
+    const header = document.querySelector('.header-admin');
+    
+    if (header) {
+        adicionarBotaoRefreshHeader(header, refreshAdminCompleto);
+    }
+}
+
+/* ================================================
+   REFRESH COMPLETO DO ADMIN
+   ================================================ */
+async function refreshAdminCompleto() {
+    const botao = document.getElementById('btn-header-refresh');
+
+    try {
+        mostrarFeedbackRefresh(true, 'refresh');
+        if (botao) {
+            botao.classList.add('animando');
+        }
+
+        // Recarregar todos os dados
+        await carregarDadosFirestore();
+
+        // Re-renderizar componentes
+        renderizarCalendario();
+        renderizarSolicitacoes();
+        renderizarConfirmacoes();
+        renderizarListaServicos();
+        renderizarConfiguracoes();
+        renderizarAviso();
+        renderizarListaClientes();
+        atualizarBadgePendentes();
+
+        if (botao) {
+            setTimeout(() => {
+                botao.classList.remove('animando');
+            }, 1000);
+        }
+        
+        mostrarAlertaRefresh('Atualizado', 'Dados recarregados com sucesso!', 'sucesso');
+        
+    } catch (erro) {
+        console.error('[DEBUG] Erro no refresh:', erro);
+        mostrarAlertaRefresh('Erro', 'Falha ao recarregar dados. Tente novamente.', 'erro');
+    } finally {
+        mostrarFeedbackRefresh(false);
+    }
 }
 
 /* ================================================

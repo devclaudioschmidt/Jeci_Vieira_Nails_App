@@ -16,6 +16,94 @@ function gerarLinkWhatsApp(telefone, mensagem) {
 /* Telefone do salão (carregado do Firestore) */
 let telefoneAdm = '';
 
+/* ================================================
+   REFRESH DO HISTÓRICO
+   ================================================ */
+async function refreshHistoricoCompleto() {
+    const botao = document.getElementById('btn-header-refresh');
+
+    try {
+        mostrarFeedbackRefresh(true, 'refresh');
+        if (botao) {
+            botao.classList.add('animando');
+        }
+
+        // Buscar estado de auth atual
+        const usuario = await firebase.auth().currentUser;
+        if (!usuario) {
+            window.location.href = '../index.html';
+            return;
+        }
+
+        // Recarregar agendamentos
+        const agendamentosSnap = await firebase.firestore().collection('agendamentos')
+            .where('userId', '==', usuario.uid)
+            .get();
+
+        const agendamentos = agendamentosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        const hojeStr = new Date().toISOString().split('T')[0];
+        const futuros = agendamentos.filter(ag => ag.data >= hojeStr).sort(ordenarAgendamentos);
+        const passados = agendamentos.filter(ag => ag.data < hojeStr).sort(ordenarAgendamentosDesc);
+
+        // Pegar dados do usuário
+        const usuarioDoc = await firebase.firestore().collection('usuarios').doc(usuario.uid).get();
+        const usuarioDados = usuarioDoc.data() || {};
+
+        // Re-renderizar
+        renderizarTela(futuros, passados);
+        inicializarRefreshHistorico();
+
+        if (botao) {
+            setTimeout(() => {
+                botao.classList.remove('animando');
+            }, 1000);
+        }
+
+        mostrarAlertaRefresh('Atualizado', 'Dados recarregados com sucesso!', 'sucesso');
+
+    } catch (erro) {
+        console.error('[DEBUG] Erro no refresh do histórico:', erro);
+        mostrarAlertaRefresh('Erro', 'Falha ao recarregar dados.', 'erro');
+    } finally {
+        mostrarFeedbackRefresh(false);
+    }
+}
+
+/* ================================================
+   INICIALIZAR SISTEMA DE REFRESH DO HISTÓRICO
+   ================================================ */
+async function inicializarRefreshHistorico() {
+    // Injetar estilos CSS do refresh
+    await inicializarRefresh('historico', refreshHistoricoCompleto);
+
+    const header = document.querySelector('.header-perfil');
+    if (header) {
+        const logoHeader = header.querySelector('.logo-header');
+        const botaoVoltar = header.querySelector('.botao-voltar');
+
+        if (logoHeader && botaoVoltar && !header.querySelector('.botoes-header')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'botoes-header';
+            header.insertBefore(wrapper, logoHeader.nextSibling);
+            wrapper.appendChild(botaoVoltar);
+        }
+    }
+
+    // Listener de volta à página
+    document.removeEventListener('visibilitychange', globalRefreshPage);
+    document.addEventListener('visibilitychange', globalRefreshPage);
+
+    // Callback global
+    window.globalRefreshPage = refreshHistoricoCompleto;
+
+    // Botão no header se existir
+    const headerParaBotao = document.querySelector('.header-perfil');
+    if (headerParaBotao) {
+        adicionarBotaoRefreshHeader(headerParaBotao, refreshHistoricoCompleto);
+    }
+}
+
 
 function inicializarHistorico() {
     const status = document.getElementById('status');

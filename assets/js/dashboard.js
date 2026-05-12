@@ -1,11 +1,3 @@
-/* ================================================
-   JEICI VIEIRA NAILS - LÓGICA DO DASHBOARD
-   JavaScript para página do cliente logado
-   ================================================ */
-
-/* ================================================
-   DADOS MOCK / ESTADO GLOBAL
-   ================================================ */
 const dadosMock = {
     proximoAgendamento: null,
     aviso: null,
@@ -22,16 +14,12 @@ const dadosMock = {
     }
 };
 
-/* ================================================
-   INICIALIZAÇÃO DO DASHBOARD
-   Verifica autenticação e exibe dados do usuário
-   ================================================ */
 function inicializarDashboard() {
     const status = document.getElementById('status');
-    
+
     firebase.auth().onAuthStateChanged(async (usuario) => {
-        console.log('[DEBUG] Estado auth alterado, usuário:', usuario);
-        
+        console.log('[Dashboard] Estado auth alterado, usuario:', usuario ? usuario.uid : null);
+
         try {
             if (!usuario) {
                 status.textContent = 'Usuário não está logado. Redirecionando...';
@@ -40,16 +28,14 @@ function inicializarDashboard() {
                 }, 1500);
                 return;
             }
-            
-            /* Buscar dados do usuário no Firestore */
-            const doc = await firebase.firestore().collection('usuarios').doc(usuario.uid).get();
-            let dados = doc.data();
-            
+
+            const usuarioResult = await firestoreService.carregarUsuario(usuario.uid);
+            let dados = usuarioResult.success ? usuarioResult.data : null;
+
             if (!dados) {
                 dados = { nome: 'Cliente' };
             }
-            
-            /* Redireciona se for admin */
+
             if (dados.role === 'admin') {
                 status.textContent = 'Redirecionando para área admin...';
                 setTimeout(() => {
@@ -58,95 +44,58 @@ function inicializarDashboard() {
                 return;
             }
 
-            /* BUSCA DADOS REAIS DO BANCO */
             status.textContent = 'Carregando configurações...';
             await carregarDadosGlobais();
-            
+
             status.textContent = 'Buscando seus agendamentos...';
             await carregarProximoAgendamento(usuario.uid);
-            
-            /* Exibe dashboard com dados reais */
+
             await exibirDashboard(dados);
-            
+
         } catch (erro) {
-            console.error('[DEBUG] Erro na inicialização:', erro);
+            console.error('[Dashboard] Erro na inicializacao:', erro);
             await exibirDashboard({ nome: 'Cliente' });
         }
     });
 }
 
-/* ================================================
-   BUSCAR DADOS DO FIRESTORE (AVISOS, CONFIGS, SERVIÇOS)
-   ================================================ */
 async function carregarDadosGlobais() {
-    try {
-        // 1. Carregar Aviso Ativo
-        const avisoSnap = await firebase.firestore().collection('avisos')
-            .where('ativo', '==', true)
-            .limit(1)
-            .get();
-        
-        if (!avisoSnap.empty) {
-            dadosMock.aviso = avisoSnap.docs[0].data().mensagem;
-        } else {
-            dadosMock.aviso = null;
-        }
+    const [avisoResult, configResult] = await Promise.all([
+        firestoreService.carregarAvisoAtivo(),
+        firestoreService.carregarConfiguracoes()
+    ]);
 
-        // 2. Carregar Configurações do Salão
-        const configSnap = await firebase.firestore().collection('configuracoes').doc('salao').get();
-        if (configSnap.exists) {
-            dadosMock.configuracoes = { ...dadosMock.configuracoes, ...configSnap.data() };
-        }
+    if (avisoResult.success) {
+        dadosMock.aviso = avisoResult.data;
+    } else {
+        dadosMock.aviso = null;
+        console.error('[Dashboard] Erro ao carregar aviso:', avisoResult.error?.message);
+    }
 
-    } catch (erro) {
-        console.error('[DEBUG] Erro ao carregar dados globais:', erro);
+    if (configResult.success) {
+        dadosMock.configuracoes = configResult.data;
+    } else {
+        console.error('[Dashboard] Erro ao carregar configuracoes:', configResult.error?.message);
     }
 }
 
-/* ================================================
-    BUSCAR PRÓXIMO AGENDAMENTO DO CLIENTE
-    ================================================ */
 async function carregarProximoAgendamento(uid) {
-    try {
-        const hoje = new Date().toISOString().split('T')[0];
-        
-        const snap = await firebase.firestore().collection('agendamentos')
-            .where('userId', '==', uid)
-            .where('status', 'in', ['pendente', 'confirmado'])
-            .get();
-            
-        if (!snap.empty) {
-            const agendamentos = snap.docs.map(doc => doc.data());
-            
-            // Filtrar apenas datas futuras ou hoje
-            const futuros = agendamentos.filter(a => a.data >= hoje && a.status !== 'cancelado');
-            
-            if (futuros.length > 0) {
-                // Ordenar por data e horário para pegar o mais próximo
-                const proximo = futuros.sort((a, b) => 
-                    a.data.localeCompare(b.data) || a.horario.localeCompare(b.horario)
-                )[0];
-                
-                dadosMock.proximoAgendamento = {
-                    servico: proximo.servicoNome,
-                    data: formatarDataBR(proximo.data),
-                    horario: proximo.horario
-                };
-            } else {
-                dadosMock.proximoAgendamento = null;
-            }
-        } else {
-            dadosMock.proximoAgendamento = null;
-        }
-    } catch (erro) {
-        console.error('[DEBUG] Erro ao carregar agendamento:', erro);
+    const resultado = await firestoreService.carregarProximoAgendamento(uid);
+
+    if (resultado.success && resultado.data) {
+        dadosMock.proximoAgendamento = {
+            servico: resultado.data.servico,
+            data: formatarDataBR(resultado.data.data),
+            horario: resultado.data.horario
+        };
+    } else {
         dadosMock.proximoAgendamento = null;
+        if (!resultado.success) {
+            console.error('[Dashboard] Erro ao carregar proximo agendamento:', resultado.error?.message);
+        }
     }
 }
 
-/* ================================================
-   UTILITÁRIO: FORMATAR DATA PARA BR
-   ================================================ */
 function formatarDataBR(dataStr) {
     if (!dataStr) return '';
     const parts = dataStr.split('-');
@@ -154,48 +103,33 @@ function formatarDataBR(dataStr) {
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
-/* ================================================
-   EXIBIR DASHBOARD
-   Renderiza a página com dados do usuário
-   ================================================ */
 async function exibirDashboard(dados) {
-    /* Substitui o card de carregamento pela dashboard */
     document.body.innerHTML = criarEstruturaDashboard(dados);
-    
-    /* Inicializa os componentes */
+
     inicializarMenuHamburger();
     inicializarEventosDashboard();
-    
-    // Inicializar sistema de refresh
+
     inicializarRefreshDashboard();
 }
 
-/* ================================================
-   INICIALIZAR SISTEMA DE REFRESH DO DASHBOARD
-   ================================================ */
 async function inicializarRefreshDashboard() {
-    // Injetar estilos CSS do refresh
     await inicializarRefresh('dashboard', refreshDashboardCompleto);
 
-    // Listener de volta à página
     document.removeEventListener('visibilitychange', globalRefreshPage);
     document.addEventListener('visibilitychange', globalRefreshPage);
 
-    // Callback global
     window.globalRefreshPage = refreshDashboardCompleto;
 
-    // Adicionar botão de refresh no header
     const header = document.querySelector('.header-dashboard');
     if (header) {
-        // Garantir que o wrapper existe
         let wrapper = header.querySelector('.botoes-header');
         if (!wrapper) {
             wrapper = document.createElement('div');
             wrapper.className = 'botoes-header';
-            
+
             const logoHeader = header.querySelector('.logo-header');
             const botaoMenu = header.querySelector('#btn-menu');
-            
+
             if (logoHeader && botaoMenu) {
                 header.insertBefore(wrapper, logoHeader.nextSibling);
                 wrapper.appendChild(botaoMenu);
@@ -206,9 +140,6 @@ async function inicializarRefreshDashboard() {
     }
 }
 
-/* ================================================
-   REFRESH COMPLETO DO DASHBOARD
-   ================================================ */
 async function refreshDashboardCompleto() {
     const botao = document.getElementById('btn-header-refresh');
 
@@ -218,24 +149,20 @@ async function refreshDashboardCompleto() {
             botao.classList.add('animando');
         }
 
-        // Buscar estado de auth atual
         const usuario = await firebase.auth().currentUser;
         if (!usuario) {
             window.location.href = '../index.html';
             return;
         }
 
-        // Recarregar dados globais
         dadosMock.proximoAgendamento = null;
         dadosMock.aviso = null;
         await carregarDadosGlobais();
         await carregarProximoAgendamento(usuario.uid);
 
-        // Pegar dados atualizados do usuário
-        const usuarioDoc = await firebase.firestore().collection('usuarios').doc(usuario.uid).get();
-        const dados = usuarioDoc.data() || { nome: 'Cliente' };
+        const usuarioResult = await firestoreService.carregarUsuario(usuario.uid);
+        const dados = usuarioResult.success ? usuarioResult.data : { nome: 'Cliente' };
 
-        // Re-renderizar
         document.body.innerHTML = criarEstruturaDashboard(dados);
         inicializarMenuHamburger();
         inicializarEventosDashboard();
@@ -250,20 +177,16 @@ async function refreshDashboardCompleto() {
         mostrarAlertaRefresh('Atualizado', 'Dados recarregados com sucesso!', 'sucesso');
 
     } catch (erro) {
-        console.error('[DEBUG] Erro no refresh do dashboard:', erro);
+        console.error('[Dashboard] Erro no refresh:', erro);
         mostrarAlertaRefresh('Erro', 'Falha ao recarregar dados.', 'erro');
     } finally {
         mostrarFeedbackRefresh(false);
     }
 }
 
-/* ================================================
-   SAUDAÇÃO POR PERÍODO
-   Retorna boa manhã/tarde/noite conforme horário
-   ================================================ */
 function getSaudacao() {
     const hora = new Date().getHours();
-    
+
     if (hora >= 5 && hora < 12) {
         return 'Bom dia';
     } else if (hora >= 12 && hora < 18) {
@@ -273,13 +196,8 @@ function getSaudacao() {
     }
 }
 
-/* ================================================
-   CRIAR ESTRUTURA HTML DA DASHBOARD
-   Gera todo o HTML da página
-   ================================================ */
 function criarEstruturaDashboard(dados) {
     return `
-        <!-- Header fixo -->
         <header class="header-dashboard">
             <div class="logo-header">
                 <img src="../data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Jeci Vieira Nails" class="imagem-logo-topo">
@@ -290,33 +208,27 @@ function criarEstruturaDashboard(dados) {
                 <span class="linha-menu"></span>
             </button>
         </header>
-        
-        <!-- Container principal -->
+
         <main class="container-dashboard">
-            
-            <!-- Boas-vindas -->
+
             <section class="boas-vindas">
-                <h1 class="titulo-boas-vindas">${getSaudacao()}, ${dados.nome}!</h1>
+                <h1 class="titulo-boas-vindas">${getSaudacao()}, ${dados.nome || 'Cliente'}!</h1>
                 <p class="subtitulo-boas-vindas">Pronto para um momento de beleza?</p>
             </section>
-            
-            <!-- Card Próximo Agendamento -->
+
             <section class="card-proximo-section">
                 ${criarCardProximoAgendamento()}
             </section>
             <button class="botao-agendar-agora" id="btn-agendar-agora">
                 Agendar agora
             </button>
-            
-            
-            <!-- Área de Avisos -->
+
             <section class="secao-avisos" id="secao-avisos">
                 ${criarBannerAviso()}
             </section>
-            
+
         </main>
-        
-        <!-- Rodapé com informações em card -->
+
         <footer class="rodape">
             <div class="card-rodape">
                 <span class="titulo-card-rodape">Dados do Salão</span>
@@ -333,15 +245,13 @@ function criarEstruturaDashboard(dados) {
                     <span class="titulo-rodape">Horários de Funcionamento</span>
                     <span>Seg à Sex: ${dadosMock.configuracoes.segundaAbertura || '09:00'} - ${dadosMock.configuracoes.segundaIntervaloInicio || '12:00'} / ${dadosMock.configuracoes.segundaIntervaloFim || '13:00'} - ${dadosMock.configuracoes.segundaFechamento || '19:00'}</span>
                     <span>Sábado: ${dadosMock.configuracoes.sabadoAbertura || '09:00'} - ${dadosMock.configuracoes.sabadoFechamento || '17:00'}</span>
-                    <span>Domingo e Feriados: ${dadosMock.configuracoes.domingoFechado ? 'Fechado' : 'Aberto'}</span>
+                    <span>Domingo e Feriados: ${dadosMock.configuracoes.domingoFechado !== false ? 'Fechado' : 'Aberto'}</span>
                 </div>
             </div>
         </footer>
-        
-        <!-- Overlay do menu -->
+
         <div class="menu-overlay" id="menu-overlay"></div>
-        
-        <!-- Menu hamburger -->
+
         <nav class="menu-hamburger" id="menu-hamburger">
             <div class="cabecalho-menu">
                 <span class="titulo-menu">Menu</span>
@@ -375,13 +285,9 @@ function criarEstruturaDashboard(dados) {
     `;
 }
 
-/* ================================================
-   CRIAR CARD PRÓXIMO AGENDAMENTO
-   Gera o HTML do card ou mensagem vazia
-   ================================================ */
 function criarCardProximoAgendamento() {
     const proximo = dadosMock.proximoAgendamento;
-    
+
     if (!proximo) {
         return `
             <div class="card-proximo-vazio">
@@ -391,7 +297,7 @@ function criarCardProximoAgendamento() {
             </div>
         `;
     }
-    
+
     return `
         <div class="card-proximo">
             <p class="rotulo-proximo">Próximo Agendamento</p>
@@ -410,17 +316,13 @@ function criarCardProximoAgendamento() {
     `;
 }
 
-/* ================================================
-   CRIAR BANNER DE AVISO
-   Gera o HTML do banner de avisos
-   ================================================ */
 function criarBannerAviso() {
     const aviso = dadosMock.aviso;
-    
+
     if (!aviso) {
         return '';
     }
-    
+
     return `
         <div class="banner-aviso visivel">
             <p class="rotulo-aviso">Aviso</p>
@@ -429,30 +331,26 @@ function criarBannerAviso() {
     `;
 }
 
-/* ================================================
-   INICIALIZAR MENU HAMBURGER
-   Configura eventos do menu lateral
-   ================================================ */
 function inicializarMenuHamburger() {
     const botaoMenu = document.getElementById('btn-menu');
     const botaoFechar = document.getElementById('btn-fechar-menu');
     const overlay = document.getElementById('menu-overlay');
     const menu = document.getElementById('menu-hamburger');
-    
+
     if (botaoMenu) {
         botaoMenu.addEventListener('click', () => {
             menu.classList.add('aberto');
             overlay.classList.add('aberto');
         });
     }
-    
+
     if (overlay) {
         overlay.addEventListener('click', () => {
             menu.classList.remove('aberto');
             overlay.classList.remove('aberto');
         });
     }
-    
+
     if (botaoFechar) {
         botaoFechar.addEventListener('click', () => {
             menu.classList.remove('aberto');
@@ -461,10 +359,6 @@ function inicializarMenuHamburger() {
     }
 }
 
-/* ================================================
-   INICIALIZAR EVENTOS DA DASHBOARD
-   Configura cliques dos botões
-   ================================================ */
 function inicializarEventosDashboard() {
     const btnAgendarAgora = document.getElementById('btn-agendar-agora');
     if (btnAgendarAgora) {
@@ -472,7 +366,7 @@ function inicializarEventosDashboard() {
             window.location.href = 'agendamento.html';
         });
     }
-    
+
     const menuAgendar = document.getElementById('menu-agendar');
     if (menuAgendar) {
         menuAgendar.addEventListener('click', (e) => {
@@ -488,7 +382,7 @@ function inicializarEventosDashboard() {
             window.location.href = 'perfil.html';
         });
     }
-    
+
     const menuSair = document.getElementById('menu-sair');
     if (menuSair) {
         menuSair.addEventListener('click', async (e) => {
@@ -497,12 +391,9 @@ function inicializarEventosDashboard() {
             window.location.href = '../index.html';
         });
     }
-    
+
 }
 
-// ============================================
-// INICIALIZAÇÃO AUTOMÁTICA
-// ============================================
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', inicializarDashboard);
 } else {

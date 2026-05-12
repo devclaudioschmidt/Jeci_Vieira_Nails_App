@@ -2,108 +2,31 @@
 <html lang="pt-BR">
 
 <head>
-    <!-- ================================================
-         META TAGS E CONFIGURAÇÕES
-         ================================================ -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeci Vieira Nails - Login</title>
-    
-    <!-- Favicon -->
+    <title>Jeci Vieira Nails</title>
+
     <link rel="icon" type="image/svg+xml" href="data/img/favicon.svg">
-    
-    <!-- Pré-conexão com Google Fonts -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Fontes: Montserrat e Playfair Display -->
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap">
-    
-    <!-- Estilos CSS -->
-    <link rel="stylesheet" href="css/style-login.css">
+
+    <link rel="stylesheet" href="css/style-welcome.css">
 </head>
 
-<!-- ================================================
-     CORPO DA PÁGINA
-     ================================================ -->
 <body>
-    <!-- Container principal do login -->
-    <main class="containerLogin">
-        
-        <!-- Card com efeito glassmorphism -->
-        <div class="cardLogin">
-            
-            <!-- Logo da empresa -->
-            <div class="placeholderLogo">
-                <img src="data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Logo Jeci Vieira Nails" class="imagemLogo">
-            </div>
+    <div id="welcome-content">
+        <p class="carregando">Carregando...</p>
+    </div>
 
-            <!-- Título e subtítulo -->
-            <h1 class="tituloLogin">Bem-vindo!</h1>
-            <p class="subtituloLogin">Entre com sua conta para continuar</p>
-
-            <!-- Formulário de login -->
-            <form class="formularioLogin" action="#" method="POST">
-                
-                <!-- Campo: E-mail -->
-                <div class="campoFormulario">
-                    <label for="campoEmail">E-mail</label>
-                    <input type="email" id="campoEmail" name="email" placeholder="seu@email.com" required
-                        autocomplete="email">
-                </div>
-
-                <!-- Campo: Senha -->
-                <div class="campoFormulario">
-                    <label for="campoSenha">Senha</label>
-                    <input type="password" id="campoSenha" name="senha" placeholder="••••••••" required
-                        autocomplete="current-password">
-                </div>
-
-                <!-- Botão de entrada -->
-                <button type="submit" class="botaoEntrar">Entrar</button>
-            </form>
-
-            <!-- Links auxiliares -->
-            <div class="linksLogin">
-                <a href="pages/esqueci-senha.html" class="linkEsqueciSenha">Esqueci a senha</a>
-                <a href="pages/cadastro.html" class="linkCriarConta">Criar conta</a>
-            </div>
-        </div>
-    </main>
-
-    <!-- Elemento para mensagens de feedback -->
-    <div id="mensagemFeedback" class="mensagemFeedback" style="display: none;"></div>
-    
-    <!-- ================================================
-         SCRIPTS DO FIREBASE
-         Biblioteca Firebase (compatibilidade com navegadores)
-         ================================================ -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    
-    <!-- Configuração e funções de autenticação -->
+
     <script src="assets/js/firebase-config.js"></script>
-    <script src="assets/js/auth.js"></script>
-    
-    <!-- ================================================
-         SCRIPTS DO APLICATIVO
-         ================================================ -->
-    <!-- Seleciona imagem de background aleatória -->
-    <script src="assets/js/login.js"></script>
-    
-    <!-- Lógica da página de login (formulário, validação, redirect) -->
+    <script src="assets/js/firestore-service.js"></script>
     <script src="assets/js/index.js"></script>
-    
-    <!-- Limpar qualquer Service Worker antigo registrado no navegador -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(regs) {
-                regs.forEach(function(reg) { reg.unregister(); });
-            });
-        }
-    </script>
 </body>
 
 </html>

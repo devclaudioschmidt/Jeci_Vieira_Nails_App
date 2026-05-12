@@ -10,6 +10,12 @@ service cloud.firestore {
       allow read, write: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
       // Proprio usuario: pode ler e editar proprio perfil
       allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Leitura pública de clientes (necessário para buscar por telefone no agendamento)
+      allow read: if resource.data.role == 'cliente';
+      // Qualquer pessoa pode criar um novo cliente (fluxo público de agendamento)
+      allow create: if request.resource.data.role == 'cliente'
+                    && request.resource.data.nome is string
+                    && request.resource.data.nome != '';
     }
     
     // -------------------
@@ -18,22 +24,26 @@ service cloud.firestore {
     match /agendamentos/{agendamentoId} {
       // Admin: acesso total
       allow read, write, delete: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
-      // Cliente: criar (usa request.resource.data)
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      // Cliente: ler TODOS agendamentos (para verificar horarios occupados)
-      allow read: if request.auth != null;
-      // Cliente: atualizar propio agendamento (cancelar)
+      // Leitura pública (para verificar horários ocupados no fluxo de agendamento)
+      allow read: if true;
+      // Qualquer pessoa pode criar um agendamento (fluxo público)
+      allow create: if request.resource.data.servicoNome is string
+                    && request.resource.data.userId is string
+                    && request.resource.data.data is string
+                    && request.resource.data.horario is string
+                    && request.resource.data.status == 'pendente';
+      // Cliente autenticado: atualizar propio agendamento (cancelar)
       allow update: if request.auth != null && request.auth.uid == resource.data.userId;
-      // Cliente: pode excluir propio agendamento
-      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Público: pode deletar agendamento pendente (ex: reagendamento)
+      allow delete: if resource.data.status == 'pendente';
     }
     
     // -------------------
     // SERVICOS
     // -------------------
     match /servicos/{servicoId} {
-      // Todos logados podem ler
-      allow read: if request.auth != null;
+      // Leitura pública (clientes não precisam de login)
+      allow read: if true;
       // Apenas admin pode criar, editar, excluir
       allow create, write, delete: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
     }
@@ -42,8 +52,8 @@ service cloud.firestore {
     // CONFIGURACOES
     // -------------------
     match /configuracoes/{configId} {
-      // Todos logados podem ler
-      allow read: if request.auth != null;
+      // Leitura pública (clientes não precisam de login)
+      allow read: if true;
       // Apenas admin pode editar
       allow write: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
     }
@@ -52,8 +62,8 @@ service cloud.firestore {
     // AVISOS
     // -------------------
     match /avisos/{avisoId} {
-      // Todos logados podem ler
-      allow read: if request.auth != null;
+      // Leitura pública (clientes não precisam de login)
+      allow read: if true;
       // Apenas admin pode criar, editar, excluir
       allow create, write, delete: if request.auth != null && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin';
     }

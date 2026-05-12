@@ -1,10 +1,3 @@
-/* ================================================
-   JEICI VIEIRA NAILS - LÓGICA DO HISTÓRICO
-   ================================================ */
-
-/* ================================================
-   WHATSAPP HELPER
-   ================================================ */
 function gerarLinkWhatsApp(telefone, mensagem) {
     if (!telefone) return null;
     const numero = telefone.replace(/\D/g, '');
@@ -13,12 +6,8 @@ function gerarLinkWhatsApp(telefone, mensagem) {
     return `https://wa.me/${numeroCompleto}?text=${texto}`;
 }
 
-/* Telefone do salão (carregado do Firestore) */
 let telefoneAdm = '';
 
-/* ================================================
-   REFRESH DO HISTÓRICO
-   ================================================ */
 async function refreshHistoricoCompleto() {
     const botao = document.getElementById('btn-header-refresh');
 
@@ -28,30 +17,27 @@ async function refreshHistoricoCompleto() {
             botao.classList.add('animando');
         }
 
-        // Buscar estado de auth atual
         const usuario = await firebase.auth().currentUser;
         if (!usuario) {
             window.location.href = '../index.html';
             return;
         }
 
-        // Recarregar agendamentos
-        const agendamentosSnap = await firebase.firestore().collection('agendamentos')
-            .where('userId', '==', usuario.uid)
-            .get();
-
-        const agendamentos = agendamentosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const resultAgendamentos = await firestoreService.carregarAgendamentosUsuario(usuario.uid);
+        const agendamentos = resultAgendamentos.success ? resultAgendamentos.data : [];
 
         const hojeStr = new Date().toISOString().split('T')[0];
         const futuros = agendamentos.filter(ag => ag.data >= hojeStr).sort(ordenarAgendamentos);
         const passados = agendamentos.filter(ag => ag.data < hojeStr).sort(ordenarAgendamentosDesc);
 
-        // Pegar dados do usuário
-        const usuarioDoc = await firebase.firestore().collection('usuarios').doc(usuario.uid).get();
-        const usuarioDados = usuarioDoc.data() || {};
+        const usuarioResult = await firestoreService.carregarUsuario(usuario.uid);
+        const dadosUsuario = usuarioResult.success ? usuarioResult.data : {};
 
-        // Re-renderizar
-        renderizarTela(futuros, passados);
+        const configResult = await firestoreService.carregarConfiguracoes();
+        telefoneAdm = configResult.success ? (configResult.data.telefone || '') : '';
+
+        document.body.innerHTML = criarEstruturaHistorico(agendamentos, dadosUsuario);
+        inicializarEventosHistorico();
         inicializarRefreshHistorico();
 
         if (botao) {
@@ -63,91 +49,11 @@ async function refreshHistoricoCompleto() {
         mostrarAlertaRefresh('Atualizado', 'Dados recarregados com sucesso!', 'sucesso');
 
     } catch (erro) {
-        console.error('[DEBUG] Erro no refresh do histórico:', erro);
+        console.error('[Historico] Erro no refresh:', erro);
         mostrarAlertaRefresh('Erro', 'Falha ao recarregar dados.', 'erro');
     } finally {
         mostrarFeedbackRefresh(false);
     }
-}
-
-/* ================================================
-   INICIALIZAR SISTEMA DE REFRESH DO HISTÓRICO
-   ================================================ */
-async function inicializarRefreshHistorico() {
-    // Injetar estilos CSS do refresh
-    await inicializarRefresh('historico', refreshHistoricoCompleto);
-
-    const header = document.querySelector('.header-perfil');
-    if (header) {
-        const logoHeader = header.querySelector('.logo-header');
-        const botaoVoltar = header.querySelector('.botao-voltar');
-
-        if (logoHeader && botaoVoltar && !header.querySelector('.botoes-header')) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'botoes-header';
-            header.insertBefore(wrapper, logoHeader.nextSibling);
-            wrapper.appendChild(botaoVoltar);
-        }
-    }
-
-    // Listener de volta à página
-    document.removeEventListener('visibilitychange', globalRefreshPage);
-    document.addEventListener('visibilitychange', globalRefreshPage);
-
-    // Callback global
-    window.globalRefreshPage = refreshHistoricoCompleto;
-
-    // Botão no header se existir
-    const headerParaBotao = document.querySelector('.header-perfil');
-    if (headerParaBotao) {
-        adicionarBotaoRefreshHeader(headerParaBotao, refreshHistoricoCompleto);
-    }
-}
-
-
-function inicializarHistorico() {
-    const status = document.getElementById('status');
-    
-    firebase.auth().onAuthStateChanged(async (usuario) => {
-        if (!usuario) {
-            if(status) status.textContent = 'Você precisa estar logado. Redirecionando...';
-            setTimeout(() => {
-                window.location.href = '../index.html';
-            }, 1500);
-            return;
-        }
-
-        try {
-            const usuarioDoc = await firebase.firestore().collection('usuarios').doc(usuario.uid).get();
-            const usuarioDados = usuarioDoc.data() || {};
-            usuario.nome = usuarioDados.nome || usuario.displayName || 'Cliente';
-
-            // Buscar telefone do ADM nas configurações
-            try {
-                const configSnap = await firebase.firestore().collection('configuracoes').doc('salao').get();
-                telefoneAdm = (configSnap.data() || {}).telefone || '';
-            } catch(e) { /* ignora */ }
-
-            // Buscar Agendamentos do Usuário
-            const agendamentosSnap = await firebase.firestore().collection('agendamentos')
-                .where('userId', '==', usuario.uid)
-                .get();
-
-            const agendamentos = agendamentosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            // Separar futuros e passados
-            const hojeStr = new Date().toISOString().split('T')[0];
-            
-            const futuros = agendamentos.filter(ag => ag.data >= hojeStr).sort(ordenarAgendamentos);
-            const passados = agendamentos.filter(ag => ag.data < hojeStr).sort(ordenarAgendamentosDesc);
-
-            renderizarTela(futuros, passados);
-            
-        } catch (erro) {
-            console.error('[DEBUG] Erro:', erro);
-            if(status) status.textContent = 'Erro ao carregar: ' + erro.message;
-        }
-    });
 }
 
 function ordenarAgendamentos(a, b) {
@@ -164,17 +70,55 @@ function ordenarAgendamentosDesc(a, b) {
     return b.data.localeCompare(a.data);
 }
 
-function formatarData(dataStr) {
-    const nomesMeses = [
-        "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
-        "Jul", "Ago", "Set", "Out", "Nov", "Dez"
-    ];
-    const [ano, mes, dia] = dataStr.split('-').map(Number);
-    return `${dia} de ${nomesMeses[mes - 1]} de ${ano}`;
+function inicializarHistorico() {
+    const status = document.getElementById('status');
+
+    firebase.auth().onAuthStateChanged(async (usuario) => {
+        try {
+            if (!usuario) {
+                status.textContent = 'Usuário não está logado. Redirecionando...';
+                setTimeout(() => {
+                    window.location.href = '../index.html';
+                }, 1500);
+                return;
+            }
+
+            console.log('[Historico] Usuario autenticado:', usuario.uid);
+
+            const resultAgendamentos = await firestoreService.carregarAgendamentosUsuario(usuario.uid);
+            const agendamentos = resultAgendamentos.success ? resultAgendamentos.data : [];
+
+            if (!resultAgendamentos.success) {
+                console.error('[Historico] Erro ao carregar agendamentos:', resultAgendamentos.error?.message);
+            }
+
+            const usuarioResult = await firestoreService.carregarUsuario(usuario.uid);
+            const dadosUsuario = usuarioResult.success ? usuarioResult.data : {};
+
+            const configResult = await firestoreService.carregarConfiguracoes();
+            telefoneAdm = configResult.success ? (configResult.data.telefone || '') : '';
+
+            document.body.innerHTML = criarEstruturaHistorico(agendamentos, dadosUsuario);
+            inicializarEventosHistorico();
+            inicializarRefreshHistorico();
+
+        } catch (erro) {
+            console.error('[Historico] Erro na inicializacao:', erro);
+            if (document.getElementById('status')) {
+                document.getElementById('status').textContent = 'Erro ao carregar dados.';
+            }
+        }
+    });
 }
 
-function renderizarTela(futuros, passados) {
-    document.body.innerHTML = `
+function criarEstruturaHistorico(agendamentos, dadosUsuario) {
+    const hojeStr = new Date().toISOString().split('T')[0];
+    const futuros = agendamentos.filter(ag => ag.data >= hojeStr).sort(ordenarAgendamentos);
+    const passados = agendamentos.filter(ag => ag.data < hojeStr).sort(ordenarAgendamentosDesc);
+
+    return `
+        <div class="mensagemFeedback" id="mensagemFeedback" style="display: none;"></div>
+
         <header class="header-perfil">
             <a href="dashboard.html" class="logo-header">
                 <img src="../data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Jeci Vieira Nails" class="imagem-logo-topo">
@@ -182,243 +126,159 @@ function renderizarTela(futuros, passados) {
             <a href="dashboard.html" class="botao-voltar">←</a>
         </header>
 
-        <main class="container-perfil">
+        <main class="container-historico">
             <h1 class="titulo-pagina">Meus Agendamentos</h1>
-            <p class="subtitulo-pagina">Acompanhe seus horários marcados</p>
+            <p class="subtitulo-pagina">Histórico completo dos seus agendamentos</p>
 
-            <section class="secao-historico">
-                <h2 class="titulo-secao">Próximos Agendamentos</h2>
-                <div class="lista-agendamentos">
-                    ${gerarHtmlCards(futuros, 'futuro', 'Você não tem horários agendados para o futuro.')}
+            <section class="secao-filtros">
+                <div class="filtros-wrapper">
+                    <div class="filtro-status" id="filtro-status">
+                        <button class="botao-filtro ativo" data-filtro="todos">Todos</button>
+                        <button class="botao-filtro" data-filtro="pendente">Pendentes</button>
+                        <button class="botao-filtro" data-filtro="confirmado">Confirmados</button>
+                        <button class="botao-filtro" data-filtro="cancelado">Cancelados</button>
+                    </div>
                 </div>
             </section>
 
-            <section class="secao-historico">
-                <h2 class="titulo-secao">Histórico</h2>
-                <div class="lista-agendamentos">
-                    ${gerarHtmlCards(passados, 'passado', 'Nenhum agendamento no histórico.')}
+            <section class="secao-listas">
+                <div class="grupo-agendamentos">
+                    <h2 class="titulo-grupo">Próximos Agendamentos</h2>
+                    <div id="lista-futuros">
+                        ${futuros.length === 0
+                            ? '<p class="texto-vazio">Nenhum agendamento futuro.</p>'
+                            : futuros.map(ag => criarCardAgendamento(ag, dadosUsuario)).join('')}
+                    </div>
+                </div>
+
+                <div class="grupo-agendamentos">
+                    <h2 class="titulo-grupo">Histórico</h2>
+                    <div id="lista-passados">
+                        ${passados.length === 0
+                            ? '<p class="texto-vazio">Nenhum agendamento passado.</p>'
+                            : passados.map(ag => criarCardAgendamento(ag, dadosUsuario)).join('')}
+                    </div>
                 </div>
             </section>
-            
-            <a href="agendamento.html" class="botao-agendar">Agendar Novo Serviço</a>
         </main>
+
+        <div id="modal-container"></div>
     `;
 }
 
-function gerarHtmlCards(agendamentos, classeTipo, mensagemVazio) {
-    if (agendamentos.length === 0) {
-        return `<div class="sem-agendamentos">${mensagemVazio}</div>`;
-    }
+function criarCardAgendamento(ag, dadosUsuario) {
+    const statusClasses = {
+        pendente: 'status-pendente',
+        confirmado: 'status-confirmado',
+        cancelado: 'status-cancelado'
+    };
 
-    const agora = new Date();
-    const hojeStr = agora.toISOString().split('T')[0];
+    const statusLabels = {
+        pendente: 'Pendente',
+        confirmado: 'Confirmado',
+        cancelado: 'Cancelado'
+    };
 
-    return agendamentos.map(ag => {
-        const statusStr = ag.status || 'pendente';
-        const badgeClass = `status-${statusStr}`;
-        const badgeTexto = statusStr === 'confirmado' ? 'Confirmado' :
-                           statusStr === 'cancelado' ? 'Cancelado' : 'Pendente';
-        
-        const dataAgend = new Date(ag.data + 'T' + ag.horario);
-        const horasRestantes = (dataAgend - agora) / (1000 * 60 * 60);
-        const podeCancelar = statusStr !== 'cancelado';
-        
-        return `
-        <div class="card-agendamento ${classeTipo}" data-id="${ag.id}">
-            <div class="card-topo">
-                <span class="servico-nome">${ag.servico}</span>
-                <span class="status-badge ${badgeClass}">${badgeTexto}</span>
-            </div>
-            <div class="card-detalhes">
-                <div class="detalhe-item">
-                    <span>📅</span>
-                    <span>${formatarData(ag.data)}</span>
-                </div>
-                <div class="detalhe-item">
-                    <span>🕐</span>
-                    <span>${ag.horario} (${ag.duracao || 60} min)</span>
-                </div>
-                <div class="detalhe-item">
-                    <span>💰</span>
-                    <span>R$ ${parseFloat(ag.preco || 0).toFixed(2).replace('.', ',')}</span>
-                </div>
-            </div>
-            ${classeTipo === 'futuro' ? `
-            <div class="card-botoes">
-                ${podeCancelar ? `<button class="botao-card cancelar" data-id="${ag.id}" data-servico="${encodeURIComponent(ag.servico)}" data-data="${ag.data}" data-horario="${ag.horario}" data-acao="cancelar">Cancelar</button>` : ''}
-                ${telefoneAdm ? (() => {
-                    const msgWpp = `Olá! Gostaria de falar sobre meu agendamento de ${ag.servico} no dia ${formatarData(ag.data)} às ${ag.horario}. 😊`;
-                    const link = gerarLinkWhatsApp(telefoneAdm, msgWpp);
-                    return link ? `<a class="botao-card whatsapp-card" href="${link}" target="_blank" rel="noopener" title="Contatar salão">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                        Falar com salão
-                    </a>` : '';
-                })() : ''}
-            </div>
-            ` : ''}
-        </div>
-        `;
-    }).join('');
-}
+    const statusClass = statusClasses[ag.status] || 'status-pendente';
+    const statusLabel = statusLabels[ag.status] || ag.status;
 
-/* ================================================
-   SISTEMA DE MODAIS (local)
-   ================================================ */
-function criarModalLocal() {
-    const existing = document.getElementById('modal-historico');
-    if (existing) return existing;
-    
-    const modal = document.createElement('div');
-    modal.id = 'modal-historico';
-    modal.className = 'modal-overlay';
-    modal.innerHTML = `
-        <div class="modal-card">
-            <span class="modal-icon"></span>
-            <h3 class="modal-titulo"></h3>
-            <p class="modal-mensagem"></p>
-            <div class="modal-botoes"></div>
+    const dataFormatada = formatarData(ag.data);
+    const podeReagendar = ag.status !== 'cancelado' && ag.data >= new Date().toISOString().split('T')[0];
+
+    return `
+        <div class="card-agendamento-historico" data-id="${ag.id}" data-status="${ag.status}">
+            <div class="card-header-historico">
+                <span class="servico-historico">${ag.servicoNome || ag.servico || 'Serviço'}</span>
+                <span class="status-historico ${statusClass}">${statusLabel}</span>
+            </div>
+            <div class="card-detalhes-historico">
+                <span class="detalhe-item">📅 ${dataFormatada}</span>
+                <span class="detalhe-item">🕐 ${ag.horario}</span>
+                <span class="detalhe-item">💰 R$ ${ag.preco || '—'}</span>
+                <span class="detalhe-item">⏱ ${ag.duracao || 60} min</span>
+            </div>
+            ${ag.observacoes ? `<div class="card-obs-historico">📝 ${ag.observacoes}</div>` : ''}
+            <div class="card-acoes-historico">
+                ${podeReagender
+                    ? `<button class="botao-acao reagendar" data-id="${ag.id}"
+                        data-servico="${ag.servicoNome || ag.servico || ''}"
+                        data-servicoid="${ag.servicoId || ''}"
+                        data-preco="${ag.preco || ''}"
+                        data-duracao="${ag.duracao || 60}">Reagendar</button>`
+                    : ''}
+                ${ag.status === 'pendente' && ag.clienteTelefone
+                    ? `<a class="botao-acao whatsapp" href="${gerarLinkWhatsApp(ag.clienteTelefone, `Olá! Seu agendamento do dia ${dataFormatada} às ${ag.horario} está confirmado? 😊`)}" target="_blank">WhatsApp</a>`
+                    : ''}
+            </div>
         </div>
     `;
-    document.body.appendChild(modal);
-    
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.remove('ativo');
+}
+
+function formatarData(dataStr) {
+    if (!dataStr) return '';
+    const partes = dataStr.split('-');
+    if (partes.length !== 3) return dataStr;
+    const meses = [
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+    const mes = parseInt(partes[1]) - 1;
+    return `${parseInt(partes[2])} de ${meses[mes]} de ${partes[0]}`;
+}
+
+function inicializarEventosHistorico() {
+    const botoesFiltro = document.querySelectorAll('.botao-filtro');
+    botoesFiltro.forEach(btn => {
+        btn.addEventListener('click', () => {
+            botoesFiltro.forEach(b => b.classList.remove('ativo'));
+            btn.classList.add('ativo');
+            const filtro = btn.dataset.filtro;
+            aplicarFiltroStatus(filtro);
+        });
+    });
+
+    document.querySelectorAll('.botao-acao.reagendar').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const servico = btn.dataset.servico;
+            const servicoId = btn.dataset.servicoid;
+            const preco = btn.dataset.preco;
+            const duracao = btn.dataset.duracao;
+            window.location.href = `agendamento.html?reagendar=true&agendamentoId=${id}&servico=${encodeURIComponent(servico)}&servicoId=${servicoId}&preco=${preco}&duracao=${duracao}`;
+        });
+    });
+}
+
+function aplicarFiltroStatus(filtro) {
+    const cards = document.querySelectorAll('.card-agendamento-historico');
+
+    cards.forEach(card => {
+        if (filtro === 'todos') {
+            card.style.display = '';
+            return;
         }
-    });
-    
-    return modal;
-}
 
-async function mostrarAlertaLocal(titulo, mensagem, tipo = 'info') {
-    return new Promise((resolve) => {
-        const modal = criarModalLocal();
-        
-        const icons = { sucesso: '✅', erro: '❌', alerta: '⚠️', info: 'ℹ️' };
-        const btnStyles = { sucesso: 'primario', erro: 'danger', alerta: 'secundario', info: 'primario' };
-        
-        modal.querySelector('.modal-icon').textContent = icons[tipo] || icons.info;
-        modal.querySelector('.modal-titulo').textContent = titulo;
-        modal.querySelector('.modal-mensagem').innerHTML = mensagem;
-        modal.querySelector('.modal-botoes').innerHTML = `
-            <button class="modal-botao ${btnStyles[tipo] || 'primario'}" id="modal-ok-historico">OK</button>
-        `;
-        
-        modal.classList.add('ativo');
-        
-        const cleanup = () => {
-            modal.classList.remove('ativo');
-        };
-        
-        document.getElementById('modal-ok-historico').addEventListener('click', () => {
-            cleanup();
-            resolve();
-        });
+        const status = card.dataset.status;
+        card.style.display = status === filtro ? '' : 'none';
     });
 }
 
-async function mostrarConfirmLocal(titulo, mensagem, tipo = 'alerta') {
-    return new Promise((resolve) => {
-        const modal = criarModalLocal();
-        
-        const icons = { alerta: '⚠️', danger: '⚠️', bloq: '🔒' };
-        
-        modal.querySelector('.modal-icon').textContent = icons[tipo] || icons.alerta;
-        modal.querySelector('.modal-titulo').textContent = titulo;
-        modal.querySelector('.modal-mensagem').innerHTML = mensagem;
-        modal.querySelector('.modal-botoes').innerHTML = `
-            <button class="modal-botao secundario" id="modal-cancel-historico">Cancelar</button>
-            <button class="modal-botao danger" id="modal-confirm-historico">Confirmar</button>
-        `;
-        
-        modal.classList.add('ativo');
-        
-        const cleanup = () => {
-            modal.classList.remove('ativo');
-        };
-        
-        document.getElementById('modal-cancel-historico').addEventListener('click', () => {
-            cleanup();
-            resolve(false);
-        });
-        
-        document.getElementById('modal-confirm-historico').addEventListener('click', () => {
-            cleanup();
-            resolve(true);
-        });
-    });
-}
+async function inicializarRefreshHistorico() {
+    await inicializarRefresh('historico', refreshHistoricoCompleto);
 
-/* ================================================
-   AÇÃO CANCELAR AGENDAMENTO
-   ================================================ */
-async function cancelarAgendamentoCliente(id) {
-    // Pegar dados do agendamento antes de cancelar
-    const card = document.querySelector(`.card-agendamento[data-id="${id}"]`);
-    const servicoNome = card ? decodeURIComponent(card.querySelector('.botao-card.cancelar')?.dataset.servico || '') || 'agendamento' : 'agendamento';
-    const dataAgend = card ? card.querySelector('.botao-card.cancelar')?.dataset.data || '' : '';
-    const horarioAgend = card ? card.querySelector('.botao-card.cancelar')?.dataset.horario || '' : '';
+    document.removeEventListener('visibilitychange', globalRefreshPage);
+    document.addEventListener('visibilitychange', globalRefreshPage);
 
-    const confirmar = await mostrarConfirmLocal(
-        'Cancelar Agendamento',
-        'Tem certeza que deseja excluir este agendamento?<br><br>Esta ação não pode ser desfeita.',
-        'alerta'
-    );
-    
-    if (!confirmar) return;
-    
-    try {
-        // Excluir permanentemente do banco de dados
-        await firebase.firestore().collection('agendamentos').doc(id).delete();
-        
-        // Gerar link WhatsApp para avisar ADM
-        const msgCancelamento = `Olá! Infelizmente precisei cancelar meu agendamento. 😟\n\nServiço: ${servicoNome || 'agendamento'}\n${dataAgend ? 'Data: ' + formatarData(dataAgend) : ''}\n${horarioAgend ? 'Horário: ' + horarioAgend : ''}\n\nQuando deseojado, farei um novo agendamento!`;
-        const linkWppAdm = gerarLinkWhatsApp(telefoneAdm, msgCancelamento);
+    window.globalRefreshPage = refreshHistoricoCompleto;
 
-        // Modal de sucesso com botão de WhatsApp
-        const modal = criarModalLocal();
-        modal.querySelector('.modal-icon').textContent = '✅';
-        modal.querySelector('.modal-titulo').textContent = 'Agendamento Cancelado';
-        modal.querySelector('.modal-mensagem').innerHTML = 'Agendamento excluído com sucesso!';
-        modal.querySelector('.modal-botoes').innerHTML = `
-            ${linkWppAdm ? `<a class="modal-botao whatsapp" href="${linkWppAdm}" target="_blank" rel="noopener">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                Avisar ADM via WhatsApp
-            </a>` : ''}
-            <button class="modal-botao primario" id="modal-ok-cancelamento">OK</button>
-        `;
-        modal.classList.add('ativo');
-        document.getElementById('modal-ok-cancelamento').addEventListener('click', () => {
-            modal.classList.remove('ativo');
-            window.location.reload();
-        });
-        
-    } catch (erro) {
-        console.error('[DEBUG] Erro ao excluir:', erro);
-        await mostrarAlertaLocal('Erro', 'Erro ao excluir agendamento. Tente novamente.', 'erro');
+    const header = document.querySelector('.header-perfil');
+    if (header) {
+        adicionarBotaoRefreshHeader(header, refreshHistoricoCompleto);
     }
-}
-
-function setupBotoesAcoes() {
-    document.body.addEventListener('click', async (e) => {
-        const botao = e.target.closest('[data-acao]');
-        if (!botao) return;
-
-        const acao = botao.dataset.acao;
-
-        if (acao === 'cancelar') {
-            await cancelarAgendamentoCliente(botao.dataset.id);
-        }
-    });
-}
-
-function iniciar() {
-    inicializarHistorico();
-    setupBotoesAcoes();
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', iniciar);
+    document.addEventListener('DOMContentLoaded', inicializarHistorico);
 } else {
-    iniciar();
+    inicializarHistorico();
 }

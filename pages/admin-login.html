@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Jeci Vieira Nails</title>
+
+    <link rel="icon" type="image/svg+xml" href="../data/img/favicon.svg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap">
+
+    <link rel="stylesheet" href="../css/style-login.css">
+</head>
+
+<body>
+    <main class="containerLogin">
+        <div class="cardLogin">
+            <div class="placeholderLogo">
+                <img src="../data/img/Logo_JeciVieira_NailsDesigner.svg" alt="Logo Jeci Vieira Nails" class="imagemLogo">
+            </div>
+
+            <h1 class="tituloLogin">Administrador</h1>
+            <p class="subtituloLogin">Entre com sua conta para gerenciar</p>
+
+            <form class="formularioLogin" action="#" method="POST">
+                <div class="campoFormulario">
+                    <label for="campoEmail">E-mail</label>
+                    <input type="email" id="campoEmail" name="email" placeholder="seu@email.com" required
+                        autocomplete="email">
+                </div>
+
+                <div class="campoFormulario">
+                    <label for="campoSenha">Senha</label>
+                    <input type="password" id="campoSenha" name="senha" placeholder="••••••••" required
+                        autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="botaoEntrar">Entrar</button>
+            </form>
+
+            <div class="linksLogin">
+                <a href="../index.html" class="linkEsqueciSenha">← Voltar</a>
+            </div>
+        </div>
+    </main>
+
+    <div id="mensagemFeedback" class="mensagemFeedback" style="display: none;"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script src="../assets/js/firebase-config.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/admin-login.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+                regs.forEach(function(reg) { reg.unregister(); });
+            });
+        }
+    </script>
+</body>
+
+</html>

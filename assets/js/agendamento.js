@@ -337,17 +337,63 @@ function renderizarServicos() {
         return;
     }
 
+    const CATEGORIAS = {
+        manicure: { icon: '💅', label: 'Manicure e Pedicure' },
+        podologia: { icon: '🦶', label: 'Podologia' }
+    };
+
+    const agrupados = {};
+    const semCategoria = [];
+
+    servicosAtivos.forEach(s => {
+        if (s.categoria && CATEGORIAS[s.categoria]) {
+            if (!agrupados[s.categoria]) agrupados[s.categoria] = [];
+            agrupados[s.categoria].push(s);
+        } else {
+            semCategoria.push(s);
+        }
+    });
+
     let html = '';
-    servicosAtivos.forEach(servico => {
+
+    Object.keys(CATEGORIAS).forEach(key => {
+        const lista = agrupados[key];
+        if (!lista || lista.length === 0) return;
+
+        const cat = CATEGORIAS[key];
         html += `
-            <div class="card-servico-opcao" data-id="${servico.id}">
-                <span class="icone-servico-opcao">${servico.icone || '💅'}</span>
-                <p class="nome-servico-opcao">${servico.nome}</p>
-                <p class="preco-servico-opcao">R$ ${servico.preco}</p>
-                <p class="duracao-servico-opcao">${servico.duracao || 60} min</p>
+            <div class="categoria-grupo">
+                <h3 class="categoria-titulo">${cat.icon} ${cat.label}</h3>
+                <div class="categoria-grid">
+                    ${lista.map(servico => `
+                        <div class="card-servico-opcao" data-id="${servico.id}">
+                            <span class="icone-servico-opcao">${servico.icone || cat.icon}</span>
+                            <p class="nome-servico-opcao">${servico.nome}</p>
+                            <p class="preco-servico-opcao">R$ ${servico.preco}</p>
+                            <p class="duracao-servico-opcao">${servico.duracao || 60} min</p>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         `;
     });
+
+    if (semCategoria.length > 0) {
+        html += `
+            <div class="categoria-grupo">
+                <div class="categoria-grid">
+                    ${semCategoria.map(servico => `
+                        <div class="card-servico-opcao" data-id="${servico.id}">
+                            <span class="icone-servico-opcao">${servico.icone || '💅'}</span>
+                            <p class="nome-servico-opcao">${servico.nome}</p>
+                            <p class="preco-servico-opcao">R$ ${servico.preco}</p>
+                            <p class="duracao-servico-opcao">${servico.duracao || 60} min</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
 
     container.innerHTML = html;
 

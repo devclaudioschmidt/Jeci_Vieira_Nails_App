@@ -935,6 +935,15 @@ function criarEstruturaAdmin(dados) {
 /* ================================================
    RENDERIZAR LISTA DE SERVIÇOS
    ================================================ */
+const LABELS_CATEGORIA = {
+    manicure: 'Manicure e Pedicure',
+    podologia: 'Podologia'
+};
+
+function categoriasLabel(categoria) {
+    return LABELS_CATEGORIA[categoria] || categoria;
+}
+
 function renderizarListaServicos() {
     const container = document.getElementById('lista-servicos');
     
@@ -958,7 +967,7 @@ function renderizarListaServicos() {
                 </div>
                 <div class="info-servico">
                     <p class="nome-servico">${servico.nome}</p>
-                    <p class="detalhes-servico">${servico.duracao || 60} min</p>
+                    <p class="detalhes-servico">${servico.duracao || 60} min${servico.categoria ? ' • ' + categoriasLabel(servico.categoria) : ''}</p>
                 </div>
                 <p class="preco-servico">R$ ${servico.preco}</p>
                 <div class="botoes-servico">
@@ -1818,6 +1827,7 @@ function abrirModalServico(servico = null) {
     const descricao = servico ? servico.descricao : '';
     const preco = servico ? servico.preco : '';
     const duracao = servico ? servico.duracao : 60;
+    const categoria = servico ? servico.categoria || '' : '';
     
     overlay.innerHTML = `
         <div class="formulario" style="width: 100%; max-width: 400px; margin: 0;">
@@ -1861,6 +1871,15 @@ function abrirModalServico(servico = null) {
                     `).join('')}
                 </div>
                 <input type="hidden" id="servico-icone" value="${iconeSelecionado}">
+            </div>
+            
+            <div class="campo-formulario">
+                <label class="label-campo">Categoria</label>
+                <select class="input-campo" id="servico-categoria">
+                    <option value="" ${categoria === '' ? 'selected' : ''}>Sem categoria</option>
+                    <option value="manicure" ${categoria === 'manicure' ? 'selected' : ''}>💅 Manicure e Pedicure</option>
+                    <option value="podologia" ${categoria === 'podologia' ? 'selected' : ''}>🦶 Podologia</option>
+                </select>
             </div>
             
             <div class="botoes-formulario">
@@ -1976,6 +1995,7 @@ async function salvarServico() {
     const preco = parseFloat(document.getElementById('servico-preco').value) || 0;
     const duracao = parseInt(document.getElementById('servico-duracao').value) || 60;
     const icone = document.getElementById('servico-icone').value || '💅';
+    const categoria = document.getElementById('servico-categoria').value || '';
     
     if (!nome) {
         await mostrarAlerta('Campo Obrigatório', 'Por favor, digite o nome do serviço.', 'alerta');
@@ -1994,6 +2014,7 @@ async function salvarServico() {
             preco,
             duracao,
             icone,
+            categoria,
             ativo: true,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };

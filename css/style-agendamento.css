@@ -286,10 +286,32 @@ body {
    SELEÇÃO DE SERVIÇO
    ================================================ */
 .grid-servicos {
+    margin-bottom: 24px;
+}
+
+.categoria-grupo {
+    margin-bottom: 24px;
+}
+
+.categoria-grupo:last-child {
+    margin-bottom: 0;
+}
+
+.categoria-titulo {
+    font-family: var(--fonte-titulo);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cor-texto-escuro);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.categoria-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-    margin-bottom: 24px;
 }
 
 .card-servico-opcao {
